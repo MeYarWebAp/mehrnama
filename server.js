@@ -1,31 +1,65 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const pool = require('./db'); // وارد کردن تنظیمات دیتابیس از فایل db.js
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const pool = require('./db'); // فایل اتصال به دیتابیس PostgreSQL
 
 const app = express();
 
-// میان‌افزار (Middleware) برای خواندن داده‌های JSON از درخواست‌ها
+// میان‌افزار (Middleware) برای خواندن داده‌های JSON و فرم‌ها
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// اطمینان از وجود پوشه uploads برای ذخیره موقت فایل‌ها
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// سرو کردن پوشه uploads به صورت استاتیک برای دسترسی به فایل‌ها از طریق URL
+app.use('/uploads', express.static(uploadDir));
+
+// تنظیمات Multer برای مدیریت آپلود ویدیو و تصویر
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // محدودیت حجم: 50 مگابایت
+  fileFilter: (req, file, cb) => {
+    // پذیرش فقط فایل‌های ویدیو و تصویر
+    if (file.mimetype.startsWith('video/') || file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('فقط آپلود فایل‌های تصویری و ویدیویی مجاز است!'), false);
+    }
+  }
+});
 
 // مسیر تست برای بررسی کارکرد سرور
 app.get('/', (req, res) => {
-  res.send('به مهرنما خوش آمدید - نسخه آزمایشی (MVP) فعال است.');
+  res.send('به مهرنما خوش آمدید - پلتفرم شفاف‌سازی و پروژه‌های خیریه فعال است.');
 });
 
-// API ثبت‌نام خیریه
+// 1. API ثبت‌نام خیریه
 app.post('/api/charities/register', async (req, res) => {
   const { name, email, password, phone } = req.body;
 
-  // بررسی پر بودن فیلدهای اصلی
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'لطفاً نام، ایمیل و رمز عبور را وارد کنید.' });
   }
 
   try {
-    // هش کردن رمز عبور برای امنیت بالا
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // درج اطلاعات خیریه در دیتابیس PostgreSQL
     const query = `
       INSERT INTO charities (name, email, password, phone) 
       VALUES ($1, $2, $3, $4) 
@@ -40,17 +74,43 @@ app.post('/api/charities/register', async (req, res) => {
     });
   } catch (err) {
     console.error('Registration error:', err);
-    
-    // خطای تکراری بودن ایمیل در PostgreSQL
     if (err.code === '23505') {
       return res.status(400).json({ error: 'این ایمیل قبلاً در سیستم ثبت‌نام شده است.' });
     }
-    
     res.status(500).json({ error: 'خطای داخلی سرور رخ داده است.' });
   }
 });
 
-// تعریف پورت سرور (استفاده از پورت ران‌فلر یا پیش‌فرض 3000)
+// 2. API آپلود فایل یا ویدیو برای پروژه‌ها
+app.post('/api/projects/upload', upload.single('projectFile'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'هیچ فایلی ارسال نشده است.' });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    res.status(200).json({
+      message: 'فایل پروژه با موفقیت آپلود شد.',
+      fileName: req.file.filename,
+      filePath: fileUrl,
+      fileType: req.file.mimetype,
+      fileSize: req.file.size
+    });
+  } catch (err) {
+    console.error('Upload error:', err);
+    res.status(500).json({ error: 'خطا در بارگذاری فایل.' });
+  }
+});
+
+// مدیریت خطاهای احتمالی Multer (مثل غیرمجاز بودن فرمت یا حجم زیاد)
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || err.message) {
+    return res.status(400).json({ error: err.message });
+  }
+  next();
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
