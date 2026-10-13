@@ -12,11 +12,10 @@ const pool = new Pool({
 
 async function initDB() {
   try {
-    // 1. بررسی و ساخت جدول خیریه‌ها به صورت امن
-    const charityCheck = await pool.query("SELECT TO_REGCLASS('public.charities');");
-    if (!charityCheck.rows[0].to_regclass) {
+    // 1. ساخت جدول خیریه‌ها با مدیریت خطای تداخل سیستمی
+    try {
       await pool.query(`
-        CREATE TABLE charities (
+        CREATE TABLE IF NOT EXISTS charities (
           id SERIAL PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
           email VARCHAR(255) UNIQUE NOT NULL,
@@ -25,16 +24,19 @@ async function initDB() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-      console.log('Table charities created successfully.');
-    } else {
-      console.log('Table charities already exists.');
+      console.log('Table charities is ready.');
+    } catch (err) {
+      if (err.code === '23505') {
+        console.log('Table charities already exists in catalog, skipping.');
+      } else {
+        throw err;
+      }
     }
 
-    // 2. بررسی و ساخت جدول پروژه‌ها به صورت امن
-    const projectCheck = await pool.query("SELECT TO_REGCLASS('public.projects');");
-    if (!projectCheck.rows[0].to_regclass) {
+    // 2. ساخت جدول پروژه‌ها با مدیریت خطای تداخل سیستمی
+    try {
       await pool.query(`
-        CREATE TABLE projects (
+        CREATE TABLE IF NOT EXISTS projects (
           id SERIAL PRIMARY KEY,
           charity_id INT REFERENCES charities(id) ON DELETE CASCADE,
           title VARCHAR(255) NOT NULL,
@@ -43,9 +45,13 @@ async function initDB() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-      console.log('Table projects created successfully.');
-    } else {
-      console.log('Table projects already exists.');
+      console.log('Table projects is ready.');
+    } catch (err) {
+      if (err.code === '23505') {
+        console.log('Table projects already exists in catalog, skipping.');
+      } else {
+        throw err;
+      }
     }
 
     console.log('Database initialization completed.');
