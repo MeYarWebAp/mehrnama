@@ -17,7 +17,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// سرو کردن پوشه uploads به صورت استاتیک برای دسترسی به فایل‌ها از طریق URL
+// سرو کردن پوشه uploads به صورت استاتیک برای دسترسی به فایل‌ها
 app.use('/uploads', express.static(uploadDir));
 
 // تنظیمات Multer برای مدیریت آپلود ویدیو و تصویر
@@ -35,7 +35,6 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 50 * 1024 * 1024 }, // محدودیت حجم: 50 مگابایت
   fileFilter: (req, file, cb) => {
-    // پذیرش فقط فایل‌های ویدیو و تصویر
     if (file.mimetype.startsWith('video/') || file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
@@ -44,9 +43,9 @@ const upload = multer({
   }
 });
 
-// مسیر تست برای بررسی کارکرد سرور
+// مسیر تست سرور
 app.get('/', (req, res) => {
-  res.send('به مهرنما خوش آمدید - پلتفرم شفاف‌سازی و پروژه‌های خیریه فعال است.');
+  res.send('به مهرنما خوش آمدید - پلتفرم پروژه‌های خیریه فعال است.');
 });
 
 // 1. API ثبت‌نام خیریه
@@ -81,29 +80,36 @@ app.post('/api/charities/register', async (req, res) => {
   }
 });
 
-// 2. API آپلود فایل یا ویدیو برای پروژه‌ها
-app.post('/api/projects/upload', upload.single('projectFile'), (req, res) => {
+// 2. API ثبت پروژه و آپلود ویدیو/فایل مربوط به خیریه
+app.post('/api/projects/create', upload.single('projectFile'), async (req, res) => {
+  const { charity_id, title, description } = req.body;
+
+  if (!charity_id || !title || !req.file) {
+    return res.status(400).json({ error: 'لطفاً شناسه خیریه، عنوان پروژه و فایل ویدیویی را ارسال کنید.' });
+  }
+
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'هیچ فایلی ارسال نشده است.' });
-    }
+    const filePath = `/uploads/${req.file.filename}`;
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const query = `
+      INSERT INTO projects (charity_id, title, description, file_path) 
+      VALUES ($1, $2, $3, $4) 
+      RETURNING id, charity_id, title, description, file_path, created_at;
+    `;
+    const values = [charity_id, title, description || '', filePath];
+    const result = await pool.query(query, values);
 
-    res.status(200).json({
-      message: 'فایل پروژه با موفقیت آپلود شد.',
-      fileName: req.file.filename,
-      filePath: fileUrl,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size
+    res.status(201).json({
+      message: 'پروژه و فایل آن با موفقیت در دیتابیس ثبت شد.',
+      project: result.rows[0]
     });
   } catch (err) {
-    console.error('Upload error:', err);
-    res.status(500).json({ error: 'خطا در بارگذاری فایل.' });
+    console.error('Project creation error:', err);
+    res.status(500).json({ error: 'خطا در ثبت پروژه.' });
   }
 });
 
-// مدیریت خطاهای احتمالی Multer (مثل غیرمجاز بودن فرمت یا حجم زیاد)
+// مدیریت خطاهای Multer
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError || err.message) {
     return res.status(400).json({ error: err.message });
