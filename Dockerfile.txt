@@ -1,0 +1,20 @@
+# Dockerfile
+FROM node:18-alpine
+
+# تنظیم پوشه کاری
+WORKDIR /app
+
+# کپی کردن فایل‌های نیازمندی
+COPY package*.json ./
+
+# نصب نیازمندی‌ها
+RUN npm install --production
+
+# کپی کردن کل کد پروژه
+COPY . .
+
+# باز کردن پورت ۳۰۰۰
+EXPOSE 3000
+
+# دستور اجرای برنامه
+CMD ["npm", "start"]
