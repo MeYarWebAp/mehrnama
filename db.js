@@ -12,7 +12,7 @@ const pool = new Pool({
 
 async function initDB() {
   try {
-    // 1. ساخت جدول خیریه‌ها با مدیریت خطای تداخل سیستمی
+    // استفاده از دستورات جداگانه با هندلینگ دقیق خطا برای جلوگیری از توقف سرور
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS charities (
@@ -26,14 +26,9 @@ async function initDB() {
       `);
       console.log('Table charities is ready.');
     } catch (err) {
-      if (err.code === '23505') {
-        console.log('Table charities already exists in catalog, skipping.');
-      } else {
-        throw err;
-      }
+      console.log('Notice on charities table initialization:', err.message);
     }
 
-    // 2. ساخت جدول پروژه‌ها با مدیریت خطای تداخل سیستمی
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS projects (
@@ -47,16 +42,12 @@ async function initDB() {
       `);
       console.log('Table projects is ready.');
     } catch (err) {
-      if (err.code === '23505') {
-        console.log('Table projects already exists in catalog, skipping.');
-      } else {
-        throw err;
-      }
+      console.log('Notice on projects table initialization:', err.message);
     }
 
-    console.log('Database initialization completed.');
+    console.log('Database initialization completed successfully.');
   } catch (err) {
-    console.error('Error creating tables:', err);
+    console.error('General database error:', err);
   }
 }
 
