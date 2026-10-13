@@ -1,8 +1,14 @@
 const { Pool } = require('pg');
 
+// پاکسازی متغیر اتصال برای حذف هرگونه تنظیمات SSL اجباری از درون URL
+let connectionString = process.env.DATABASE_URL;
+if (connectionString) {
+  connectionString = connectionString.replace(/([?&])sslmode=[^&]+(&|$)/, '$1').replace(/[?&]$/, '');
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: false // صراحتاً SSL را غیرفعال می‌کنیم تا خطایی رخ ندهد
+  connectionString: connectionString,
+  ssl: false
 });
 
 async function initDB() {
