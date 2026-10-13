@@ -1,28 +1,38 @@
 const { Pool } = require('pg');
 
-// اتصال به دیتابیس با استفاده از متغیر محیطی ران‌فلر
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // برای ارتباط امن با دیتابیس‌های ابری
+  connectionString: process.env.DATABASE_URL
 });
 
-// تابع برای ساخت جدول خیریه‌ها در صورت عدم وجود
 async function initDB() {
-  const query = `
-    CREATE TABLE IF NOT EXISTS charities (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) UNIQUE NOT NULL,
-      password VARCHAR(255) NOT NULL,
-      phone VARCHAR(50),
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `;
   try {
-    await pool.query(query);
-    console.log('Charities table is ready.');
+    // 1. ساخت جدول خیریه‌ها
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS charities (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // 2. ساخت جدول پروژه‌ها و ویدیوها
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id SERIAL PRIMARY KEY,
+        charity_id INT REFERENCES charities(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        file_path VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    console.log('Tables (charities & projects) are ready.');
   } catch (err) {
-    console.error('Error creating table:', err);
+    console.error('Error creating tables:', err);
   }
 }
 
