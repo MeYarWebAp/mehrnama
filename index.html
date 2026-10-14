@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مهرنما - پلتفرم شفاف‌سازی ویدیوهای خیریه</title>
+    <title>مهرنما - پلتفرم ویدیوهای خیریه</title>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -22,13 +22,30 @@
         }
         header h1 {
             margin: 0;
-            color: #cc0000; /* رنگ الهام گرفته از پلتفرم‌های ویدیویی */
+            color: #cc0000;
             font-size: 24px;
+            cursor: pointer;
         }
         .container {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
+        }
+        .channel-header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .channel-header h2 {
+            margin: 0 0 10px 0;
+            color: #111;
+        }
+        .channel-header p {
+            margin: 0;
+            color: #606060;
+            font-size: 14px;
         }
         .section-title {
             font-size: 20px;
@@ -36,7 +53,6 @@
             margin-bottom: 20px;
             color: #111;
         }
-        /* ساختار شبکه یوتیوبی (۳ ستون در هر ردیف) */
         .video-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -75,10 +91,16 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .channel-name {
+        .channel-link {
             font-size: 14px;
-            color: #606060;
+            color: #065fd4;
+            text-decoration: none;
             margin-bottom: 5px;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .channel-link:hover {
+            text-decoration: underline;
         }
         .video-desc {
             font-size: 13px;
@@ -89,76 +111,127 @@
             overflow: hidden;
         }
         @media (max-width: 900px) {
-            .video-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .video-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 600px) {
-            .video-grid {
-                grid-template-columns: 1fr;
-            }
+            .video-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>مهرنما (Mehrnama)</h1>
+        <h1 onclick="window.location.href='/'">مهرنما (Mehrnama)</h1>
         <div>پلتفرم ویدیو و شفاف‌سازی خیریه‌ها</div>
     </header>
 
-    <div class="container">
-        <div class="section-title">ویدیوهای منتخب و اخیر خیریه‌ها</div>
-        <div class="video-grid" id="video-container">
-            <p>در حال بارگذاری ویدیوها...</p>
-        </div>
+    <div class="container" id="main-content">
+        <p>در حال بارگذاری...</p>
     </div>
 
     <script>
-        async function loadFeaturedVideos() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const charityId = urlParams.get('charity_id');
+
+        async function loadHome() {
+            const container = document.getElementById('main-content');
+            container.innerHTML = `
+                <div class="section-title">ویدیوهای منتخب و اخیر خیریه‌ها</div>
+                <div class="video-grid" id="video-container"><p>در حال بارگذاری ویدیوها...</p></div>
+            `;
+
             try {
                 const response = await fetch('/api/projects');
                 const projects = await response.json();
-                
-                const container = document.getElementById('video-container');
-                container.innerHTML = '';
+                const videoContainer = document.getElementById('video-container');
+                videoContainer.innerHTML = '';
 
                 if (projects.length === 0) {
-                    container.innerHTML = '<p>هنوز ویدیویی ثبت نشده است.</p>';
+                    videoContainer.innerHTML = '<p>هنوز ویدیویی ثبت نشده است.</p>';
                     return;
                 }
 
-                // نمایش حداکثر ۶ ویدیو (برای چینش ۲ ردیف ۳تایی در صفحه اصلی)
-                const featuredProjects = projects.slice(0, 6);
-
-                featuredProjects.forEach(project => {
+                projects.forEach(project => {
                     const card = document.createElement('div');
                     card.className = 'video-card';
 
-                    let mediaHtml = '';
-                    if (project.file_path.endsWith('.mp4') || project.file_path.endsWith('.webm')) {
-                        mediaHtml = `<div class="media-box"><video controls src="${project.file_path}"></video></div>`;
-                    } else {
-                        mediaHtml = `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه"></div>`;
-                    }
+                    let mediaHtml = project.file_path.endsWith('.mp4') || project.file_path.endsWith('.webm')
+                        ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
+                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه"></div>`;
 
                     card.innerHTML = `
                         ${mediaHtml}
                         <div class="video-info">
                             <div class="video-title">${project.title}</div>
-                            <div class="channel-name">کانال خیریه: ${project.charity_name}</div>
+                            <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
                             <div class="video-desc">${project.description}</div>
                         </div>
                     `;
-                    container.appendChild(card);
+                    videoContainer.appendChild(card);
                 });
             } catch (err) {
                 console.error('Error:', err);
-                document.getElementById('video-container').innerHTML = '<p>خطا در دریافت ویدیوها.</p>';
             }
         }
 
-        loadFeaturedVideos();
+        async function loadChannel(id) {
+            const container = document.getElementById('main-content');
+            container.innerHTML = `<p>در حال بارگذاری اطلاعات کانال...</p>`;
+
+            try {
+                const response = await fetch(`/api/charities/${id}/projects`);
+                const data = await response.json();
+
+                if (response.status !== 200) {
+                    container.innerHTML = `<p>${data.error || 'خطا در بارگذاری کانال'}</p>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="channel-header">
+                        <h2>کانال خیریه: ${data.charity.name}</h2>
+                        <p>ایمیل ارتباطی: ${data.charity.email} | تلفن: ${data.charity.phone || 'ثبت نشده'}</p>
+                    </div>
+                    <div class="section-title">ویدیوها و پروژه‌های این کانال</div>
+                    <div class="video-grid" id="channel-videos"></div>
+                `;
+
+                const videoContainer = document.getElementById('channel-videos');
+                if (data.projects.length === 0) {
+                    videoContainer.innerHTML = '<p>این خیریه هنوز ویدیویی آپلود نکرده است.</p>';
+                    return;
+                }
+
+                data.projects.forEach(project => {
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+
+                    let mediaHtml = project.file_path.endsWith('.mp4') || project.file_path.endsWith('.webm')
+                        ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
+                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه"></div>`;
+
+                    card.innerHTML = `
+                        ${mediaHtml}
+                        <div class="video-info">
+                            <div class="video-title">${project.title}</div>
+                            <div class="video-desc">${project.description}</div>
+                        </div>
+                    `;
+                    videoContainer.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error('Error loading channel:', err);
+                container.innerHTML = '<p>خطا در ارتباط با سرور.</p>';
+            }
+        }
+
+        // بررسی اینکه آیا کاربر در صفحه اصلی است یا صفحه کانال
+        if (charityId) {
+            loadChannel(charityId);
+        } else {
+            loadHome();
+        }
     </script>
 
 </body>
