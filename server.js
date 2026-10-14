@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// اطمینان از وجود پوشه uploads برای ذخیره موقت فایل‌ها
+// اطمینان از وجود پوشه uploads برای ذخیره فایل‌ها
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
@@ -85,7 +85,7 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
   const { charity_id, title, description } = req.body;
 
   if (!charity_id || !title || !req.file) {
-    return res.status(400).json({ error: 'لطفاً شناسه خیریه، عنوان پروژه و فایل ویدیویی را ارسال کنید.' });
+    return res.status(400).json({ error: 'لطفاً شناسه خیریه، عنوان پروژه و فایل ویدیویی/تصویری را ارسال کنید.' });
   }
 
   try {
@@ -109,11 +109,11 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
   }
 });
 
-// 3. API دریافت لیست پروژه‌ها و ویدیوها جهت نمایش در فرانت‌اند
+// 3. API دریافت لیست تمامی پروژه‌ها (جهت نمایش در صفحه اصلی)
 app.get('/api/projects', async (req, res) => {
   try {
     const query = `
-      SELECT p.id, p.title, p.description, p.file_path, p.created_at, c.name as charity_name 
+      SELECT p.id, p.title, p.description, p.file_path, p.created_at, p.charity_id, c.name as charity_name 
       FROM charity_projects p 
       JOIN charity_users c ON p.charity_id = c.id 
       ORDER BY p.created_at DESC;
@@ -123,6 +123,35 @@ app.get('/api/projects', async (req, res) => {
   } catch (err) {
     console.error('Fetch projects error:', err);
     res.status(500).json({ error: 'خطا در دریافت لیست پروژه‌ها.' });
+  }
+});
+
+// 4. API جدید: دریافت اطلاعات و پروژه‌های یک کانال خیریه خاص (صفحه کانال)
+app.get('/api/charities/:id/projects', async (req, res) => {
+  const charityId = req.params.id;
+  try {
+    const charityQuery = `SELECT id, name, email, phone, created_at FROM charity_users WHERE id = $1`;
+    const charityResult = await pool.query(charityQuery, [charityId]);
+
+    if (charityResult.rows.length === 0) {
+      return res.status(404).json({ error: 'خیریه مورد نظر یافت نشد.' });
+    }
+
+    const projectsQuery = `
+      SELECT id, title, description, file_path, created_at 
+      FROM charity_projects 
+      WHERE charity_id = $1 
+      ORDER BY created_at DESC;
+    `;
+    const projectsResult = await pool.query(projectsQuery, [charityId]);
+
+    res.status(200).json({
+      charity: charityResult.rows[0],
+      projects: projectsResult.rows
+    });
+  } catch (err) {
+    console.error('Fetch charity channel error:', err);
+    res.status(500).json({ error: 'خطا در دریافت اطلاعات کانال خیریه.' });
   }
 });
 
