@@ -43,9 +43,9 @@ const upload = multer({
   }
 });
 
-// مسیر تست سرور
+// سرو کردن صفحه اصلی فرانت‌اند (index.html)
 app.get('/', (req, res) => {
-  res.send('به مهرنما خوش آمدید - پلتفرم پروژه‌های خیریه فعال است.');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // 1. API ثبت‌نام خیریه
