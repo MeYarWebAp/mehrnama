@@ -45,7 +45,7 @@ const upload = multer({
 
 // مسیر تست سرور
 app.get('/', (req, res) => {
-  res.send('به مهرنما خوش آمدید - تصویرِ شفافِ مهربانی.');
+  res.send('به مهرنما خوش آمدید - پلتفرم پروژه‌های خیریه فعال است.');
 });
 
 // 1. API ثبت‌نام خیریه
@@ -60,7 +60,7 @@ app.post('/api/charities/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const query = `
-      INSERT INTO charities (name, email, password, phone) 
+      INSERT INTO charity_users (name, email, password, phone) 
       VALUES ($1, $2, $3, $4) 
       RETURNING id, name, email, phone, created_at;
     `;
@@ -92,7 +92,7 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
     const filePath = `/uploads/${req.file.filename}`;
 
     const query = `
-      INSERT INTO projects (charity_id, title, description, file_path) 
+      INSERT INTO charity_projects (charity_id, title, description, file_path) 
       VALUES ($1, $2, $3, $4) 
       RETURNING id, charity_id, title, description, file_path, created_at;
     `;
@@ -106,6 +106,23 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
   } catch (err) {
     console.error('Project creation error:', err);
     res.status(500).json({ error: 'خطا در ثبت پروژه.' });
+  }
+});
+
+// 3. API دریافت لیست پروژه‌ها و ویدیوها جهت نمایش در فرانت‌اند
+app.get('/api/projects', async (req, res) => {
+  try {
+    const query = `
+      SELECT p.id, p.title, p.description, p.file_path, p.created_at, c.name as charity_name 
+      FROM charity_projects p 
+      JOIN charity_users c ON p.charity_id = c.id 
+      ORDER BY p.created_at DESC;
+    `;
+    const result = await pool.query(query);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Fetch projects error:', err);
+    res.status(500).json({ error: 'خطا در دریافت لیست پروژه‌ها.' });
   }
 });
 
