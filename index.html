@@ -94,6 +94,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
         .media-box video, .media-box img {
             width: 100%;
@@ -168,7 +169,7 @@
             const container = document.getElementById('main-content');
             container.innerHTML = `
                 <div class="section-title">ویدیوهای منتخب و اخیر</div>
-                <div class="video-grid" id="video-container"><p>در حال بارگذاری ویدیوها...</p></div>
+                <div class="video-grid" id="video-container"><p>در حال بارگذاری...</p></div>
             `;
 
             try {
@@ -178,7 +179,7 @@
                 videoContainer.innerHTML = '';
 
                 if (projects.length === 0) {
-                    videoContainer.innerHTML = '<p>هنوز ویدیویی ثبت نشده است.</p>';
+                    videoContainer.innerHTML = '<p>هنوز آیتمی ثبت نشده است.</p>';
                     return;
                 }
 
@@ -188,7 +189,7 @@
 
                     let mediaHtml = isVideo(project.file_path)
                         ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
-                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x180?text=تصویر+یافت+نشد';"></div>`;
+                        : `<div class="media-box"><img src="${project.file_path}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
 
                     card.innerHTML = `
                         ${mediaHtml}
@@ -229,7 +230,7 @@
 
                 const videoContainer = document.getElementById('channel-videos');
                 if (data.projects.length === 0) {
-                    videoContainer.innerHTML = '<p>این کانال هنوز ویدیویی آپلود نکرده است.</p>';
+                    videoContainer.innerHTML = '<p>این کانال هنوز موردی آپلود نکرده است.</p>';
                     return;
                 }
 
@@ -239,7 +240,7 @@
 
                     let mediaHtml = isVideo(project.file_path)
                         ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
-                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x180?text=تصویر+یافت+نشد';"></div>`;
+                        : `<div class="media-box"><img src="${project.file_path}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
 
                     card.innerHTML = `
                         ${mediaHtml}
