@@ -126,7 +126,7 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
-// 4. API جدید: دریافت اطلاعات و پروژه‌های یک کانال خیریه خاص (صفحه کانال)
+// 4. API دریافت اطلاعات و پروژه‌های یک کانال خیریه خاص (صفحه کانال)
 app.get('/api/charities/:id/projects', async (req, res) => {
   const charityId = req.params.id;
   try {
@@ -153,6 +153,21 @@ app.get('/api/charities/:id/projects', async (req, res) => {
     console.error('Fetch charity channel error:', err);
     res.status(500).json({ error: 'خطا در دریافت اطلاعات کانال خیریه.' });
   }
+});
+
+// 5. مسیر تستی جدید: بررسی وجود فایل‌ها در پوشه uploads سرور
+app.get('/api/check-uploads', (req, res) => {
+  const targetDir = path.join(__dirname, 'uploads');
+  fs.readdir(targetDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'خطا در خواندن پوشه آپلودها', details: err.message });
+    }
+    res.json({
+      message: 'بررسی وضعیت پوشه uploads روی سرور',
+      fileCount: files.length,
+      files: files
+    });
+  });
 });
 
 // مدیریت خطاهای Multer
