@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مهرنما - پلتفرم ویدیوهای خیریه</title>
+    <title>مهرنما - تصویر شفاف مهربانی</title>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -122,7 +122,7 @@
 
     <header>
         <h1 onclick="window.location.href='/'">مهرنما (Mehrnama)</h1>
-        <div>پلتفرم ویدیو و شفاف‌سازی خیریه‌ها</div>
+        <div>تصویر شفاف مهربانی</div>
     </header>
 
     <div class="container" id="main-content">
@@ -136,7 +136,7 @@
         async function loadHome() {
             const container = document.getElementById('main-content');
             container.innerHTML = `
-                <div class="section-title">ویدیوهای منتخب و اخیر خیریه‌ها</div>
+                <div class="section-title">ویدیوهای منتخب و اخیر</div>
                 <div class="video-grid" id="video-container"><p>در حال بارگذاری ویدیوها...</p></div>
             `;
 
@@ -189,7 +189,7 @@
 
                 container.innerHTML = `
                     <div class="channel-header">
-                        <h2>کانال خیریه: ${data.charity.name}</h2>
+                        <h2>کانال: ${data.charity.name}</h2>
                         <p>ایمیل ارتباطی: ${data.charity.email} | تلفن: ${data.charity.phone || 'ثبت نشده'}</p>
                     </div>
                     <div class="section-title">ویدیوها و پروژه‌های این کانال</div>
@@ -198,7 +198,7 @@
 
                 const videoContainer = document.getElementById('channel-videos');
                 if (data.projects.length === 0) {
-                    videoContainer.innerHTML = '<p>این خیریه هنوز ویدیویی آپلود نکرده است.</p>';
+                    videoContainer.innerHTML = '<p>این کانال هنوز ویدیویی آپلود نکرده است.</p>';
                     return;
                 }
 
@@ -226,7 +226,6 @@
             }
         }
 
-        // بررسی اینکه آیا کاربر در صفحه اصلی است یا صفحه کانال
         if (charityId) {
             loadChannel(charityId);
         } else {
