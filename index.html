@@ -20,11 +20,30 @@
             justify-content: space-between;
             align-items: center;
         }
-        header h1 {
-            margin: 0;
-            color: #cc0000;
-            font-size: 24px;
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             cursor: pointer;
+        }
+        .logo-icon {
+            background-color: #cc0000;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 2px 4px rgba(204, 0, 0, 0.3);
+        }
+        .logo-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #111;
+            letter-spacing: -0.5px;
         }
         .container {
             max-width: 1200px;
@@ -121,8 +140,11 @@
 <body>
 
     <header>
-        <h1 onclick="window.location.href='/'">مهرنما (Mehrnama)</h1>
-        <div>تصویر شفاف مهربانی</div>
+        <div class="logo-box" onclick="window.location.href='/'">
+            <div class="logo-icon">م</div>
+            <div class="logo-text">مهرنما</div>
+        </div>
+        <div style="font-size: 14px; color: #606060; font-weight: 500;">تصویر شفاف مهربانی</div>
     </header>
 
     <div class="container" id="main-content">
