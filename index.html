@@ -90,7 +90,10 @@
         .media-box {
             width: 100%;
             height: 180px;
-            background-color: #000;
+            background-color: #eef2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .media-box video, .media-box img {
             width: 100%;
@@ -155,6 +158,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         const charityId = urlParams.get('charity_id');
 
+        function isVideo(filePath) {
+            if (!filePath) return false;
+            const ext = filePath.toLowerCase();
+            return ext.endsWith('.mp4') || ext.endsWith('.webm') || ext.endsWith('.ogg') || ext.endsWith('.mov');
+        }
+
         async function loadHome() {
             const container = document.getElementById('main-content');
             container.innerHTML = `
@@ -177,9 +186,9 @@
                     const card = document.createElement('div');
                     card.className = 'video-card';
 
-                    let mediaHtml = project.file_path.endsWith('.mp4') || project.file_path.endsWith('.webm')
+                    let mediaHtml = isVideo(project.file_path)
                         ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
-                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه"></div>`;
+                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x180?text=تصویر+یافت+نشد';"></div>`;
 
                     card.innerHTML = `
                         ${mediaHtml}
@@ -228,9 +237,9 @@
                     const card = document.createElement('div');
                     card.className = 'video-card';
 
-                    let mediaHtml = project.file_path.endsWith('.mp4') || project.file_path.endsWith('.webm')
+                    let mediaHtml = isVideo(project.file_path)
                         ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
-                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه"></div>`;
+                        : `<div class="media-box"><img src="${project.file_path}" alt="تصویر پروژه" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x180?text=تصویر+یافت+نشد';"></div>`;
 
                     card.innerHTML = `
                         ${mediaHtml}
