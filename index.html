@@ -138,7 +138,7 @@
         async function loadHome() {
             let container = document.getElementById('main-content');
             container.innerHTML = `
-                <div class="section-title">۶ ویدیوی برتر و منتخب کشور</div>
+                <div class="section-title">آخرین پروژه‌ها و مستندات خیریه</div>
                 <div class="video-grid" id="top-videos"><p>در حال بارگذاری...</p></div>
                 
                 <div class="province-section">
@@ -225,7 +225,6 @@
                 vc.appendChild(card);
             });
 
-            // Extract unique districts or show standard sample districts for the province
             let districts = [...new Set(provinceProjects.map(p => p.district).filter(Boolean))];
             if (districts.length === 0) districts = ['مرکزی', 'منطقه ۱', 'منطقه ۲', 'حومه'];
 
