@@ -20,7 +20,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 async function initDB() {
     try {
-        // ایجاد جداول پایه
         await pool.query(`
             CREATE TABLE IF NOT EXISTS charity_users (
                 id SERIAL PRIMARY KEY,
@@ -57,7 +56,6 @@ async function initDB() {
             );
         `);
 
-        // اضافه کردن ستون‌های تکمیلی به جدول خیریه اگر وجود نداشته باشند
         await pool.query(`
             ALTER TABLE charity_users ADD COLUMN IF NOT EXISTS registration_number VARCHAR(100);
             ALTER TABLE charity_users ADD COLUMN IF NOT EXISTS landline_phone VARCHAR(50);
@@ -151,7 +149,8 @@ async function seedSampleData() {
         for (let j = 0; j < projectCount; j++) {
             const title = projectTitles[Math.floor(Math.random() * projectTitles.length)];
             const description = `گزارش کامل و مستندات مربوط به فعالیت خیرخواهانه انجام شده توسط ${name} در منطقه ${loc.location} استان ${loc.province}.`;
-            const filePath = `https://picsum.photos/seed/mehrnama_${charityId_${j}}/600/400`;
+            // اصلاح خطا در اینجا انجام شد:
+            const filePath = `https://picsum.photos/seed/mehrnama_${charityId}_${j}/600/400`;
 
             await pool.query(
                 `INSERT INTO charity_projects (charity_id, title, description, file_path) 
@@ -163,7 +162,6 @@ async function seedSampleData() {
     console.log("Successfully seeded 20 charities and projects.");
 }
 
-// APIs
 app.post('/api/users/register', async (req, res) => {
     const { name, phone, password } = req.body;
     try {
@@ -308,7 +306,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ابتدا دیتابیس کامل مقداردهی و به‌روزرسانی شود، سپس سرور روشن شود
 initDB().then(() => {
     app.listen(port, () => {
         console.log(`Server listening on port ${port}`);
