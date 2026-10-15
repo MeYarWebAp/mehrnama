@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname)));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ساخت خودکار جدول‌ها در زمان راه‌اندازی سرور برای جلوگیری از خطای دیتابیس
+// Database tables auto-creation
 async function initDB() {
     try {
         await pool.query(`
@@ -61,9 +61,9 @@ async function initDB() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("Database tables checked/created successfully.");
+        console.log("Database tables verified successfully.");
     } catch (err) {
-        console.error("Error initializing database tables:", err);
+        console.error("Database initialization error:", err);
     }
 }
 initDB();
@@ -83,7 +83,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// ثبت‌نام کاربر حقیقی
+// Regular User Registration
 app.post('/api/users/register', async (req, res) => {
     const { name, phone, password } = req.body;
     try {
@@ -92,14 +92,37 @@ app.post('/api/users/register', async (req, res) => {
             'INSERT INTO regular_users (name, phone, password) VALUES ($1, $2, $3) RETURNING id, name, phone',
             [name, phone, hashedPassword]
         );
-        res.status(201).json({ message: 'ثبت‌نام کاربر با موفقیت انجام شد', user: result.rows[0] });
+        res.status(201).json({ message: 'User registered successfully', user: result.rows[0] });
     } catch (err) {
         console.error('User register error:', err);
-        res.status(400).json({ error: 'خطا در ثبت‌نام. ممکن است شماره تلفن تکراری باشد.' });
+        res.status(400).json({ error: 'Registration error. Phone number might already exist.' });
     }
 });
 
-// ثبت‌نام خیریه با فیلدهای کامل
+// Regular User Login
+app.post('/api/users/login', async (req, res) => {
+    const { phone, password } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM regular_users WHERE phone = $1', [phone]);
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'Invalid phone number or password.' });
+        }
+        const user = result.rows[0];
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ error: 'Invalid phone number or password.' });
+        }
+        res.json({ 
+            message: 'Login successful', 
+            user: { id: user.id, name: user.name, phone: user.phone } 
+        });
+    } catch (err) {
+        console.error('User login error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Charity Registration with detailed fields
 app.post('/api/charities/register', async (req, res) => {
     const { name, email, phone, password, registration_number, landline_phone, province, district, location_name } = req.body;
     try {
@@ -110,37 +133,37 @@ app.post('/api/charities/register', async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, email`,
             [name, email, phone, hashedPassword, registration_number, landline_phone, province, district, location_name]
         );
-        res.status(201).json({ message: 'ثبت‌نام خیریه با موفقیت انجام شد', charity: result.rows[0] });
+        res.status(201).json({ message: 'Charity registered successfully', charity: result.rows[0] });
     } catch (err) {
         console.error('Charity register error:', err);
-        res.status(400).json({ error: 'خطا در ثبت‌نام خیریه. ایمیل یا اطلاعات تکراری است.' });
+        res.status(400).json({ error: 'Charity registration error. Email or data might be duplicate.' });
     }
 });
 
-// ورود خیریه
+// Charity Login
 app.post('/api/charities/login', async (req, res) => {
     const { email, password } = req.body;
     try {
         const result = await pool.query('SELECT * FROM charity_users WHERE email = $1', [email]);
         if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'ایمیل یا رمز عبور اشتباه است.' });
+            return res.status(400).json({ error: 'Invalid email or password.' });
         }
         const charity = result.rows[0];
         const validPassword = await bcrypt.compare(password, charity.password);
         if (!validPassword) {
-            return res.status(400).json({ error: 'ایمیل یا رمز عبور اشتباه است.' });
+            return res.status(400).json({ error: 'Invalid email or password.' });
         }
         res.json({ 
-            message: 'ورود موفقیت‌آمیز', 
+            message: 'Login successful', 
             charity: { id: charity.id, name: charity.name, email: charity.email } 
         });
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500).json({ error: 'خطای سرور' });
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
-// ایجاد پروژه جدید
+// Create Project
 app.post('/api/projects/create', upload.single('projectFile'), async (req, res) => {
     const { charity_id, title, description } = req.body;
     const filePath = req.file ? `/uploads/${req.file.filename}` : null;
@@ -153,11 +176,11 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Project create error:', err);
-        res.status(500).json({ error: 'خطا در ثبت پروژه' });
+        res.status(500).json({ error: 'Project creation failed' });
     }
 });
 
-// دریافت لیست تمام پروژه‌ها
+// Get Projects
 app.get('/api/projects', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -169,17 +192,17 @@ app.get('/api/projects', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Fetch projects error:', err);
-        res.status(500).json({ error: 'خطا در دریافت پروژه‌ها' });
+        res.status(500).json({ error: 'Fetching projects failed' });
     }
 });
 
-// دریافت پروژه‌های یک کانال خاص
+// Get Charity Channel Projects
 app.get('/api/charities/:id/projects', async (req, res) => {
     const charityId = req.params.id;
     try {
         const charityRes = await pool.query('SELECT id, name, email, phone FROM charity_users WHERE id = $1', [charityId]);
         if (charityRes.rows.length === 0) {
-            return res.status(404).json({ error: 'کانال مورد نظر یافت نشد.' });
+            return res.status(404).json({ error: 'Channel not found.' });
         }
         const projectsRes = await pool.query(
             'SELECT * FROM charity_projects WHERE charity_id = $1 ORDER BY created_at DESC',
@@ -191,11 +214,11 @@ app.get('/api/charities/:id/projects', async (req, res) => {
         });
     } catch (err) {
         console.error('Fetch channel error:', err);
-        res.status(500).json({ error: 'خطا در دریافت اطلاعات کانال' });
+        res.status(500).json({ error: 'Fetching channel data failed' });
     }
 });
 
-// دریافت نظرات
+// Get Comments
 app.get('/api/projects/:id/comments', async (req, res) => {
     const projectId = req.params.id;
     try {
@@ -206,11 +229,11 @@ app.get('/api/projects/:id/comments', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Fetch comments error:', err);
-        res.status(500).json({ error: 'خطا در دریافت نظرات' });
+        res.status(500).json({ error: 'Fetching comments failed' });
     }
 });
 
-// ثبت نظر جدید
+// Post Comment
 app.post('/api/projects/:id/comments', async (req, res) => {
     const projectId = req.params.id;
     const { author_name, comment_text } = req.body;
@@ -222,7 +245,7 @@ app.post('/api/projects/:id/comments', async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Post comment error:', err);
-        res.status(500).json({ error: 'خطا در ثبت نظر' });
+        res.status(500).json({ error: 'Posting comment failed' });
     }
 });
 
