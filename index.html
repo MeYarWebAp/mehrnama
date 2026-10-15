@@ -105,15 +105,15 @@
 
     <!-- YouTube style horizontal tags bar -->
     <div class="tags-bar" id="tagsBar">
-        <button class="tag-chip active" onclick="filterByTag('همه')">همه</button>
-        <button class="tag-chip" onclick="filterByTag('ساخت مدرسه')">ساخت مدرسه</button>
-        <button class="tag-chip" onclick="filterByTag('بیماری‌های خاص')">بیماری‌های خاص</button>
-        <button class="tag-chip" onclick="filterByTag('کودکان نیازمند')">کودکان نیازمند</button>
-        <button class="tag-chip" onclick="filterByTag('خانواده')">خانواده</button>
-        <button class="tag-chip" onclick="filterByTag('درمانگاه')">درمانگاه</button>
-        <button class="tag-chip" onclick="filterByTag('بیمارستان')">بیمارستان</button>
-        <button class="tag-chip" onclick="filterByTag('مسکن محرومان')">مسکن محرومان</button>
-        <button class="tag-chip" onclick="filterByTag('بسته‌های معیشتی')">بسته‌های معیشتی</button>
+        <button class="tag-chip" data-tag="همه" onclick="filterByTag('همه')">همه</button>
+        <button class="tag-chip" data-tag="ساخت مدرسه" onclick="filterByTag('ساخت مدرسه')">ساخت مدرسه</button>
+        <button class="tag-chip" data-tag="بیماری‌های خاص" onclick="filterByTag('بیماری‌های خاص')">بیماری‌های خاص</button>
+        <button class="tag-chip" data-tag="کودکان نیازمند" onclick="filterByTag('کودکان نیازمند')">کودکان نیازمند</button>
+        <button class="tag-chip" data-tag="خانواده" onclick="filterByTag('خانواده')">خانواده</button>
+        <button class="tag-chip" data-tag="درمانگاه" onclick="filterByTag('درمانگاه')">درمانگاه</button>
+        <button class="tag-chip" data-tag="بیمارستان" onclick="filterByTag('بیمارستان')">بیمارستان</button>
+        <button class="tag-chip" data-tag="مسکن محرومان" onclick="filterByTag('مسکن محرومان')">مسکن محرومان</button>
+        <button class="tag-chip" data-tag="بسته‌های معیشتی" onclick="filterByTag('بسته‌های معیشتی')">بسته‌های معیشتی</button>
     </div>
 
     <div class="container" id="main-content">
@@ -197,7 +197,22 @@
             }
         }
 
+        function updateActiveTag(searchQuery) {
+            document.querySelectorAll('.tag-chip').forEach(btn => {
+                if (btn.getAttribute('data-tag') === searchQuery || (searchQuery === null && btn.getAttribute('data-tag') === 'همه')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            if (searchQuery) {
+                let searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = searchQuery;
+            }
+        }
+
         async function loadHome(searchQuery = null) {
+            updateActiveTag(searchQuery);
             let container = document.getElementById('main-content');
             let titleText = searchQuery ? `نتایج جستجو برای: "${searchQuery}"` : 'آخرین کارهای نیک';
 
@@ -250,11 +265,13 @@
 
             let projects = await fetchProjectsSafe();
             if (searchQuery) {
+                let q = searchQuery.toLowerCase();
                 projects = projects.filter(p => 
-                    p.title.includes(searchQuery) || 
-                    p.description.includes(searchQuery) || 
-                    p.charity_name.includes(searchQuery) || 
-                    (p.province && p.province.includes(searchQuery))
+                    (p.title && p.title.toLowerCase().includes(q)) || 
+                    (p.description && p.description.toLowerCase().includes(q)) || 
+                    (p.charity_name && p.charity_name.toLowerCase().includes(q)) || 
+                    (p.province && p.province.toLowerCase().includes(q)) ||
+                    (p.district && p.district.toLowerCase().includes(q))
                 );
             }
 
@@ -262,7 +279,7 @@
             topVc.innerHTML = '';
 
             if (projects.length === 0) {
-                topVc.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#666; padding: 30px;">هیچ کار نیکی با این مشخصات یافت نشد.</p>';
+                topVc.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#666; padding: 40px;">هیچ کار نیکی با این مشخصات یافت نشد.</p>';
                 return;
             }
 
@@ -417,8 +434,7 @@
             if (videoId) loadWatchPage(videoId);
             else if (charityId) loadChannelPage(charityId);
             else if (provinceName) loadProvincePage(decodeURIComponent(provinceName), districtName ? decodeURIComponent(districtName) : null);
-            else if (searchQuery) loadHome(decodeURIComponent(searchQuery));
-            else loadHome();
+            else loadHome(searchQuery ? decodeURIComponent(searchQuery) : null);
         });
     </script>
 </body>
