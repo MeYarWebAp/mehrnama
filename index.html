@@ -264,7 +264,10 @@
                     return;
                 }
 
-                projects.forEach(project => {
+                // نمایش فقط ۶ ویدیوی آخر (جدیدترین‌ها در ابتدا)
+                const recentProjects = projects.slice(0, 6);
+
+                recentProjects.forEach(project => {
                     const card = document.createElement('div');
                     card.className = 'video-card';
                     card.onclick = () => { window.location.href = `/?v=${project.id}`; };
@@ -343,108 +346,4 @@
 
         async function loadWatchPage(id) {
             const container = document.getElementById('main-content');
-            container.innerHTML = `<p>در حال بارگذاری ویدیو...</p>`;
-
-            try {
-                const response = await fetch('/api/projects');
-                const projects = await response.json();
-                const project = projects.find(p => p.id == id);
-
-                if (!project) {
-                    container.innerHTML = `<p>ویدیو مورد نظر یافت نشد.</p>`;
-                    return;
-                }
-
-                let mediaHtml = isVideo(project.file_path)
-                    ? `<div class="watch-media"><video controls autoplay src="${project.file_path}"></video></div>`
-                    : `<div class="watch-media"><img src="${project.file_path}" alt="پروژه"></div>`;
-
-                container.innerHTML = `
-                    <div class="watch-container">
-                        ${mediaHtml}
-                        <div class="watch-title">${project.title}</div>
-                        <div class="channel-link" style="margin-bottom: 15px; cursor: pointer;" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
-                        <div class="watch-desc">${project.description}</div>
-
-                        <div class="comments-section">
-                            <h3>نظرات کاربران</h3>
-                            <div class="comment-form">
-                                <input type="text" id="authorName" placeholder="نام شما">
-                                <textarea id="commentText" rows="3" placeholder="نظر خود را درباره این ویدیو بنویسید..."></textarea>
-                                <button onclick="postComment(${project.id})">ارسال نظر</button>
-                            </div>
-                            <div id="commentsList"><p>در حال بارگذاری نظرات...</p></div>
-                        </div>
-                    </div>
-                `;
-
-                loadComments(project.id);
-            } catch (err) {
-                console.error('Error loading watch page:', err);
-            }
-        }
-
-        async function loadComments(projectId) {
-            try {
-                const res = await fetch(`/api/projects/${projectId}/comments`);
-                const comments = await res.json();
-                const list = document.getElementById('commentsList');
-                list.innerHTML = '';
-
-                if (comments.length === 0) {
-                    list.innerHTML = '<p style="color: #778; font-size: 14px;">هنوز نظری ثبت نشده است. اولین نفر باشید که نظر می‌دهد!</p>';
-                    return;
-                }
-
-                comments.forEach(c => {
-                    const div = document.createElement('div');
-                    div.className = 'comment-card';
-                    div.innerHTML = `
-                        <div class="comment-author">${c.author_name}</div>
-                        <div class="comment-text">${c.comment_text}</div>
-                    `;
-                    list.appendChild(div);
-                });
-            } catch (err) {
-                console.error('Error loading comments:', err);
-            }
-        }
-
-        async function postComment(projectId) {
-            const authorName = document.getElementById('authorName').value.trim();
-            const commentText = document.getElementById('commentText').value.trim();
-
-            if (!authorName || !commentText) {
-                alert('لطفاً نام و متن نظر را وارد کنید.');
-                return;
-            }
-
-            try {
-                const res = await fetch(`/api/projects/${projectId}/comments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ author_name: authorName, comment_text: commentText })
-                });
-
-                if (res.ok) {
-                    document.getElementById('authorName').value = '';
-                    document.getElementById('commentText').value = '';
-                    loadComments(projectId);
-                } else {
-                    alert('خطا در ثبت نظر.');
-                }
-            } catch (err) {
-                console.error('Error posting comment:', err);
-            }
-        }
-
-        if (videoId) {
-            loadWatchPage(videoId);
-        } else if (charityId) {
-            loadChannel(charityId);
-        } else {
-            loadHome();
-        }
-    </script>
-</body>
-</html>
+            container.
