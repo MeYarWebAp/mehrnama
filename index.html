@@ -6,13 +6,27 @@
     <title>مهرنما - تصویر شفاف مهربانی</title>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
-        header { background-color: #ffffff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
+        header { background-color: #ffffff; padding: 12px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
         .logo-box { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .logo-icon { background-color: #cc0000; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; }
         .logo-text { font-size: 22px; font-weight: bold; color: #111; }
+        
+        /* YouTube style search bar */
+        .search-container { display: flex; align-items: center; flex: 1; max-width: 600px; margin: 0 20px; }
+        .search-input { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px 0 0 20px; font-size: 14px; outline: none; font-family: Tahoma, sans-serif; }
+        .search-btn { background-color: #f8f8f8; border: 1px solid #ccc; border-right: none; padding: 10px 20px; border-radius: 0 20px 20px 0; cursor: pointer; font-size: 14px; }
+        .search-btn:hover { background-color: #f0f0f0; }
+
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        
+        /* Tags bar */
+        .tags-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 30px; background: #fff; border-bottom: 1px solid #eee; white-space: nowrap; scrollbar-width: none; }
+        .tags-bar::-webkit-scrollbar { display: none; }
+        .tag-chip { background-color: #f0f0f0; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; border: none; transition: background 0.2s; }
+        .tag-chip:hover, .tag-chip.active { background-color: #0f0f0f; color: white; }
+
         .container { max-width: 1300px; margin: 30px auto; padding: 0 20px; }
         .channel-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .channel-header h2 { margin: 0 0 10px 0; color: #111; }
@@ -79,11 +93,28 @@
             <div class="logo-icon">م</div>
             <div class="logo-text">مهرنما</div>
         </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="جستجوی کارهای نیک، خیریه‌ها، مناطق...">
+            <button class="search-btn" onclick="performSearch()">🔍</button>
+        </div>
         <div class="header-actions">
             <button class="btn-outline" onclick="openLoginModal()">ورود</button>
             <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
         </div>
     </header>
+
+    <!-- YouTube style horizontal tags bar -->
+    <div class="tags-bar" id="tagsBar">
+        <button class="tag-chip active" onclick="filterByTag('همه')">همه</button>
+        <button class="tag-chip" onclick="filterByTag('ساخت مدرسه')">ساخت مدرسه</button>
+        <button class="tag-chip" onclick="filterByTag('بیماری‌های خاص')">بیماری‌های خاص</button>
+        <button class="tag-chip" onclick="filterByTag('کودکان نیازمند')">کودکان نیازمند</button>
+        <button class="tag-chip" onclick="filterByTag('خانواده')">خانواده</button>
+        <button class="tag-chip" onclick="filterByTag('درمانگاه')">درمانگاه</button>
+        <button class="tag-chip" onclick="filterByTag('بیمارستان')">بیمارستان</button>
+        <button class="tag-chip" onclick="filterByTag('مسکن محرومان')">مسکن محرومان</button>
+        <button class="tag-chip" onclick="filterByTag('بسته‌های معیشتی')">بسته‌های معیشتی</button>
+    </div>
 
     <div class="container" id="main-content">
         <p>در حال بارگذاری...</p>
@@ -124,11 +155,11 @@
 
         const fallbackProjects = [
             { id: 1, title: 'توزیع بسته‌های معیشتی در استان تهران', charity_name: 'خیریه مهر آفرین', charity_id: 1, province: 'تهران', district: 'تجریش', description: 'گزارش کامل فعالیت خیرخواهانه در منطقه تجریش تهران.', file_path: 'https://picsum.photos/seed/mehrnama_1/600/400' },
-            { id: 2, title: 'پویش تأمین لوازم‌التحریر در اصفهان', charity_name: 'بنیاد نیکوکاری باران', charity_id: 2, province: 'اصفهان', district: 'منطقه ۱', description: 'تهیه و توزیع کیف و لوازم‌التحریر برای دانش‌آموزان منطقه ۱.', file_path: 'https://picsum.photos/seed/mehrnama_2/600/400' },
-            { id: 3, title: 'پروژه تأمین دارو و درمان در مشهد', charity_name: 'موسسه خیریه امید فردا', charity_id: 3, province: 'خراسان رضوی', district: 'احمدآباد', description: 'یاری‌رسانی به بیماران نیازمند در احمدآباد مشهد.', file_path: 'https://picsum.photos/seed/mehrnama_3/600/400' },
-            { id: 4, title: 'یاری‌رسانی عمومی در شیراز', charity_name: 'کانال همدلی و احسان', charity_id: 4, province: 'فارس', district: 'عفیف‌آباد', description: 'توزیع اقلام گرمایشی و نیازمندی‌ها در عفیف‌آباد شیراز.', file_path: 'https://picsum.photos/seed/mehrnama_4/600/400' },
-            { id: 5, title: 'احداث و بازسازی خانه نیازمندان در تبریز', charity_name: 'خیریه روشنای اندیشه', charity_id: 5, province: 'آذربایجان شرقی', district: 'ولیعصر', description: 'مرمت و بازسازی مسکن محرومان در ولیعصر تبریز.', file_path: 'https://picsum.photos/seed/mehrnama_5/600/400' },
-            { id: 6, title: 'توزیع پوشاک عیدانه در اهواز', charity_name: 'موسسه دست‌های مهربان', charity_id: 6, province: 'خوزستان', district: 'کیانپارس', description: 'تهیه پوشاک برای کودکان محروم در کیانپارس اهواز.', file_path: 'https://picsum.photos/seed/mehrnama_6/600/400' }
+            { id: 2, title: 'پویش ساخت مدرسه در مناطق محروم اصفهان', charity_name: 'بنیاد نیکوکاری باران', charity_id: 2, province: 'اصفهان', district: 'منطقه ۱', description: 'احداث و ساخت مدرسه سه کلاس برای دانش‌آموزان محروم.', file_path: 'https://picsum.photos/seed/mehrnama_2/600/400' },
+            { id: 3, title: 'پروژه تأمین دارو و درمان بیماران خاص در مشهد', charity_name: 'موسسه خیریه امید فردا', charity_id: 3, province: 'خراسان رضوی', district: 'احمدآباد', description: 'یاری‌رسانی به بیماران خاص و نیازمند در احمدآباد مشهد.', file_path: 'https://picsum.photos/seed/mehrnama_3/600/400' },
+            { id: 4, title: 'حمایت از کودکان نیازمند و تحصیلی در شیراز', charity_name: 'کانال همدلی و احسان', charity_id: 4, province: 'فارس', district: 'عفیف‌آباد', description: 'توزیع اقلام تحصیلی و پوشاک برای کودکان نیازمند.', file_path: 'https://picsum.photos/seed/mehrnama_4/600/400' },
+            { id: 5, title: 'تجهیز درمانگاه و بیمارستان محلی در تبریز', charity_name: 'خیریه روشنای اندیشه', charity_id: 5, province: 'آذربایجان شرقی', district: 'ولیعصر', description: 'تأمین تجهیزات پزشکی مورد نیاز درمانگاه و بیمارستان منطقه.', file_path: 'https://picsum.photos/seed/mehrnama_5/600/400' },
+            { id: 6, title: 'دستگیری از خانواده‌های نیازمند در اهواز', charity_name: 'موسسه دست‌های مهربان', charity_id: 6, province: 'خوزستان', district: 'کیانپارس', description: 'رسیدگی به معیشت خانواده‌های تحت پوشش در اهواز.', file_path: 'https://picsum.photos/seed/mehrnama_6/600/400' }
         ];
 
         async function fetchProjectsSafe() {
@@ -145,12 +176,36 @@
             return fallbackProjects;
         }
 
-        async function loadHome() {
+        function performSearch() {
+            let query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                window.location.href = `/?search=${encodeURIComponent(query)}`;
+            }
+        }
+
+        document.getElementById('searchInput')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        function filterByTag(tag) {
+            if (tag === 'همه') {
+                window.location.href = '/';
+            } else {
+                window.location.href = `/?search=${encodeURIComponent(tag)}`;
+            }
+        }
+
+        async function loadHome(searchQuery = null) {
             let container = document.getElementById('main-content');
+            let titleText = searchQuery ? `نتایج جستجو برای: "${searchQuery}"` : 'آخرین کارهای نیک';
+
             container.innerHTML = `
-                <div class="section-title">آخرین کارهای نیک</div>
+                <div class="section-title">${titleText}</div>
                 <div class="video-grid" id="top-videos"><p>در حال بارگذاری...</p></div>
                 
+                ${!searchQuery ? `
                 <div class="province-section">
                     <div class="section-title" style="margin-bottom: 5px;">نقشه تعاملی کارهای نیک استان‌ها</div>
                     <p style="color: #666; font-size: 14px; margin-top: 0;">برای مشاهده کارهای نیک هر استان، روی بخش مربوطه در نقشه ایران یا دکمه‌های زیر کلیک کنید:</p>
@@ -170,30 +225,48 @@
                     </div>
 
                     <div class="province-grid" id="provinceGrid"></div>
-                </div>
+                </div>` : ''}
             `;
 
-            let provinces = [
-                'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
-                'خوزستان', 'مازندران', 'گیلان', 'کرمان', 'البرز',
-                'قم', 'کرمانشاه', 'سیستان و بلوچستان', 'هرمزگان', 'یزد',
-                'لرستان', 'گلستان', 'مرکزی', 'همدان', 'اردبیل'
-            ];
+            if (!searchQuery) {
+                let provinces = [
+                    'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
+                    'خوزستان', 'مازندران', 'گیلان', 'کرمان', 'البرز',
+                    'قم', 'کرمانشاه', 'سیستان و بلوچستان', 'هرمزگان', 'یزد',
+                    'لرستان', 'گلستان', 'مرکزی', 'همدان', 'اردبیل'
+                ];
 
-            let provinceGrid = document.getElementById('provinceGrid');
-            provinces.forEach(prov => {
-                let btn = document.createElement('button');
-                btn.className = 'province-btn';
-                btn.innerText = prov;
-                btn.onclick = () => window.location.href = `/?province=${encodeURIComponent(prov)}`;
-                provinceGrid.appendChild(btn);
-            });
+                let provinceGrid = document.getElementById('provinceGrid');
+                if (provinceGrid) {
+                    provinces.forEach(prov => {
+                        let btn = document.createElement('button');
+                        btn.className = 'province-btn';
+                        btn.innerText = prov;
+                        btn.onclick = () => window.location.href = `/?province=${encodeURIComponent(prov)}`;
+                        provinceGrid.appendChild(btn);
+                    });
+                }
+            }
 
             let projects = await fetchProjectsSafe();
+            if (searchQuery) {
+                projects = projects.filter(p => 
+                    p.title.includes(searchQuery) || 
+                    p.description.includes(searchQuery) || 
+                    p.charity_name.includes(searchQuery) || 
+                    (p.province && p.province.includes(searchQuery))
+                );
+            }
+
             let topVc = document.getElementById('top-videos');
             topVc.innerHTML = '';
 
-            projects.slice(0, 6).forEach(p => {
+            if (projects.length === 0) {
+                topVc.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#666; padding: 30px;">هیچ کار نیکی با این مشخصات یافت نشد.</p>';
+                return;
+            }
+
+            projects.forEach(p => {
                 let card = document.createElement('div');
                 card.className = 'video-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
@@ -339,10 +412,12 @@
             let provinceName = urlParams.get('province');
             let districtName = urlParams.get('district');
             let charityId = urlParams.get('charity_id');
+            let searchQuery = urlParams.get('search');
 
             if (videoId) loadWatchPage(videoId);
             else if (charityId) loadChannelPage(charityId);
             else if (provinceName) loadProvincePage(decodeURIComponent(provinceName), districtName ? decodeURIComponent(districtName) : null);
+            else if (searchQuery) loadHome(decodeURIComponent(searchQuery));
             else loadHome();
         });
     </script>
