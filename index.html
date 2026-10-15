@@ -108,7 +108,16 @@
             .watch-layout { grid-template-columns: 1fr; } 
             .video-grid { grid-template-columns: repeat(2, 1fr); } 
         }
-        @media (max-width: 600px) { .video-grid { grid-template-columns: 1fr; } }
+
+        /* بهینه‌سازی کامل برای موبایل و آیفون */
+        @media (max-width: 600px) {
+            header { padding: 10px 15px; }
+            .logo-text { display: none; }
+            .search-container { margin: 0 10px; }
+            .sidebar { display: none; }
+            .main-container, .tags-bar { margin-right: 0 !important; padding: 15px; }
+            .video-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -387,7 +396,6 @@
                 let data = await res.json();
                 if (Array.isArray(data) && data.length > 0) {
                     let custom = getStoredProjects();
-                    // Merge local user uploads with server projects
                     return [...custom.filter(p => p.id > 100), ...data];
                 }
             } catch (e) {
