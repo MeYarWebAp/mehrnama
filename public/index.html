@@ -69,7 +69,7 @@
         .watch-media video, .watch-media img { width: 100%; max-height: 480px; object-fit: contain; }
         .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
         .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-        .watch-channel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .watch-channel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
 
         .comments-section { margin-top: 20px; }
         .comments-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #111; }
@@ -251,7 +251,7 @@
                 alert('لطفاً اطلاعات ورود را وارد کنید');
                 return;
             }
-            let userData = { id: 99, name: currentLoginType === 'real' ? identifier : 'موسسه ' + identifier, type: currentLoginType };
+            let userData = { id: 99, name: currentLoginType === 'real' ? identifier : identifier, type: currentLoginType };
             localStorage.setItem('mehrnama_user', JSON.stringify(userData));
             closeLoginModal();
             updateHeaderUser();
@@ -414,7 +414,7 @@
                     return data;
                 }
             } catch (e) {
-                console.warn('Error fetching projects from database, using fallback array.');
+                console.warn('Error fetching projects from database');
             }
             return [];
         }
@@ -464,7 +464,7 @@
                     <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="upDistrict" placeholder="مثلا تجریش"></div>
                     <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه..."></textarea></div>
-                    <div class="form-group"><label>لینک تصویر یا ویدیو</label><input type="text" id="upFile" placeholder="https://... یا آدرس تصویر"></div>
+                    <div class="form-group"><label>لینک تصویر یا ویدیو (عکس جدید)</label><input type="text" id="upFile" placeholder="https://picsum.photos/600/400"></div>
                     <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در دیتابیس</button>
                 </div>
             `;
@@ -501,10 +501,67 @@
                 });
                 let data = await res.json();
                 if (data.success) {
-                    alert('کار نیک شما با موفقیت در دیتابیس ثبت و منتشر شد!');
+                    alert('کار نیک شما با موفقیت ثبت شد!');
                     window.location.href = `/?v=${data.project.id}`;
                 } else {
-                    alert('خطا در ثبت اطلاعات در دیتابیس.');
+                    alert('خطا در ثبت اطلاعات.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function loadEditPage(projectId) {
+            renderSidebar();
+            let container = document.getElementById('main-content');
+            let projects = await fetchProjectsSafe();
+            let project = projects.find(p => p.id == projectId);
+            
+            if (!project) {
+                container.innerHTML = '<p style="padding:40px; text-align:center;">پروژه مورد نظر یافت نشد.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="upload-container">
+                    <div class="section-title">ویرایش کار نیک (پروژه #${project.id})</div>
+                    <div class="form-group"><label>عنوان کار نیک / پروژه</label><input type="text" id="editTitle" value="${project.title || ''}"></div>
+                    <div class="form-group"><label>استان</label><input type="text" id="editProvince" value="${project.province || ''}"></div>
+                    <div class="form-group"><label>شهر / منطقه</label><input type="text" id="editDistrict" value="${project.district || ''}"></div>
+                    <div class="form-group"><label>توضیحات کامل</label><textarea id="editDesc" rows="4">${project.description || ''}</textarea></div>
+                    <div class="form-group"><label>لینک تصویر جدید (عکس)</label><input type="text" id="editFile" value="${project.file_path || ''}"></div>
+                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitEditProject(${project.id})">ذخیره تغییرات و تعویض عکس</button>
+                </div>
+            `;
+        }
+
+        async function submitEditProject(projectId) {
+            let title = document.getElementById('editTitle').value.trim();
+            let province = document.getElementById('editProvince').value.trim();
+            let district = document.getElementById('editDistrict').value.trim();
+            let description = document.getElementById('editDesc').value.trim();
+            let file_path = document.getElementById('editFile').value.trim();
+
+            if (!title || !province) {
+                alert('لطفاً عنوان و استان را وارد کنید.');
+                return;
+            }
+
+            let updatedProj = { title, province, district, description, file_path };
+
+            try {
+                let res = await fetch(`/api/projects/${projectId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedProj)
+                });
+                let data = await res.json();
+                if (data.success) {
+                    alert('پروژه با موفقیت ویرایش و عکس آن به‌روز شد!');
+                    window.location.href = `/?v=${projectId}`;
+                } else {
+                    alert('خطا در ذخیره تغییرات.');
                 }
             } catch (err) {
                 console.error(err);
@@ -670,7 +727,7 @@
         function addComment(videoId) {
             let user = getLoggedInUser();
             if (!user) {
-                alert('لطفاً ابتدا وارد سامانه شوید تا بتوانید نظر خود را ثبت کنید.');
+                alert('لطفاً ابتدا وارد سامانه شوید.');
                 openLoginModal();
                 return;
             }
@@ -715,6 +772,8 @@
 
             let subs = getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
+            let user = getLoggedInUser();
+            let showEditBtn = user && user.type === 'legal';
 
             container.innerHTML = `
                 <div class="watch-layout">
@@ -724,9 +783,12 @@
                         
                         <div class="watch-channel-row">
                             <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">کانال: ${project.charity_name}</div>
-                            <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
-                                ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
-                            </button>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                ${showEditBtn ? `<button class="btn-outline" onclick="loadEditPage(${project.id})">✏️ ویرایش پروژه و عکس</button>` : ''}
+                                <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
+                                    ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
+                                </button>
+                            </div>
                         </div>
 
                         <div class="watch-desc">${project.description}</div>
@@ -775,8 +837,10 @@
             let charityId = urlParams.get('charity_id');
             let searchQuery = urlParams.get('search');
             let uploadPage = urlParams.get('upload');
+            let editPage = urlParams.get('edit');
 
             if (uploadPage) loadUploadPage();
+            else if (editPage) loadEditPage(editPage);
             else if (videoId) loadWatchPage(videoId);
             else if (charityId) loadChannelPage(charityId);
             else if (provinceName) loadProvincePage(decodeURIComponent(provinceName), districtName ? decodeURIComponent(districtName) : null);
@@ -785,4 +849,3 @@
     </script>
 </body>
 </html>
-
