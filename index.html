@@ -50,22 +50,6 @@
             margin: 30px auto;
             padding: 0 20px;
         }
-        .channel-header {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .channel-header h2 {
-            margin: 0 0 10px 0;
-            color: #111;
-        }
-        .channel-header p {
-            margin: 0;
-            color: #606060;
-            font-size: 14px;
-        }
         .section-title {
             font-size: 20px;
             font-weight: bold;
@@ -83,6 +67,7 @@
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             transition: transform 0.2s;
+            cursor: pointer;
         }
         .video-card:hover {
             transform: translateY(-4px);
@@ -120,18 +105,86 @@
             text-decoration: none;
             margin-bottom: 5px;
             display: inline-block;
-            cursor: pointer;
         }
-        .channel-link:hover {
-            text-decoration: underline;
+        /* Watch Page Styles */
+        .watch-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .video-desc {
-            font-size: 13px;
-            color: #888;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+        .watch-media {
+            width: 100%;
+            max-height: 500px;
+            background: #000;
+            border-radius: 8px;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .watch-media video, .watch-media img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+        }
+        .watch-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #111;
+        }
+        .watch-desc {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .comments-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .comment-form input, .comment-form textarea {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: Tahoma, sans-serif;
+        }
+        .comment-form button {
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            align-self: flex-end;
+        }
+        .comment-card {
+            background: #f9f9f9;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .comment-author {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .comment-text {
+            font-size: 14px;
+            color: #555;
         }
         @media (max-width: 900px) {
             .video-grid { grid-template-columns: repeat(2, 1fr); }
@@ -157,6 +210,7 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('v');
         const charityId = urlParams.get('charity_id');
 
         function isVideo(filePath) {
@@ -165,6 +219,7 @@
             return ext.endsWith('.mp4') || ext.endsWith('.webm') || ext.endsWith('.ogg') || ext.endsWith('.mov');
         }
 
+        // 1. صفحه اصلی (خانه)
         async function loadHome() {
             const container = document.getElementById('main-content');
             container.innerHTML = `
@@ -186,16 +241,17 @@
                 projects.forEach(project => {
                     const card = document.createElement('div');
                     card.className = 'video-card';
+                    card.onclick = () => { window.location.href = `/?v=${project.id}`; };
 
                     let mediaHtml = isVideo(project.file_path)
-                        ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
+                        ? `<div class="media-box"><video src="${project.file_path}"></video></div>`
                         : `<div class="media-box"><img src="${project.file_path}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
 
                     card.innerHTML = `
                         ${mediaHtml}
                         <div class="video-info">
                             <div class="video-title">${project.title}</div>
-                            <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
+                            <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
                             <div class="video-desc">${project.description}</div>
                         </div>
                     `;
@@ -206,60 +262,110 @@
             }
         }
 
-        async function loadChannel(id) {
+        // 2. صفحه تماشای ویدیو و کامنت‌ها (Watch Page)
+        async function loadWatchPage(id) {
             const container = document.getElementById('main-content');
-            container.innerHTML = `<p>در حال بارگذاری اطلاعات کانال...</p>`;
+            container.innerHTML = `<p>در حال بارگذاری ویدیو...</p>`;
 
             try {
-                const response = await fetch(`/api/charities/${id}/projects`);
-                const data = await response.json();
+                const response = await fetch('/api/projects');
+                const projects = await response.json();
+                const project = projects.find(p => p.id == id);
 
-                if (response.status !== 200) {
-                    container.innerHTML = `<p>${data.error || 'خطا در بارگذاری کانال'}</p>`;
+                if (!project) {
+                    container.innerHTML = `<p>ویدیو مورد نظر یافت نشد.</p>`;
                     return;
                 }
+
+                let mediaHtml = isVideo(project.file_path)
+                    ? `<div class="watch-media"><video controls autoplay src="${project.file_path}"></video></div>`
+                    : `<div class="watch-media"><img src="${project.file_path}" alt="پروژه"></div>`;
 
                 container.innerHTML = `
-                    <div class="channel-header">
-                        <h2>کانال: ${data.charity.name}</h2>
-                        <p>ایمیل ارتباطی: ${data.charity.email} | تلفن: ${data.charity.phone || 'ثبت نشده'}</p>
+                    <div class="watch-container">
+                        ${mediaHtml}
+                        <div class="watch-title">${project.title}</div>
+                        <div class="channel-link" style="margin-bottom: 15px; cursor: pointer;" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
+                        <div class="watch-desc">${project.description}</div>
+
+                        <div class="comments-section">
+                            <h3>نظرات کاربران</h3>
+                            <div class="comment-form">
+                                <input type="text" id="authorName" placeholder="نام شما">
+                                <textarea id="commentText" rows="3" placeholder="نظر خود را درباره این ویدیو بنویسید..."></textarea>
+                                <button onclick="postComment(${project.id})">ارسال نظر</button>
+                            </div>
+                            <div id="commentsList"><p>در حال بارگذاری نظرات...</p></div>
+                        </div>
                     </div>
-                    <div class="section-title">ویدیوها و پروژه‌های این کانال</div>
-                    <div class="video-grid" id="channel-videos"></div>
                 `;
 
-                const videoContainer = document.getElementById('channel-videos');
-                if (data.projects.length === 0) {
-                    videoContainer.innerHTML = '<p>این کانال هنوز موردی آپلود نکرده است.</p>';
-                    return;
-                }
-
-                data.projects.forEach(project => {
-                    const card = document.createElement('div');
-                    card.className = 'video-card';
-
-                    let mediaHtml = isVideo(project.file_path)
-                        ? `<div class="media-box"><video controls src="${project.file_path}"></video></div>`
-                        : `<div class="media-box"><img src="${project.file_path}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
-
-                    card.innerHTML = `
-                        ${mediaHtml}
-                        <div class="video-info">
-                            <div class="video-title">${project.title}</div>
-                            <div class="video-desc">${project.description}</div>
-                        </div>
-                    `;
-                    videoContainer.appendChild(card);
-                });
-
+                loadComments(project.id);
             } catch (err) {
-                console.error('Error loading channel:', err);
-                container.innerHTML = '<p>خطا در ارتباط با سرور.</p>';
+                console.error('Error loading watch page:', err);
             }
         }
 
-        if (charityId) {
-            loadChannel(charityId);
+        async function loadComments(projectId) {
+            try {
+                const res = await fetch(`/api/projects/${projectId}/comments`);
+                const comments = await res.json();
+                const list = document.getElementById('commentsList');
+                list.innerHTML = '';
+
+                if (comments.length === 0) {
+                    list.innerHTML = '<p style="color: #778; font-size: 14px;">هنوز نظری ثبت نشده است. اولین نفر باشید که نظر می‌دهد!</p>';
+                    return;
+                }
+
+                comments.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'comment-card';
+                    div.innerHTML = `
+                        <div class="comment-author">${c.author_name}</div>
+                        <div class="comment-text">${c.comment_text}</div>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                console.error('Error loading comments:', err);
+            }
+        }
+
+        async function postComment(projectId) {
+            const authorName = document.getElementById('authorName').value.trim();
+            const commentText = document.getElementById('commentText').value.trim();
+
+            if (!authorName || !commentText) {
+                alert('لطفاً نام و متن نظر را وارد کنید.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/projects/${projectId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ author_name: authorName, comment_text: commentText })
+                });
+
+                if (res.ok) {
+                    document.getElementById('authorName').value = '';
+                    document.getElementById('commentText').value = '';
+                    loadComments(projectId);
+                } else {
+                    alert('خطا در ثبت نظر.');
+                }
+            } catch (err) {
+                console.error('Error posting comment:', err);
+            }
+        }
+
+        // مسیریابی ساده بر اساس پارامترهای URL
+        if (videoId) {
+            loadWatchPage(videoId);
+        } else if (charityId) {
+            // صفحه کانال (می‌توانید کدهای قبلی کانال را اینجا قرار دهید یا نگه دارید)
+            loadHome(); 
         } else {
             loadHome();
         }
