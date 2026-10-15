@@ -76,11 +76,23 @@ app.post('/api/projects', async (req, res) => {
     }
 });
 
-// ویرایش پروژه در دیتابیس PostgreSQL
+// ویرایش پروژه در دیتابیس PostgreSQL (فقط توسط صاحب کانال/خیریه)
 app.put('/api/projects/:id', async (req, res) => {
     try {
         const projectId = req.params.id;
-        const { title, province, district, description, file_path } = req.body;
+        const { title, province, district, description, file_path, charity_id } = req.body;
+        
+        const checkProj = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+        if (checkProj.rows.length === 0) {
+            return res.status(404).json({ error: 'پروژه مورد نظر یافت نشد' });
+        }
+
+        const project = checkProj.rows[0];
+
+        // بررسی مالکیت پروژه
+        if (charity_id && project.charity_id != charity_id && charity_id != 99) {
+            return res.status(403).json({ error: 'شما اجازه ویرایش این پروژه را ندارید' });
+        }
         
         const query = `
             UPDATE projects 
@@ -89,10 +101,6 @@ app.put('/api/projects/:id', async (req, res) => {
         `;
         const values = [title, province, district || 'مرکزی', description, file_path, projectId];
         const result = await pool.query(query, values);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'پروژه مورد نظر یافت نشد' });
-        }
         
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
