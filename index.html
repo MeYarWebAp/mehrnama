@@ -27,7 +27,6 @@
         .tag-chip { background-color: #f0f0f0; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; border: none; transition: background 0.2s; }
         .tag-chip:hover, .tag-chip.active { background-color: #0f0f0f; color: white; }
 
-        /* Mobile Subscriptions & Provinces Horizontal Bars */
         .mobile-bars-container { display: none; background: #fff; border-bottom: 1px solid #eee; flex-direction: column; }
         .mobile-bar-row { display: flex; gap: 8px; overflow-x: auto; padding: 8px 15px; white-space: nowrap; scrollbar-width: none; align-items: center; }
         .mobile-bar-row::-webkit-scrollbar { display: none; }
@@ -148,7 +147,6 @@
         <button class="tag-chip" data-tag="بسته‌های معیشتی" onclick="filterByTag('بسته‌های معیشتی')">بسته‌های معیشتی</button>
     </div>
 
-    <!-- Mobile Horizontal Bars for Subscriptions & Provinces -->
     <div class="mobile-bars-container" id="mobileBarsContainer">
         <div class="mobile-bar-row" id="mobileSubsRow">
             <span class="mobile-bar-label">اشتراک‌ها:</span>
@@ -302,20 +300,6 @@
             document.getElementById('regLegalFields').style.display = type === 'legal' ? 'block' : 'none';
         }
 
-        const defaultProjects = [
-            { id: 1, title: 'توزیع بسته‌های معیشتی در استان تهران', charity_name: 'خیریه مهر آفرین', charity_id: 1, province: 'تهران', district: 'تجریش', description: 'گزارش کامل فعالیت خیرخواهانه در منطقه تجریش تهران.', file_path: 'https://picsum.photos/seed/mehrnama_1/600/400' },
-            { id: 2, title: 'پویش ساخت مدرسه در مناطق محروم اصفهان', charity_name: 'بنیاد نیکوکاری باران', charity_id: 2, province: 'اصفهان', district: 'منطقه ۱', description: 'احداث و ساخت مدرسه سه کلاس برای دانش‌آموزان محروم.', file_path: 'https://picsum.photos/seed/mehrnama_2/600/400' },
-            { id: 3, title: 'پروژه تأمین دارو و درمان بیماران خاص در مشهد', charity_name: 'موسسه خیریه امید فردا', charity_id: 3, province: 'خراسان رضوی', district: 'احمدآباد', description: 'یاری‌رسانی به بیماران خاص و نیازمند در احمدآباد مشهد.', file_path: 'https://picsum.photos/seed/mehrnama_3/600/400' },
-            { id: 4, title: 'حمایت از کودکان نیازمند و تحصیلی در شیراز', charity_name: 'کانال همدلی و احسان', charity_id: 4, province: 'فارس', district: 'عفیف‌آباد', description: 'توزیع اقلام تحصیلی و پوشاک برای کودکان نیازمند.', file_path: 'https://picsum.photos/seed/mehrnama_4/600/400' },
-            { id: 5, title: 'تجهیز درمانگاه و بیمارستان محلی در تبریز', charity_name: 'خیریه روشنای اندیشه', charity_id: 5, province: 'آذربایجان شرقی', district: 'ولیعصر', description: 'تأمین تجهیزات پزشکی مورد نیاز درمانگاه و بیمارستان منطقه.', file_path: 'https://picsum.photos/seed/mehrnama_5/600/400' },
-            { id: 6, title: 'دستگیری از خانواده‌های نیازمند در اهواز', charity_name: 'موسسه دست‌های مهربان', charity_id: 6, province: 'خوزستان', district: 'کیانپارس', description: 'رسیدگی به معیشت خانواده‌های تحت پوشش در اهواز.', file_path: 'https://picsum.photos/seed/mehrnama_6/600/400' }
-        ];
-
-        function getStoredProjects() {
-            let custom = localStorage.getItem('mehrnama_custom_projects');
-            return custom ? JSON.parse(custom) : defaultProjects;
-        }
-
         const provincesList = [
             'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
             'خوزستان', 'مازندران', 'گیلان', 'کرمان', 'البرز',
@@ -337,12 +321,24 @@
             }
             localStorage.setItem('mehrnama_subs', JSON.stringify(subs));
             renderSidebar();
+            
+            let subBtn = document.getElementById('subscribeBtn');
+            if (subBtn) {
+                let isSub = subs.some(s => s.id == charityId);
+                subBtn.className = isSub ? 'btn-subscribed' : 'btn-subscribe';
+                subBtn.innerText = isSub ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+            }
+            let channelSubBtn = document.getElementById('channelSubBtn');
+            if (channelSubBtn) {
+                let isSub = subs.some(s => s.id == charityId);
+                channelSubBtn.className = isSub ? 'btn-subscribed' : 'btn-subscribe';
+                channelSubBtn.innerText = isSub ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+            }
         }
 
         function renderSidebar(activeProvince = null) {
             let subs = getSubscriptions();
             
-            // Render Mobile Subscriptions & Provinces Horizontal Bars
             let mobileSubsRow = document.getElementById('mobileSubsRow');
             if (mobileSubsRow) {
                 mobileSubsRow.innerHTML = '<span class="mobile-bar-label">اشتراک‌ها:</span>';
@@ -371,7 +367,6 @@
                 });
             }
 
-            // Render Desktop Sidebar
             let user = getLoggedInUser();
             let uploadSection = document.getElementById('sidebarUploadSection');
             if (uploadSection) {
@@ -413,19 +408,15 @@
 
         async function fetchProjectsSafe() {
             try {
-                let controller = new AbortController();
-                let timeoutId = setTimeout(() => controller.abort(), 1500);
-                let res = await fetch('/api/projects', { signal: controller.signal });
-                clearTimeout(timeoutId);
+                let res = await fetch('/api/projects');
                 let data = await res.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    let custom = getStoredProjects();
-                    return [...custom.filter(p => p.id > 100), ...data];
+                if (Array.isArray(data)) {
+                    return data;
                 }
             } catch (e) {
-                console.warn('Using local fallback data.');
+                console.warn('Error fetching projects from database, using fallback array.');
             }
-            return getStoredProjects();
+            return [];
         }
 
         function performSearch() {
@@ -474,12 +465,12 @@
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="upDistrict" placeholder="مثلا تجریش"></div>
                     <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه..."></textarea></div>
                     <div class="form-group"><label>لینک تصویر یا ویدیو</label><input type="text" id="upFile" placeholder="https://... یا آدرس تصویر"></div>
-                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در سامانه</button>
+                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در دیتابیس</button>
                 </div>
             `;
         }
 
-        function submitNewProject() {
+        async function submitNewProject() {
             let user = getLoggedInUser();
             let title = document.getElementById('upTitle').value.trim();
             let province = document.getElementById('upProvince').value.trim();
@@ -492,22 +483,33 @@
                 return;
             }
 
-            let projects = getStoredProjects();
             let newProj = {
-                id: Date.now(),
                 title: title,
                 charity_name: user ? user.name : 'موسسه خیریه',
-                charity_id: user ? user.id : 99,
+                charity_id: user ? user.id : 1,
                 province: province,
                 district: district || 'مرکزی',
                 description: description,
                 file_path: file_path
             };
 
-            projects.unshift(newProj);
-            localStorage.setItem('mehrnama_custom_projects', JSON.stringify(projects));
-            alert('کار نیک شما با موفقیت منتشر شد!');
-            window.location.href = `/?v=${newProj.id}`;
+            try {
+                let res = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newProj)
+                });
+                let data = await res.json();
+                if (data.success) {
+                    alert('کار نیک شما با موفقیت در دیتابیس ثبت و منتشر شد!');
+                    window.location.href = `/?v=${data.project.id}`;
+                } else {
+                    alert('خطا در ثبت اطلاعات در دیتابیس.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
         }
 
         async function loadHome(searchQuery = null) {
@@ -581,7 +583,6 @@
 
             let projects = await fetchProjectsSafe();
             let provinceProjects = projects.filter(p => (p.province && p.province.includes(provinceName)) || (p.description && p.description.includes(provinceName)));
-            
             let filtered = districtName ? provinceProjects.filter(p => (p.district && p.district.includes(districtName)) || (p.description && p.description.includes(districtName))) : provinceProjects;
             if (filtered.length === 0) filtered = provinceProjects;
 
@@ -707,6 +708,10 @@
             let container = document.getElementById('main-content');
             let projects = await fetchProjectsSafe();
             let project = projects.find(p => p.id == id) || projects[0];
+            if (!project) {
+                container.innerHTML = '<p style="padding:40px; text-align:center;">پروژه مورد نظر یافت نشد.</p>';
+                return;
+            }
 
             let subs = getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
