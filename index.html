@@ -144,7 +144,7 @@
             overflow: hidden;
         }
         
-        /* Modal & Tabs */
+        /* Modals & Tabs */
         .modal {
             display: none;
             position: fixed;
@@ -316,7 +316,7 @@
                 </div>
                 <div class="form-group">
                     <label>بخش / شهرستان</label>
-                    <input type="text" id="chDistrict" placeholder="شمرانات">
+                    <input type="text" id="chDistrict" placeholder="شمیرانات">
                 </div>
                 <div class="form-group">
                     <label>نام محل / روستا / شهر</label>
@@ -358,26 +358,62 @@
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = urlParams.get('v');
-        const charityId = urlParams.get('charity_id');
+        function openAuthModal() {
+            var m = document.getElementById('authModal');
+            if (m) m.style.display = 'flex';
+        }
+        function closeAuthModal() {
+            var m = document.getElementById('authModal');
+            if (m) m.style.display = 'none';
+        }
+        function openUploadModal() {
+            var m = document.getElementById('uploadModal');
+            if (m) m.style.display = 'flex';
+        }
+        function closeUploadModal() {
+            var m = document.getElementById('uploadModal');
+            if (m) m.style.display = 'none';
+        }
+
+        function switchUserType(type) {
+            var uf = document.getElementById('userForm');
+            var cf = document.getElementById('charityForm');
+            var bu = document.getElementById('btnUserTab');
+            var bc = document.getElementById('btnCharityTab');
+
+            if (type === 'user') {
+                if (uf) uf.style.display = 'block';
+                if (cf) cf.style.display = 'none';
+                if (bu) bu.classList.add('active');
+                if (bc) bc.classList.remove('active');
+            } else {
+                if (uf) uf.style.display = 'none';
+                if (cf) cf.style.display = 'block';
+                if (bc) bc.classList.add('active');
+                if (bu) bu.classList.remove('active');
+            }
+        }
 
         function checkAuthHeader() {
-            const charity = JSON.parse(localStorage.getItem('charity_user'));
-            const user = JSON.parse(localStorage.getItem('regular_user'));
-            const headerActions = document.getElementById('headerActions');
+            var charity = null;
+            var user = null;
+            try {
+                charity = JSON.parse(localStorage.getItem('charity_user'));
+                user = JSON.parse(localStorage.getItem('regular_user'));
+            } catch(e) {}
 
-            if (charity) {
-                headerActions.innerHTML = `
-                    <span style="font-size: 14px; font-weight: bold;">خیریه: ${charity.name}</span>
-                    <button class="btn-primary" onclick="openUploadModal()">آپلود پروژه</button>
-                    <button class="close-btn" onclick="logout()">خروج</button>
-                `;
-            } else if (user) {
-                headerActions.innerHTML = `
-                    <span style="font-size: 14px; font-weight: bold;">خوش‌آمدید، ${user.name}</span>
-                    <button class="close-btn" onclick="logout()">خروج</button>
-                `;
+            var headerActions = document.getElementById('headerActions');
+            if (!headerActions) return;
+
+            if (charity && charity.name) {
+                headerActions.innerHTML = 
+                    '<span style="font-size: 14px; font-weight: bold;">خیریه: ' + charity.name + '</span> ' +
+                    '<button class="btn-primary" onclick="openUploadModal()">آپلود پروژه</button> ' +
+                    '<button class="close-btn" onclick="logout()">خروج</button>';
+            } else if (user && user.name) {
+                headerActions.innerHTML = 
+                    '<span style="font-size: 14px; font-weight: bold;">خوش‌آمدید، ' + user.name + '</span> ' +
+                    '<button class="close-btn" onclick="logout()">خروج</button>';
             }
         }
 
@@ -386,12 +422,319 @@
             window.location.reload();
         }
 
-        function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
-        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
-        function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
-        function closeUploadModal() { document.getElementById('uploadModal').style.display = 'none'; }
+        async function registerUser() {
+            var name = document.getElementById('userName').value;
+            var phone = document.getElementById('userPhone').value;
+            var password = document.getElementById('userPassword').value;
 
-        function switchUserType(type) {
-            if (type === 'user') {
-                document.getElementById('userForm').style.display = 'block';
-                document.getElementById
+            if (!name || !phone || !password) {
+                alert('لطفا اطلاعات را کامل وارد کنید.');
+                return;
+            }
+
+            try {
+                var res = await fetch('/api/users/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, phone: phone, password: password })
+                });
+                var data = await res.json();
+                if (res.ok) {
+                    alert('ثبت‌نام کاربر با موفقیت انجام شد!');
+                    localStorage.setItem('regular_user', JSON.stringify(data.user));
+                    closeAuthModal();
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'خطا در ثبت‌نام');
+                }
+            } catch (err) {
+                alert('خطا در ارتباط با سرور');
+            }
+        }
+
+        async function registerCharity() {
+            var body = {
+                name: document.getElementById('chName').value,
+                registration_number: document.getElementById('chRegNum').value,
+                email: document.getElementById('chEmail').value,
+                phone: document.getElementById('chPhone').value,
+                landline_phone: document.getElementById('chLandline').value,
+                province: document.getElementById('chProvince').value,
+                district: document.getElementById('chDistrict').value,
+                location_name: document.getElementById('chLocation').value,
+                password: document.getElementById('chPassword').value
+            };
+
+            if (!body.name || !body.email || !body.password) {
+                alert('لطفا نام خیریه، ایمیل و رمز عبور را وارد کنید.');
+                return;
+            }
+
+            try {
+                var res = await fetch('/api/charities/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                var data = await res.json();
+                if (res.ok) {
+                    alert('ثبت‌نام خیریه با موفقیت انجام شد!');
+                    localStorage.setItem('charity_user', JSON.stringify(data.charity));
+                    closeAuthModal();
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'خطا در ثبت‌نام خیریه');
+                }
+            } catch (err) {
+                alert('خطا در ارتباط با سرور');
+            }
+        }
+
+        async function uploadProject() {
+            var charity = JSON.parse(localStorage.getItem('charity_user'));
+            if (!charity) return;
+
+            var title = document.getElementById('upTitle').value;
+            var description = document.getElementById('upDesc').value;
+            var fileInput = document.getElementById('upFile');
+
+            if (!title || fileInput.files.length === 0) {
+                alert('لطفاً عنوان و فایل را انتخاب کنید.');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('charity_id', charity.id);
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('projectFile', fileInput.files[0]);
+
+            try {
+                var res = await fetch('/api/projects/create', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    alert('پروژه با موفقیت آپلود شد!');
+                    closeUploadModal();
+                    window.location.reload();
+                } else {
+                    alert('خطا در آپلود پروژه.');
+                }
+            } catch (err) {
+                alert('خطا در ارتباط با سرور');
+            }
+        }
+
+        function isVideo(filePath) {
+            if (!filePath) return false;
+            var ext = filePath.toLowerCase();
+            return ext.endsWith('.mp4') || ext.endsWith('.webm') || ext.endsWith('.ogg') || ext.endsWith('.mov');
+        }
+
+        async function loadHome() {
+            var container = document.getElementById('main-content');
+            container.innerHTML = 
+                '<div class="section-title"><span>ویدیوهای منتخب و اخیر</span></div>' +
+                '<div class="video-grid" id="video-container"><p>در حال بارگذاری پروژه‌ها...</p></div>';
+
+            try {
+                var response = await fetch('/api/projects');
+                var projects = await response.json();
+                var videoContainer = document.getElementById('video-container');
+                videoContainer.innerHTML = '';
+
+                if (!Array.isArray(projects) || projects.length === 0) {
+                    videoContainer.innerHTML = '<p>هنوز آیتمی ثبت نشده است.</p>';
+                    return;
+                }
+
+                projects.slice(0, 6).forEach(function(project) {
+                    var card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.onclick = function() { window.location.href = '/?v=' + project.id; };
+
+                    var mediaHtml = isVideo(project.file_path)
+                        ? '<div class="media-box"><video src="' + project.file_path + '"></video></div>'
+                        : '<div class="media-box"><img src="' + project.file_path + '" alt="پروژه" onerror="this.src=\'https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama\';"></div>';
+
+                    card.innerHTML = 
+                        mediaHtml +
+                        '<div class="video-info">' +
+                            '<div class="video-title">' + (project.title || '') + '</div>' +
+                            '<div class="channel-link" onclick="event.stopPropagation(); window.location.href=\'/?charity_id=' + project.charity_id + '\'">کانال: ' + (project.charity_name || '') + '</div>' +
+                            '<div class="video-desc">' + (project.description || '') + '</div>' +
+                        '</div>';
+                    videoContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Error:', err);
+                var vc = document.getElementById('video-container');
+                if (vc) vc.innerHTML = '<p>خطا در بارگذاری پروژه‌ها از سرور.</p>';
+            }
+        }
+
+        async function loadChannel(id) {
+            var container = document.getElementById('main-content');
+            container.innerHTML = '<p>در حال بارگذاری اطلاعات کانال...</p>';
+
+            try {
+                var response = await fetch('/api/charities/' + id + '/projects');
+                var data = await response.json();
+
+                if (response.status !== 200) {
+                    container.innerHTML = '<p>' + (data.error || 'خطا در بارگذاری کانال') + '</p>';
+                    return;
+                }
+
+                container.innerHTML = 
+                    '<div class="channel-header">' +
+                        '<h2>کانال: ' + data.charity.name + '</h2>' +
+                        '<p>ایمیل ارتباطی: ' + data.charity.email + ' | تلفن: ' + (data.charity.phone || 'ثبت نشده') + '</p>' +
+                    '</div>' +
+                    '<div class="section-title">ویدیوها و پروژه‌های این کانال</div>' +
+                    '<div class="video-grid" id="channel-videos"></div>';
+
+                var videoContainer = document.getElementById('channel-videos');
+                if (!data.projects || data.projects.length === 0) {
+                    videoContainer.innerHTML = '<p>این کانال هنوز موردی آپلود نکرده است.</p>';
+                    return;
+                }
+
+                data.projects.forEach(function(project) {
+                    var card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.onclick = function() { window.location.href = '/?v=' + project.id; };
+
+                    var mediaHtml = isVideo(project.file_path)
+                        ? '<div class="media-box"><video src="' + project.file_path + '"></video></div>'
+                        : '<div class="media-box"><img src="' + project.file_path + '" alt="پروژه" onerror="this.src=\'https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama\';"></div>';
+
+                    card.innerHTML = 
+                        mediaHtml +
+                        '<div class="video-info">' +
+                            '<div class="video-title">' + (project.title || '') + '</div>' +
+                            '<div class="video-desc">' + (project.description || '') + '</div>' +
+                        '</div>';
+                    videoContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Error loading channel:', err);
+                container.innerHTML = '<p>خطا در ارتباط با سرور.</p>';
+            }
+        }
+
+        async function loadWatchPage(id) {
+            var container = document.getElementById('main-content');
+            container.innerHTML = '<p>در حال بارگذاری ویدیو...</p>';
+
+            try {
+                var response = await fetch('/api/projects');
+                var projects = await response.json();
+                var project = projects.find(function(p) { return p.id == id; });
+
+                if (!project) {
+                    container.innerHTML = '<p>ویدیو مورد نظر یافت نشد.</p>';
+                    return;
+                }
+
+                var mediaHtml = isVideo(project.file_path)
+                    ? '<div class="watch-media"><video controls autoplay src="' + project.file_path + '"></video></div>'
+                    : '<div class="watch-media"><img src="' + project.file_path + '" alt="پروژه"></div>';
+
+                container.innerHTML = 
+                    '<div class="watch-container">' +
+                        mediaHtml +
+                        '<div class="watch-title">' + project.title + '</div>' +
+                        '<div class="channel-link" style="margin-bottom: 15px; cursor: pointer;" onclick="window.location.href=\'/?charity_id=' + project.charity_id + '\'">کانال: ' + project.charity_name + '</div>' +
+                        '<div class="watch-desc">' + project.description + '</div>' +
+
+                        '<div class="comments-section">' +
+                            '<h3>نظرات کاربران</h3>' +
+                            '<div class="comment-form">' +
+                                '<input type="text" id="authorName" placeholder="نام شما">' +
+                                '<textarea id="commentText" rows="3" placeholder="نظر خود را درباره این ویدیو بنویسید..."></textarea>' +
+                                '<button class="btn-primary" onclick="postComment(' + project.id + ')">ارسال نظر</button>' +
+                            '</div>' +
+                            '<div id="commentsList"><p>در حال بارگذاری نظرات...</p></div>' +
+                        '</div>' +
+                    '</div>';
+
+                loadComments(project.id);
+            } catch (err) {
+                console.error('Error loading watch page:', err);
+            }
+        }
+
+        async function loadComments(projectId) {
+            try {
+                var res = await fetch('/api/projects/' + projectId + '/comments');
+                var comments = await res.json();
+                var list = document.getElementById('commentsList');
+                list.innerHTML = '';
+
+                if (!Array.isArray(comments) || comments.length === 0) {
+                    list.innerHTML = '<p style="color: #778; font-size: 14px;">هنوز نظری ثبت نشده است.</p>';
+                    return;
+                }
+
+                comments.forEach(function(c) {
+                    var div = document.createElement('div');
+                    div.className = 'comment-card';
+                    div.innerHTML = 
+                        '<div class="comment-author">' + c.author_name + '</div>' +
+                        '<div class="comment-text">' + c.comment_text + '</div>';
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                console.error('Error loading comments:', err);
+            }
+        }
+
+        async function postComment(projectId) {
+            var authorName = document.getElementById('authorName').value.trim();
+            var commentText = document.getElementById('commentText').value.trim();
+
+            if (!authorName || !commentText) {
+                alert('لطفاً نام و متن نظر را وارد کنید.');
+                return;
+            }
+
+            try {
+                var res = await fetch('/api/projects/' + projectId + '/comments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ author_name: authorName, comment_text: commentText })
+                });
+
+                if (res.ok) {
+                    document.getElementById('authorName').value = '';
+                    document.getElementById('commentText').value = '';
+                    loadComments(projectId);
+                } else {
+                    alert('خطا در ثبت نظر.');
+                }
+            } catch (err) {
+                console.error('Error posting comment:', err);
+            }
+        }
+
+        // اجرای توابع اصلی پس از بارگذاری صفحه
+        window.addEventListener('DOMContentLoaded', function() {
+            checkAuthHeader();
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var videoId = urlParams.get('v');
+            var charityId = urlParams.get('charity_id');
+
+            if (videoId) {
+                loadWatchPage(videoId);
+            } else if (charityId) {
+                loadChannel(charityId);
+            } else {
+                loadHome();
+            }
+        });
+    </script>
+</body>
+</html>
