@@ -77,13 +77,17 @@
         .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; }
         .related-channel { font-size: 11px; color: #666; margin-top: 4px; }
 
-        /* Modals */
+        /* Modals & Tabs */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 420px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
         .form-group label { font-size: 12px; font-weight: bold; color: #333; }
-        .form-group input, .form-group textarea { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; }
+        .form-group input, .form-group textarea, .form-group select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; }
         .close-btn { background: #ccc; color: #333; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .tab-row { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .tab-btn { flex: 1; background: #f4f4f4; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; color: #555; text-align: center; }
+        .tab-btn.active { background: #cc0000; color: white; }
 
         @media (max-width: 950px) { 
             .sidebar { width: 70px; padding: 10px 5px; } 
@@ -146,7 +150,11 @@
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">ورود به سامانه</h3>
-            <div class="form-group"><label>ایمیل یا شماره همراه</label><input type="text" id="loginEmail" placeholder="اطلاعات ورود..."></div>
+            <div class="tab-row">
+                <button class="tab-btn active" id="loginTabReal" onclick="switchLoginType('real')">کاربر حقیقی</button>
+                <button class="tab-btn" id="loginTabLegal" onclick="switchLoginType('legal')">کاربر حقوقی (خیریه)</button>
+            </div>
+            <div class="form-group"><label id="loginIdLabel">شماره همراه</label><input type="text" id="loginPhoneOrId" placeholder="شماره تماس یا شناسه..."></div>
             <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPass" placeholder="******"></div>
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
@@ -159,21 +167,57 @@
     <div class="modal" id="registerModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">ثبت‌نام در مهرنما</h3>
-            <div class="form-group"><label>نام کامل</label><input type="text" id="regName" placeholder="نام شما..."></div>
-            <div class="form-group"><label>شماره تماس</label><input type="text" id="regPhone" placeholder="09123456789"></div>
-            <div class="form-group"><label>رمز عبور</label><input type="password" id="regPass" placeholder="******"></div>
+            <div class="tab-row">
+                <button class="tab-btn active" id="regTabReal" onclick="switchRegType('real')">کاربر حقیقی</button>
+                <button class="tab-btn" id="regTabLegal" onclick="switchRegType('legal')">کاربر حقوقی (خیریه)</button>
+            </div>
+            
+            <div id="regRealFields">
+                <div class="form-group"><label>نام کامل</label><input type="text" id="regRealName" placeholder="نام و نام خانوادگی..."></div>
+                <div class="form-group"><label>شماره تلفن همراه</label><input type="text" id="regRealPhone" placeholder="09123456789"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="regRealPass" placeholder="******"></div>
+            </div>
+
+            <div id="regLegalFields" style="display: none;">
+                <div class="form-group"><label>نام موسسه / خیریه</label><input type="text" id="regLegalName" placeholder="نام موسسه..."></div>
+                <div class="form-group"><label>شماره ثبت</label><input type="text" id="regLegalRegNo" placeholder="شماره ثبت موسسه..."></div>
+                <div class="form-group"><label>استان فعالیت</label><input type="text" id="regLegalProvince" placeholder="مثلا تهران"></div>
+                <div class="form-group"><label>شهر فعالیت</label><input type="text" id="regLegalCity" placeholder="مثلا تهران"></div>
+                <div class="form-group"><label>محله یا منطقه فعالیت</label><input type="text" id="regLegalDistrict" placeholder="مثلا تجریش"></div>
+                <div class="form-group"><label>شماره تلفن تماس</label><input type="text" id="regLegalPhone" placeholder="02112345678"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="regLegalPass" placeholder="******"></div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
-                <button class="btn-primary" onclick="alert('ثبت‌نام با موفقیت انجام شد')">ثبت‌نام</button>
+                <button class="btn-primary" onclick="alert('ثبت‌نام با موفقیت انجام شد')">تایید و ثبت‌نام</button>
             </div>
         </div>
     </div>
 
     <script>
+        let currentLoginType = 'real';
+        let currentRegType = 'real';
+
         function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
         function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
         function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
         function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
+
+        function switchLoginType(type) {
+            currentLoginType = type;
+            document.getElementById('loginTabReal').className = type === 'real' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('loginTabLegal').className = type === 'legal' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('loginIdLabel').innerText = type === 'real' ? 'شماره همراه' : 'شماره ثبت یا شناسه موسسه';
+        }
+
+        function switchRegType(type) {
+            currentRegType = type;
+            document.getElementById('regTabReal').className = type === 'real' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('regTabLegal').className = type === 'legal' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('regRealFields').style.display = type === 'real' ? 'block' : 'none';
+            document.getElementById('regLegalFields').style.display = type === 'legal' ? 'block' : 'none';
+        }
 
         const fallbackProjects = [
             { id: 1, title: 'توزیع بسته‌های معیشتی در استان تهران', charity_name: 'خیریه مهر آفرین', charity_id: 1, province: 'تهران', district: 'تجریش', description: 'گزارش کامل فعالیت خیرخواهانه در منطقه تجریش تهران.', file_path: 'https://picsum.photos/seed/mehrnama_1/600/400' },
@@ -253,7 +297,7 @@
         async function fetchProjectsSafe() {
             try {
                 let controller = new AbortController();
-                let timeoutId = setTimeout(() => controller.abort(), 1200); // Fast timeout to use fallback instantly if server hangs
+                let timeoutId = setTimeout(() => controller.abort(), 1200);
                 let res = await fetch('/api/projects', { signal: controller.signal });
                 clearTimeout(timeoutId);
                 let data = await res.json();
