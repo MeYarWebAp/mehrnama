@@ -86,12 +86,15 @@
         .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; }
         .related-channel { font-size: 11px; color: #666; margin-top: 4px; }
 
+        /* Upload Studio Form Styling */
+        .upload-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 700px; margin: 0 auto; }
+
         /* Modals & Tabs */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
-        .form-group label { font-size: 12px; font-weight: bold; color: #333; }
-        .form-group input, .form-group textarea, .form-group select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 13px; font-weight: bold; color: #333; }
+        .form-group input, .form-group textarea, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; font-size: 14px; }
         .close-btn { background: #ccc; color: #333; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
         .tab-row { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
@@ -142,6 +145,7 @@
         <!-- YouTube style Left Sidebar for Provinces & Subscriptions -->
         <aside class="sidebar" id="sidebarNav">
             <div class="sidebar-item" onclick="window.location.href='/'">🏠 <span>خانه</span></div>
+            <div id="sidebarUploadSection"></div>
             
             <div class="sidebar-section-title">اشتراک‌های شما</div>
             <div id="sidebarSubscriptions"></div>
@@ -235,7 +239,7 @@
                 alert('لطفاً اطلاعات ورود را وارد کنید');
                 return;
             }
-            let userData = { name: currentLoginType === 'real' ? identifier : 'موسسه ' + identifier, type: currentLoginType };
+            let userData = { id: 99, name: currentLoginType === 'real' ? identifier : 'موسسه ' + identifier, type: currentLoginType };
             localStorage.setItem('mehrnama_user', JSON.stringify(userData));
             closeLoginModal();
             updateHeaderUser();
@@ -249,7 +253,7 @@
                 alert('لطفاً نام را وارد کنید');
                 return;
             }
-            let userData = { name: name, type: currentRegType };
+            let userData = { id: 99, name: name, type: currentRegType };
             localStorage.setItem('mehrnama_user', JSON.stringify(userData));
             closeRegisterModal();
             updateHeaderUser();
@@ -284,7 +288,7 @@
             document.getElementById('regLegalFields').style.display = type === 'legal' ? 'block' : 'none';
         }
 
-        const fallbackProjects = [
+        const defaultProjects = [
             { id: 1, title: 'توزیع بسته‌های معیشتی در استان تهران', charity_name: 'خیریه مهر آفرین', charity_id: 1, province: 'تهران', district: 'تجریش', description: 'گزارش کامل فعالیت خیرخواهانه در منطقه تجریش تهران.', file_path: 'https://picsum.photos/seed/mehrnama_1/600/400' },
             { id: 2, title: 'پویش ساخت مدرسه در مناطق محروم اصفهان', charity_name: 'بنیاد نیکوکاری باران', charity_id: 2, province: 'اصفهان', district: 'منطقه ۱', description: 'احداث و ساخت مدرسه سه کلاس برای دانش‌آموزان محروم.', file_path: 'https://picsum.photos/seed/mehrnama_2/600/400' },
             { id: 3, title: 'پروژه تأمین دارو و درمان بیماران خاص در مشهد', charity_name: 'موسسه خیریه امید فردا', charity_id: 3, province: 'خراسان رضوی', district: 'احمدآباد', description: 'یاری‌رسانی به بیماران خاص و نیازمند در احمدآباد مشهد.', file_path: 'https://picsum.photos/seed/mehrnama_3/600/400' },
@@ -292,6 +296,11 @@
             { id: 5, title: 'تجهیز درمانگاه و بیمارستان محلی در تبریز', charity_name: 'خیریه روشنای اندیشه', charity_id: 5, province: 'آذربایجان شرقی', district: 'ولیعصر', description: 'تأمین تجهیزات پزشکی مورد نیاز درمانگاه و بیمارستان منطقه.', file_path: 'https://picsum.photos/seed/mehrnama_5/600/400' },
             { id: 6, title: 'دستگیری از خانواده‌های نیازمند در اهواز', charity_name: 'موسسه دست‌های مهربان', charity_id: 6, province: 'خوزستان', district: 'کیانپارس', description: 'رسیدگی به معیشت خانواده‌های تحت پوشش در اهواز.', file_path: 'https://picsum.photos/seed/mehrnama_6/600/400' }
         ];
+
+        function getStoredProjects() {
+            let custom = localStorage.getItem('mehrnama_custom_projects');
+            return custom ? JSON.parse(custom) : defaultProjects;
+        }
 
         const provincesList = [
             'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
@@ -329,6 +338,16 @@
         }
 
         function renderSidebar(activeProvince = null) {
+            let user = getLoggedInUser();
+            let uploadSection = document.getElementById('sidebarUploadSection');
+            if (uploadSection) {
+                if (user && user.type === 'legal') {
+                    uploadSection.innerHTML = `<div class="sidebar-item" onclick="window.location.href='/?upload=true'">➕ <span>بارگذاری کار نیک</span></div>`;
+                } else {
+                    uploadSection.innerHTML = '';
+                }
+            }
+
             let provContainer = document.getElementById('sidebarProvinces');
             if (provContainer) {
                 provContainer.innerHTML = '';
@@ -366,11 +385,15 @@
                 let res = await fetch('/api/projects', { signal: controller.signal });
                 clearTimeout(timeoutId);
                 let data = await res.json();
-                if (Array.isArray(data) && data.length > 0) return data;
+                if (Array.isArray(data) && data.length > 0) {
+                    let custom = getStoredProjects();
+                    // Merge local user uploads with server projects
+                    return [...custom.filter(p => p.id > 100), ...data];
+                }
             } catch (e) {
-                console.warn('Using fallback data instantly.');
+                console.warn('Using local fallback data.');
             }
-            return fallbackProjects;
+            return getStoredProjects();
         }
 
         function performSearch() {
@@ -406,6 +429,53 @@
                 let searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = searchQuery;
             }
+        }
+
+        function loadUploadPage() {
+            renderSidebar();
+            let container = document.getElementById('main-content');
+            container.innerHTML = `
+                <div class="upload-container">
+                    <div class="section-title">بارگذاری کار نیک جدید</div>
+                    <div class="form-group"><label>عنوان کار نیک / پروژه</label><input type="text" id="upTitle" placeholder="عنوان مستند یا پویش..."></div>
+                    <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
+                    <div class="form-group"><label>شهر / منطقه</label><input type="text" id="upDistrict" placeholder="مثلا تجریش"></div>
+                    <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه..."></textarea></div>
+                    <div class="form-group"><label>لینک تصویر یا ویدیو</label><input type="text" id="upFile" placeholder="https://... یا آدرس تصویر"></div>
+                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در سامانه</button>
+                </div>
+            `;
+        }
+
+        function submitNewProject() {
+            let user = getLoggedInUser();
+            let title = document.getElementById('upTitle').value.trim();
+            let province = document.getElementById('upProvince').value.trim();
+            let district = document.getElementById('upDistrict').value.trim();
+            let description = document.getElementById('upDesc').value.trim();
+            let file_path = document.getElementById('upFile').value.trim() || 'https://picsum.photos/seed/upload/600/400';
+
+            if (!title || !province) {
+                alert('لطفاً عنوان و استان را وارد کنید.');
+                return;
+            }
+
+            let projects = getStoredProjects();
+            let newProj = {
+                id: Date.now(),
+                title: title,
+                charity_name: user ? user.name : 'موسسه خیریه',
+                charity_id: user ? user.id : 99,
+                province: province,
+                district: district || 'مرکزی',
+                description: description,
+                file_path: file_path
+            };
+
+            projects.unshift(newProj);
+            localStorage.setItem('mehrnama_custom_projects', JSON.stringify(projects));
+            alert('کار نیک شما با موفقیت منتشر شد!');
+            window.location.href = `/?v=${newProj.id}`;
         }
 
         async function loadHome(searchQuery = null) {
@@ -556,7 +626,6 @@
             });
         }
 
-        // Comments management via LocalStorage
         function getComments(videoId) {
             let comms = localStorage.getItem(`mehrnama_comments_${videoId}`);
             return comms ? JSON.parse(comms) : [
@@ -668,8 +737,10 @@
             let districtName = urlParams.get('district');
             let charityId = urlParams.get('charity_id');
             let searchQuery = urlParams.get('search');
+            let uploadPage = urlParams.get('upload');
 
-            if (videoId) loadWatchPage(videoId);
+            if (uploadPage) loadUploadPage();
+            else if (videoId) loadWatchPage(videoId);
             else if (charityId) loadChannelPage(charityId);
             else if (provinceName) loadProvincePage(decodeURIComponent(provinceName), districtName ? decodeURIComponent(districtName) : null);
             else loadHome(searchQuery ? decodeURIComponent(searchQuery) : null);
