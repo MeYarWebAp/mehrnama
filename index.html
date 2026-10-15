@@ -1,214 +1,4 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مهرنما - تصویر شفاف مهربانی</title>
-    <style>
-        body {
-            font-family: Tahoma, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-        }
-        header {
-            background-color: #ffffff;
-            padding: 15px 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-        .logo-icon {
-            background-color: #cc0000;
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 18px;
-            box-shadow: 0 2px 4px rgba(204, 0, 0, 0.3);
-        }
-        .logo-text {
-            font-size: 22px;
-            font-weight: bold;
-            color: #111;
-            letter-spacing: -0.5px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #111;
-        }
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-        .video-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-        .video-card:hover {
-            transform: translateY(-4px);
-        }
-        .media-box {
-            width: 100%;
-            height: 180px;
-            background-color: #eef2f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-        .media-box video, .media-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .video-info {
-            padding: 15px;
-        }
-        .video-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #0f0f0f;
-            margin: 0 0 8px 0;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .channel-link {
-            font-size: 14px;
-            color: #065fd4;
-            text-decoration: none;
-            margin-bottom: 5px;
-            display: inline-block;
-        }
-        /* Watch Page Styles */
-        .watch-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .watch-media {
-            width: 100%;
-            max-height: 500px;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .watch-media video, .watch-media img {
-            width: 100%;
-            max-height: 500px;
-            object-fit: contain;
-        }
-        .watch-title {
-            font-size: 22px;
-            font-weight: bold;
-            margin: 20px 0 10px 0;
-            color: #111;
-        }
-        .watch-desc {
-            font-size: 15px;
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .comments-section h3 {
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-        .comment-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-        .comment-form input, .comment-form textarea {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-family: Tahoma, sans-serif;
-        }
-        .comment-form button {
-            background-color: #cc0000;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            align-self: flex-end;
-        }
-        .comment-card {
-            background: #f9f9f9;
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        .comment-author {
-            font-weight: bold;
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        .comment-text {
-            font-size: 14px;
-            color: #555;
-        }
-        @media (max-width: 900px) {
-            .video-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .video-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="logo-box" onclick="window.location.href='/'">
-            <div class="logo-icon">م</div>
-            <div class="logo-text">مهرنما</div>
-        </div>
-        <div style="font-size: 14px; color: #606060; font-weight: 500;">تصویر شفاف مهربانی</div>
-    </header>
-
-    <div class="container" id="main-content">
-        <p>در حال بارگذاری...</p>
-    </div>
-
-    <script>
+<script>
         const urlParams = new URLSearchParams(window.location.search);
         const videoId = urlParams.get('v');
         const charityId = urlParams.get('charity_id');
@@ -219,7 +9,7 @@
             return ext.endsWith('.mp4') || ext.endsWith('.webm') || ext.endsWith('.ogg') || ext.endsWith('.mov');
         }
 
-        // 1. صفحه اصلی (خانه)
+        // صفحه اصلی (خانه)
         async function loadHome() {
             const container = document.getElementById('main-content');
             container.innerHTML = `
@@ -262,7 +52,61 @@
             }
         }
 
-        // 2. صفحه تماشای ویدیو و کامنت‌ها (Watch Page)
+        // صفحه کانال خیریه
+        async function loadChannel(id) {
+            const container = document.getElementById('main-content');
+            container.innerHTML = `<p>در حال بارگذاری اطلاعات کانال...</p>`;
+
+            try {
+                const response = await fetch(`/api/charities/${id}/projects`);
+                const data = await response.json();
+
+                if (response.status !== 200) {
+                    container.innerHTML = `<p>${data.error || 'خطا در بارگذاری کانال'}</p>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="channel-header">
+                        <h2>کانال: ${data.charity.name}</h2>
+                        <p>ایمیل ارتباطی: ${data.charity.email} | تلفن: ${data.charity.phone || 'ثبت نشده'}</p>
+                    </div>
+                    <div class="section-title">ویدیوها و پروژه‌های این کانال</div>
+                    <div class="video-grid" id="channel-videos"></div>
+                `;
+
+                const videoContainer = document.getElementById('channel-videos');
+                if (data.projects.length === 0) {
+                    videoContainer.innerHTML = '<p>این کانال هنوز موردی آپلود نکرده است.</p>';
+                    return;
+                }
+
+                data.projects.forEach(project => {
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.onclick = () => { window.location.href = `/?v=${project.id}`; };
+
+                    let mediaHtml = isVideo(project.file_path)
+                        ? `<div class="media-box"><video src="${project.file_path}"></video></div>`
+                        : `<div class="media-box"><img src="${project.file_path}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
+
+                    card.innerHTML = `
+                        ${mediaHtml}
+                        <div class="video-info">
+                            <div class="video-title">${project.title}</div>
+                            <div class="video-desc">${project.description}</div>
+                        </div>
+                    `;
+                    videoContainer.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error('Error loading channel:', err);
+                container.innerHTML = '<p>خطا در ارتباط با سرور.</p>';
+            }
+        }
+
+        // صفحه تماشای ویدیو و کامنت‌ها (Watch Page)
         async function loadWatchPage(id) {
             const container = document.getElementById('main-content');
             container.innerHTML = `<p>در حال بارگذاری ویدیو...</p>`;
@@ -360,16 +204,12 @@
             }
         }
 
-        // مسیریابی ساده بر اساس پارامترهای URL
+        // مسیریابی دقیق
         if (videoId) {
             loadWatchPage(videoId);
         } else if (charityId) {
-            // صفحه کانال (می‌توانید کدهای قبلی کانال را اینجا قرار دهید یا نگه دارید)
-            loadHome(); 
+            loadChannel(charityId);
         } else {
             loadHome();
         }
     </script>
-
-</body>
-</html>
