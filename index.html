@@ -164,7 +164,7 @@
             background: rgba(0,0,0,0.5);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 9999;
         }
         .modal-content {
             background: white;
@@ -197,7 +197,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-        /* Watch Page Styles */
         .watch-container {
             max-width: 900px;
             margin: 0 auto;
@@ -294,7 +293,7 @@
                     <button class="btn-primary" onclick="loginCharity()">ورود</button>
                 </div>
                 <p style="text-align: center; margin-top: 15px; font-size: 13px;">
-                    حساب ندارید؟ <a href="#" onclick="toggleAuthMode(true)" style="color: #cc0000;">ثبت‌نام خیریه</a>
+                    حساب ندارید؟ <a href="javascript:void(0)" onclick="toggleAuthMode(true)" style="color: #cc0000;">ثبت‌نام خیریه</a>
                 </p>
             </div>
 
@@ -320,7 +319,7 @@
                     <button class="btn-primary" onclick="registerCharity()">ثبت‌نام</button>
                 </div>
                 <p style="text-align: center; margin-top: 15px; font-size: 13px;">
-                    قبلاً ثبت‌نام کرده‌اید؟ <a href="#" onclick="toggleAuthMode(false)" style="color: #cc0000;">ورود به حساب</a>
+                    قبلاً ثبت‌نام کرده‌اید؟ <a href="javascript:void(0)" onclick="toggleAuthMode(false)" style="color: #cc0000;">ورود به حساب</a>
                 </p>
             </div>
         </div>
@@ -332,4 +331,368 @@
             <h3>آپلود پروژه یا ویدیو جدید</h3>
             <div class="form-group">
                 <label>عنوان پروژه</label>
-                <input type="text" id="upTitle" placeholder="
+                <input type="text" id="upTitle" placeholder="عنوان گزارش یا پروژه...">
+            </div>
+            <div class="form-group">
+                <label>توضیحات</label>
+                <textarea id="upDesc" rows="3" placeholder="توضیحات تکمیلی پروژه..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>فایل ویدیو یا تصویر</label>
+                <input type="file" id="upFile">
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <button class="close-btn" onclick="closeUploadModal()">انصراف</button>
+                <button class="btn-primary" onclick="uploadProject()">آپلود و انتشار</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('v');
+        const charityId = urlParams.get('charity_id');
+
+        function checkAuthHeader() {
+            const charity = JSON.parse(localStorage.getItem('charity_user'));
+            const headerActions = document.getElementById('headerActions');
+            if (charity) {
+                headerActions.innerHTML = `
+                    <span style="font-size: 14px; font-weight: bold;">سلام، ${charity.name}</span>
+                    <button class="btn-primary" onclick="openUploadModal()">آپلود پروژه</button>
+                    <button class="close-btn" onclick="logout()">خروج</button>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('charity_user');
+            window.location.reload();
+        }
+
+        function openAuthModal() { 
+            const modal = document.getElementById('authModal');
+            if (modal) modal.style.display = 'flex'; 
+        }
+        function closeAuthModal() { 
+            const modal = document.getElementById('authModal');
+            if (modal) modal.style.display = 'none'; 
+        }
+        
+        function openUploadModal() { 
+            const modal = document.getElementById('uploadModal');
+            if (modal) modal.style.display = 'flex'; 
+        }
+        function closeUploadModal() { 
+            const modal = document.getElementById('uploadModal');
+            if (modal) modal.style.display = 'none'; 
+        }
+
+        function toggleAuthMode(isReg) {
+            document.getElementById('loginForm').style.display = isReg ? 'none' : 'block';
+            document.getElementById('registerForm').style.display = isReg ? 'block' : 'none';
+            document.getElementById('modalTitleinnerText' || 'modalTitle').innerText = isReg ? 'ثبت‌نام خیریه جدید' : 'ورود خیریه';
+        }
+
+        async function loginCharity() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const res = await fetch('/api/charities/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('charity_user', JSON.stringify(data.charity));
+                    closeAuthModal();
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'خطا در ورود');
+                }
+            } catch (err) {
+                alert('خطا در ارتباط با سرور');
+            }
+        }
+
+        async function registerCharity() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const phone = document.getElementById('regPhone').value;
+            const password = document.getElementById('regPassword').value;
+            try {
+                const res = await fetch('/api/charities/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('ثبت‌نام با موفقیت انجام شد. اکنون وارد شوید.');
+                    toggleAuthMode(false);
+                } else {
+                    alert(data.error || 'خطا در ثبت‌نام');
+                }
+            } catch (err) {
+                alert('خطا در ارتباط با سرور');
+            }
+        }
+
+        async function uploadProject() {
+            const charity = JSON.parse(localStorage.getItem('charity_user'));
+            if (!charity) return;
+
+            const title = document.getElementById('upTitle').value;
+            const description = document.getElementById('upDesc').value;
+            const fileInput = document.getElementById('upFile');
+
+            if (!title || fileInput.files.length === 0) {
+                alert('لطفاً عنوان و فایل را انتخاب کنید.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('charity_id', charity.id);
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('projectFile', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/projects/create', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    alert('پروژه با موفقیت آپلود شد!');
+                    closeUploadModal();
+                    window.location.reload();
+                } else {
+                    alert('خطا در آپلود پروژه.');
+                }
+            } catch (err) {
+                alert('خطا در ارتباط با سرور');
+            }
+        }
+
+        function isVideo(filePath) {
+            if (!filePath) return false;
+            const ext = filePath.toLowerCase();
+            return ext.endsWith('.mp4') || ext.endsWith('.webm') || ext.endsWith('.ogg') || ext.endsWith('.mov');
+        }
+
+        async function loadHome() {
+            const container = document.getElementById('main-content');
+            const charity = JSON.parse(localStorage.getItem('charity_user'));
+            
+            let uploadBtnHtml = charity ? `<button class="btn-primary" onclick="openUploadModal()">+ آپلود پروژه جدید</button>` : '';
+
+            container.innerHTML = `
+                <div class="section-title">
+                    <span>ویدیوهای منتخب و اخیر</span>
+                    ${uploadBtnHtml}
+                </div>
+                <div class="video-grid" id="video-container"><p>در حال بارگذاری پروژه‌ها...</p></div>
+            `;
+
+            try {
+                const response = await fetch('/api/projects');
+                const projects = await response.json();
+                const videoContainer = document.getElementById('video-container');
+                videoContainer.innerHTML = '';
+
+                if (!Array.isArray(projects) || projects.length === 0) {
+                    videoContainer.innerHTML = '<p>هنوز آیتمی ثبت نشده است.</p>';
+                    return;
+                }
+
+                const recentProjects = projects.slice(0, 6);
+
+                recentProjects.forEach(project => {
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.onclick = () => { window.location.href = `/?v=${project.id}`; };
+
+                    let mediaHtml = isVideo(project.file_path)
+                        ? `<div class="media-box"><video src="${project.file_path}"></video></div>`
+                        : `<div class="media-box"><img src="${project.file_path}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
+
+                    card.innerHTML = `
+                        ${mediaHtml}
+                        <div class="video-info">
+                            <div class="video-title">${project.title}</div>
+                            <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
+                            <div class="video-desc">${project.description}</div>
+                        </div>
+                    `;
+                    videoContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Error:', err);
+                const videoContainer = document.getElementById('video-container');
+                if (videoContainer) videoContainer.innerHTML = '<p>خطا در بارگذاری اطلاعات از سرور.</p>';
+            }
+        }
+
+        async function loadChannel(id) {
+            const container = document.getElementById('main-content');
+            container.innerHTML = `<p>در حال بارگذاری اطلاعات کانال...</p>`;
+
+            try {
+                const response = await fetch(`/api/charities/${id}/projects`);
+                const data = await response.json();
+
+                if (response.status !== 200) {
+                    container.innerHTML = `<p>${data.error || 'خطا در بارگذاری کانال'}</p>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="channel-header">
+                        <h2>کانال: ${data.charity.name}</h2>
+                        <p>ایمیل ارتباطی: ${data.charity.email} | تلفن: ${data.charity.phone || 'ثبت نشده'}</p>
+                    </div>
+                    <div class="section-title">ویدیوها و پروژه‌های این کانال</div>
+                    <div class="video-grid" id="channel-videos"></div>
+                `;
+
+                const videoContainer = document.getElementById('channel-videos');
+                if (!data.projects || data.projects.length === 0) {
+                    videoContainer.innerHTML = '<p>این کانال هنوز موردی آپلود نکرده است.</p>';
+                    return;
+                }
+
+                data.projects.forEach(project => {
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.onclick = () => { window.location.href = `/?v=${project.id}`; };
+
+                    let mediaHtml = isVideo(project.file_path)
+                        ? `<div class="media-box"><video src="${project.file_path}"></video></div>`
+                        : `<div class="media-box"><img src="${project.file_path}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
+
+                    card.innerHTML = `
+                        ${mediaHtml}
+                        <div class="video-info">
+                            <div class="video-title">${project.title}</div>
+                            <div class="video-desc">${project.description}</div>
+                        </div>
+                    `;
+                    videoContainer.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error('Error loading channel:', err);
+                container.innerHTML = '<p>خطا در ارتباط با سرور.</p>';
+            }
+        }
+
+        async function loadWatchPage(id) {
+            const container = document.getElementById('main-content');
+            container.innerHTML = `<p>در حال بارگذاری ویدیو...</p>`;
+
+            try {
+                const response = await fetch('/api/projects');
+                const projects = await response.json();
+                const project = projects.find(p => p.id == id);
+
+                if (!project) {
+                    container.innerHTML = `<p>ویدیو مورد نظر یافت نشد.</p>`;
+                    return;
+                }
+
+                let mediaHtml = isVideo(project.file_path)
+                    ? `<div class="watch-media"><video controls autoplay src="${project.file_path}"></video></div>`
+                    : `<div class="watch-media"><img src="${project.file_path}" alt="پروژه"></div>`;
+
+                container.innerHTML = `
+                    <div class="watch-container">
+                        ${mediaHtml}
+                        <div class="watch-title">${project.title}</div>
+                        <div class="channel-link" style="margin-bottom: 15px; cursor: pointer;" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
+                        <div class="watch-desc">${project.description}</div>
+
+                        <div class="comments-section">
+                            <h3>نظرات کاربران</h3>
+                            <div class="comment-form">
+                                <input type="text" id="authorName" placeholder="نام شما">
+                                <textarea id="commentText" rows="3" placeholder="نظر خود را درباره این ویدیو بنویسید..."></textarea>
+                                <button class="btn-primary" onclick="postComment(${project.id})">ارسال نظر</button>
+                            </div>
+                            <div id="commentsList"><p>در حال بارگذاری نظرات...</p></div>
+                        </div>
+                    </div>
+                `;
+
+                loadComments(project.id);
+            } catch (err) {
+                console.error('Error loading watch page:', err);
+            }
+        }
+
+        async function loadComments(projectId) {
+            try {
+                const res = await fetch(`/api/projects/${projectId}/comments`);
+                const comments = await res.json();
+                const list = document.getElementById('commentsList');
+                list.innerHTML = '';
+
+                if (!Array.isArray(comments) || comments.length === 0) {
+                    list.innerHTML = '<p style="color: #778; font-size: 14px;">هنوز نظری ثبت نشده است. اولین نفر باشید که نظر می‌دهد!</p>';
+                    return;
+                }
+
+                comments.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'comment-card';
+                    div.innerHTML = `
+                        <div class="comment-author">${c.author_name}</div>
+                        <div class="comment-text">${c.comment_text}</div>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                console.error('Error loading comments:', err);
+            }
+        }
+
+        async function postComment(projectId) {
+            const authorName = document.getElementById('authorName').value.trim();
+            const commentText = document.getElementById('commentText').value.trim();
+
+            if (!authorName || !commentText) {
+                alert('لطفاً نام و متن نظر را وارد کنید.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/projects/${projectId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ author_name: authorName, comment_text: commentText })
+                });
+
+                if (res.ok) {
+                    document.getElementById('authorName').value = '';
+                    document.getElementById('commentText').value = '';
+                    loadComments(projectId);
+                } else {
+                    alert('خطا در ثبت نظر.');
+                }
+            } catch (err) {
+                console.error('Error posting comment:', err);
+            }
+        }
+
+        checkAuthHeader();
+
+        if (videoId) {
+            loadWatchPage(videoId);
+        } else if (charityId) {
+            loadChannel(charityId);
+        } else {
+            loadHome();
+        }
+    </script>
+</body>
+</html>
