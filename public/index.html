@@ -251,7 +251,7 @@
                 alert('لطفاً اطلاعات ورود را وارد کنید');
                 return;
             }
-            let userData = { id: 99, name: currentLoginType === 'real' ? identifier : identifier, type: currentLoginType };
+            let userData = { id: 99, name: identifier, type: currentLoginType };
             localStorage.setItem('mehrnama_user', JSON.stringify(userData));
             closeLoginModal();
             updateHeaderUser();
@@ -312,6 +312,13 @@
         }
 
         function toggleSubscribe(charityId, charityName) {
+            let user = getLoggedInUser();
+            if (!user) {
+                alert('لطفاً برای عضویت و دنبال کردن کانال‌ها، ابتدا وارد سامانه شوید.');
+                openLoginModal();
+                return;
+            }
+
             let subs = getSubscriptions();
             let index = subs.findIndex(s => s.id == charityId);
             if (index > -1) {
@@ -414,7 +421,7 @@
                     return data;
                 }
             } catch (e) {
-                console.warn('Error fetching projects from database');
+                console.warn('Error fetching projects');
             }
             return [];
         }
@@ -464,7 +471,7 @@
                     <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="upDistrict" placeholder="مثلا تجریش"></div>
                     <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه..."></textarea></div>
-                    <div class="form-group"><label>لینک تصویر یا ویدیو (عکس جدید)</label><input type="text" id="upFile" placeholder="https://..."></div>
+                    <div class="form-group"><label>لینک مستقیم تصویر یا ویدیو</label><input type="text" id="upFile" placeholder="https://..."></div>
                     <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در دیتابیس</button>
                 </div>
             `;
@@ -531,7 +538,7 @@
                     <div class="form-group"><label>استان</label><input type="text" id="editProvince" value="${project.province || ''}"></div>
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="editDistrict" value="${project.district || ''}"></div>
                     <div class="form-group"><label>توضیحات کامل</label><textarea id="editDesc" rows="4">${project.description || ''}</textarea></div>
-                    <div class="form-group"><label>لینک تصویر مستقیم جدید (عکس)</label><input type="text" id="editFile" value="${project.file_path || ''}"></div>
+                    <div class="form-group"><label>لینک مستقیم تصویر جدید (عکس)</label><input type="text" id="editFile" value="${project.file_path || ''}"></div>
                     <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitEditProject(${project.id})">ذخیره تغییرات و تعویض عکس</button>
                 </div>
             `;
@@ -782,8 +789,6 @@
             let subs = getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
             let user = getLoggedInUser();
-            
-            // فقط اگر کاربر صاحب این پروژه باشد دکمه ویرایش را نشان بده
             let isOwner = user && (user.id == project.charity_id || user.id == 99);
 
             container.innerHTML = `
