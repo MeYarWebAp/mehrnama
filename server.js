@@ -115,7 +115,7 @@ async function seedSampleData() {
     ];
 
     const projectTitles = [
-        'تزیع بسته‌های معیشتی و مواد غذایی',
+        'توزیع بسته‌های معیشتی و مواد غذایی',
         'پویش تأمین لوازم‌التحریر دانش‌آموزان',
         'پروژه تأمین دارو و درمان بیماران نیازمند',
         'یاری‌رسانی عمومی و توزیع اقلام گرمایشی',
@@ -149,7 +149,6 @@ async function seedSampleData() {
         for (let j = 0; j < projectCount; j++) {
             const title = projectTitles[Math.floor(Math.random() * projectTitles.length)];
             const description = `گزارش کامل و مستندات مربوط به فعالیت خیرخواهانه انجام شده توسط ${name} در منطقه ${loc.location} استان ${loc.province}.`;
-            // اصلاح خطا در اینجا انجام شد:
             const filePath = `https://picsum.photos/seed/mehrnama_${charityId}_${j}/600/400`;
 
             await pool.query(
@@ -252,7 +251,7 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
 app.get('/api/projects', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT p.*, c.name AS charity_name 
+            SELECT p.*, c.name AS charity_name, c.province
             FROM charity_projects p 
             JOIN charity_users c ON p.charity_id = c.id 
             ORDER BY p.created_at DESC
@@ -260,6 +259,23 @@ app.get('/api/projects', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: 'Fetching projects failed' });
+    }
+});
+
+app.get('/api/projects/province/:name', async (req, res) => {
+    const provinceName = req.params.name;
+    try {
+        const result = await pool.query(`
+            SELECT p.*, c.name AS charity_name, c.province
+            FROM charity_projects p 
+            JOIN charity_users c ON p.charity_id = c.id 
+            WHERE c.province = $1 OR p.description LIKE $2
+            ORDER BY p.created_at DESC
+            LIMIT 6
+        `, [provinceName, `%${provinceName}%`]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: 'Fetching province projects failed' });
     }
 });
 
