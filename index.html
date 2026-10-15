@@ -131,14 +131,10 @@
             <div class="sidebar-item" onclick="window.location.href='/'">🏠 <span>خانه</span></div>
             
             <div class="sidebar-section-title">اشتراک‌های شما</div>
-            <div id="sidebarSubscriptions">
-                <!-- Subscribed channels loaded dynamically -->
-            </div>
+            <div id="sidebarSubscriptions"></div>
 
             <div class="sidebar-section-title">استان‌های کشور</div>
-            <div id="sidebarProvinces">
-                <!-- Provinces populated dynamically -->
-            </div>
+            <div id="sidebarProvinces"></div>
         </aside>
 
         <main class="main-container" id="main-content">
@@ -209,22 +205,27 @@
             }
             localStorage.setItem('mehrnama_subs', JSON.stringify(subs));
             renderSidebar();
-            // Refresh watch page subscription button state if present
             let subBtn = document.getElementById('subscribeBtn');
             if (subBtn) {
                 let isSub = subs.some(s => s.id == charityId);
                 subBtn.className = isSub ? 'btn-subscribed' : 'btn-subscribe';
                 subBtn.innerText = isSub ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
             }
+            let channelSubBtn = document.getElementById('channelSubBtn');
+            if (channelSubBtn) {
+                let isSub = subs.some(s => s.id == charityId);
+                channelSubBtn.className = isSub ? 'btn-subscribed' : 'btn-subscribe';
+                channelSubBtn.innerText = isSub ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+            }
         }
 
-        function renderSidebar() {
+        function renderSidebar(activeProvince = null) {
             let provContainer = document.getElementById('sidebarProvinces');
             if (provContainer) {
                 provContainer.innerHTML = '';
                 provincesList.forEach(prov => {
                     let item = document.createElement('div');
-                    item.className = 'sidebar-item';
+                    item.className = 'sidebar-item' + (activeProvince === prov ? ' active' : '');
                     item.innerHTML = `📍 <span>استان ${prov}</span>`;
                     item.onclick = () => window.location.href = `/?province=${encodeURIComponent(prov)}`;
                     provContainer.appendChild(item);
@@ -299,6 +300,7 @@
         }
 
         async function loadHome(searchQuery = null) {
+            renderSidebar();
             updateActiveTag(searchQuery);
             let container = document.getElementById('main-content');
             let titleText = searchQuery ? `نتایج جستجو برای: "${searchQuery}"` : 'آخرین کارهای نیک';
@@ -345,6 +347,7 @@
         }
 
         async function loadProvincePage(provinceName, districtName = null) {
+            renderSidebar(provinceName);
             let container = document.getElementById('main-content');
             let titleText = districtName ? `استان ${provinceName} - شهرستان/منطقه: ${districtName}` : `استان: ${provinceName}`;
             
@@ -402,6 +405,7 @@
         }
 
         async function loadChannelPage(charityId) {
+            renderSidebar();
             let container = document.getElementById('main-content');
             let projects = await fetchProjectsSafe();
             let channelProjects = projects.filter(p => p.charity_id == charityId);
@@ -444,66 +448,7 @@
         }
 
         async function loadWatchPage(id) {
+            renderSidebar();
             let container = document.getElementById('main-content');
             let projects = await fetchProjectsSafe();
-            let project = projects.find(p => p.id == id) || projects[0];
-
-            let subs = getSubscriptions();
-            let isSubscribed = subs.some(s => s.id == project.charity_id);
-
-            container.innerHTML = `
-                <div class="watch-layout">
-                    <div class="watch-main">
-                        <div class="watch-media"><img src="${project.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
-                        <div class="watch-title">${project.title}</div>
-                        
-                        <div class="watch-channel-row">
-                            <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">کانال: ${project.charity_name}</div>
-                            <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
-                                ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
-                            </button>
-                        </div>
-
-                        <div class="watch-desc">${project.description}</div>
-                    </div>
-                    <div class="related-sidebar">
-                        <h3>کارهای نیک مرتبط</h3>
-                        <div id="relatedList"></div>
-                    </div>
-                </div>
-            `;
-
-            let relatedList = document.getElementById('relatedList');
-            projects.filter(p => p.id != project.id).slice(0, 5).forEach(p => {
-                let card = document.createElement('div');
-                card.className = 'related-card';
-                card.onclick = () => window.location.href = `/?v=${p.id}`;
-                card.innerHTML = `
-                    <div class="related-thumb"><img src="${p.file_path}" alt="تصویر"></div>
-                    <div class="related-info">
-                        <div class="related-title">${p.title}</div>
-                        <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
-                    </div>
-                `;
-                relatedList.appendChild(card);
-            });
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            renderSidebar();
-
-            let urlParams = new URLSearchParams(window.location.search);
-            let videoId = urlParams.get('v');
-            let provinceName = urlParams.get('province');
-            let districtName = urlParams.get('district');
-            let charityId = urlParams.get('charity_id');
-            let searchQuery = urlParams.get('search');
-
-            if (videoId) loadWatchPage(videoId);
-            else if (charityId) loadChannelPage(charityId);
-            else if (provinceName) loadProvincePage(decodeURIComponent(provinceName), districtName ? decodeURIComponent(districtName) : null);
-            else loadHome(searchQuery ? decodeURIComponent(searchQuery) : null);
-        });
-    </script>
-</body>
-</html>
+            let project = projects.find(p => p.id == id) ||
