@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مهرنما - تصویر شفاف مهربانی</title>
-    <!-- Leaflet CSS for Interactive Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
         header { background-color: #ffffff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
@@ -32,9 +30,12 @@
         .video-desc { font-size: 13px; color: #888; }
         
         /* Map Section Styles */
-        .province-section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 40px; }
-        #iranMap { width: 100%; height: 450px; border-radius: 10px; margin-top: 15px; z-index: 1; }
-        .province-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 15px; }
+        .province-section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 40px; text-align: center; }
+        .iran-map-container { display: flex; justify-content: center; align-items: center; margin-top: 15px; }
+        .province-shape { fill: #e2e8f0; stroke: #ffffff; stroke-width: 1.5; cursor: pointer; transition: fill 0.2s; }
+        .province-shape:hover { fill: #cc0000; }
+        
+        .province-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 20px; text-align: right; }
         .province-btn { background: #f4f4f4; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; text-align: center; color: #333; }
         .province-btn:hover { background: #cc0000; color: white; border-color: #cc0000; }
         
@@ -66,8 +67,6 @@
         @media (max-width: 950px) { .watch-layout { grid-template-columns: 1fr; } .video-grid { grid-template-columns: repeat(2, 1fr); } .province-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .video-grid { grid-template-columns: 1fr; } .province-grid { grid-template-columns: 1fr; } }
     </style>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
 
@@ -149,11 +148,43 @@
                 <div class="video-grid" id="top-videos"><p>در حال بارگذاری...</p></div>
                 
                 <div class="province-section">
-                    <div class="section-title" style="margin-bottom: 10px;">نقشه تعاملی کارهای نیک استان‌ها</div>
-                    <p style="color: #666; font-size: 14px; margin-top: 0;">برای مشاهده کارهای نیک هر استان، روی نقطه‌جوش یا پین مربوطه روی نقشه کلیک کنید:</p>
-                    <div id="iranMap"></div>
+                    <div class="section-title" style="margin-bottom: 5px;">نقشه تعاملی کارهای نیک استان‌ها</div>
+                    <p style="color: #666; font-size: 14px; margin-top: 0;">برای مشاهده کارهای نیک هر استان، روی بخش مربوطه در نقشه ایران یا دکمه‌های زیر کلیک کنید:</p>
+                    
+                    <div class="iran-map-container">
+                        <svg viewBox="0 0 600 550" width="380" height="350">
+                            <!-- Simplified clean SVG interactive regions for Iran provinces -->
+                            <g>
+                                <path class="province-shape" d="M50,80 L120,60 L150,110 L90,130 Z" onclick="window.location.href='/?province=آذربایجان%20شرقی'" title="آذربایجان شرقی"/>
+                                <path class="province-shape" d="M120,60 L200,50 L220,100 L150,110 Z" onclick="window.location.href='/?province=تهران'" title="تهران"/>
+                                <path class="province-shape" d="M200,50 L300,60 L280,130 L220,100 Z" onclick="window.location.href='/?province=خراسان%20رضوی'" title="خراسان رضوی"/>
+                                <path class="province-shape" d="M150,110 L220,100 L240,180 L160,190 Z" onclick="window.location.href='/?province=اصفهان'" title="اصفهان"/>
+                                <path class="province-shape" d="M90,130 L150,110 L160,190 L100,220 Z" onclick="window.location.href='/?province=فارس'" title="فارس"/>
+                                <path class="province-shape" d="M50,220 L100,220 L120,320 L60,300 Z" onclick="window.location.href='/?province=خوزستان'" title="خوزستان"/>
+                                <path class="province-shape" d="M240,180 L350,170 L330,260 L220,250 Z" onclick="window.location.href='/?province=کرمان'" title="کرمان"/>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="province-grid" id="provinceGrid"></div>
                 </div>
             `;
+
+            let provinces = [
+                'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
+                'خوزستان', 'مازندران', 'گیلان', 'کرمان', 'البرز',
+                'قم', 'کرمانشاه', 'سیستان و بلوچستان', 'هرمزگان', 'یزد',
+                'لرستان', 'گلستان', 'مرکزی', 'همدان', 'اردبیل'
+            ];
+
+            let provinceGrid = document.getElementById('provinceGrid');
+            provinces.forEach(prov => {
+                let btn = document.createElement('button');
+                btn.className = 'province-btn';
+                btn.innerText = prov;
+                btn.onclick = () => window.location.href = `/?province=${encodeURIComponent(prov)}`;
+                provinceGrid.appendChild(btn);
+            });
 
             let projects = await fetchProjectsSafe();
             let topVc = document.getElementById('top-videos');
@@ -173,34 +204,6 @@
                 `;
                 topVc.appendChild(card);
             });
-
-            // Initialize Iran Interactive Map using Leaflet
-            setTimeout(() => {
-                let map = L.map('iranMap').setView([32.4279, 53.6880], 5); // Center of Iran
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 10,
-                    attribution: '&copy; OpenStreetMap'
-                }).addTo(map);
-
-                // Province coordinates sample for interactive markers
-                let provinceCoords = [
-                    { name: 'تهران', lat: 35.6892, lng: 51.3890 },
-                    { name: 'اصفهان', lat: 32.6546, lng: 51.6680 },
-                    { name: 'خراسان رضوی', lat: 36.2605, lng: 59.6168 },
-                    { name: 'فارس', lat: 29.5918, lng: 52.5836 },
-                    { name: 'آذربایجان شرقی', lat: 38.0800, lng: 46.2919 },
-                    { name: 'خوزستان', lat: 31.3183, lng: 48.6706 },
-                    { name: 'مازندران', lat: 36.5656, lng: 53.0586 },
-                    { name: 'گیلان', lat: 37.2809, lng: 49.5832 },
-                    { name: 'کرمان', lat: 30.2839, lng: 57.0834 },
-                    { name: 'البرز', lat: 35.8400, lng: 50.9391 }
-                ];
-
-                provinceCoords.forEach(prov => {
-                    let marker = L.marker([prov.lat, prov.lng]).addTo(map);
-                    marker.bindPopup(`<b>استان ${prov.name}</b><br><a href="/?province=${encodeURIComponent(prov.name)}" style="color:#cc0000; font-weight:bold;">مشاهده کارهای نیک این استان</a>`);
-                });
-            }, 300);
         }
 
         async function loadProvincePage(provinceName, districtName = null) {
@@ -215,7 +218,7 @@
                 <div class="section-title">کارهای نیک این منطقه</div>
                 <div class="video-grid" id="province-videos"></div>
 
-                <div class="province-section" id="districtSection" style="display:none;">
+                <div class="province-section" id="districtSection" style="display:none; text-align:right;">
                     <div class="section-title" style="margin-bottom: 10px;">انتخاب شهرستان / منطقه در استان ${provinceName}</div>
                     <div class="province-grid" id="districtGrid"></div>
                 </div>
