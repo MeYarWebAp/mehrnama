@@ -66,6 +66,15 @@
         .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
         .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
         .watch-channel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+
+        /* Comments Section */
+        .comments-section { margin-top: 20px; }
+        .comments-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #111; }
+        .comment-box-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .comment-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; font-size: 14px; }
+        .comment-item { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; }
+        .comment-user { font-size: 13px; font-weight: bold; color: #111; margin-bottom: 4px; }
+        .comment-text { font-size: 13px; color: #333; }
         
         .related-sidebar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .related-sidebar h3 { font-size: 16px; margin-top: 0; margin-bottom: 15px; color: #111; border-bottom: 2px solid #eee; padding-bottom: 8px; }
@@ -110,7 +119,7 @@
             <input type="text" id="searchInput" class="search-input" placeholder="جستجوی کارهای نیک، خیریه‌ها، مناطق...">
             <button class="search-btn" onclick="performSearch()">🔍</button>
         </div>
-        <div class="header-actions">
+        <div class="header-actions" id="headerActions">
             <button class="btn-outline" onclick="openLoginModal()">ورود</button>
             <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
         </div>
@@ -158,7 +167,7 @@
             <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPass" placeholder="******"></div>
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
-                <button class="btn-primary" onclick="alert('ورود با موفقیت انجام شد')">تایید ورود</button>
+                <button class="btn-primary" onclick="handleLogin()">تایید ورود</button>
             </div>
         </div>
     </div>
@@ -190,7 +199,7 @@
 
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
-                <button class="btn-primary" onclick="alert('ثبت‌نام با موفقیت انجام شد')">تایید و ثبت‌نام</button>
+                <button class="btn-primary" onclick="handleRegister()">تایید و ثبت‌نام</button>
             </div>
         </div>
     </div>
@@ -198,6 +207,62 @@
     <script>
         let currentLoginType = 'real';
         let currentRegType = 'real';
+
+        function getLoggedInUser() {
+            let user = localStorage.getItem('mehrnama_user');
+            return user ? JSON.parse(user) : null;
+        }
+
+        function updateHeaderUser() {
+            let user = getLoggedInUser();
+            let headerActions = document.getElementById('headerActions');
+            if (user) {
+                headerActions.innerHTML = `
+                    <span style="font-size: 14px; font-weight: bold; color: #333;">👤 ${user.name}</span>
+                    <button class="btn-outline" onclick="handleLogout()" style="padding: 6px 12px; font-size: 12px;">خروج</button>
+                `;
+            } else {
+                headerActions.innerHTML = `
+                    <button class="btn-outline" onclick="openLoginModal()">ورود</button>
+                    <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
+                `;
+            }
+        }
+
+        function handleLogin() {
+            let identifier = document.getElementById('loginPhoneOrId').value.trim();
+            if (!identifier) {
+                alert('لطفاً اطلاعات ورود را وارد کنید');
+                return;
+            }
+            let userData = { name: currentLoginType === 'real' ? identifier : 'موسسه ' + identifier, type: currentLoginType };
+            localStorage.setItem('mehrnama_user', JSON.stringify(userData));
+            closeLoginModal();
+            updateHeaderUser();
+            alert('ورود با موفقیت انجام شد');
+            location.reload();
+        }
+
+        function handleRegister() {
+            let name = currentRegType === 'real' ? document.getElementById('regRealName').value.trim() : document.getElementById('regLegalName').value.trim();
+            if (!name) {
+                alert('لطفاً نام را وارد کنید');
+                return;
+            }
+            let userData = { name: name, type: currentRegType };
+            localStorage.setItem('mehrnama_user', JSON.stringify(userData));
+            closeRegisterModal();
+            updateHeaderUser();
+            alert('ثبت‌نام و ورود با موفقیت انجام شد');
+            location.reload();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('mehrnama_user');
+            updateHeaderUser();
+            alert('از حساب کاربری خارج شدید');
+            location.reload();
+        }
 
         function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
         function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
@@ -491,6 +556,51 @@
             });
         }
 
+        // Comments management via LocalStorage
+        function getComments(videoId) {
+            let comms = localStorage.getItem(`mehrnama_comments_${videoId}`);
+            return comms ? JSON.parse(comms) : [
+                { user: 'علی رضایی', text: 'بسیار عالی و خداقوت به دست‌اندرکاران این پروژه خیرخواهانه.' },
+                { user: 'مریم احمدی', text: 'امیدوارم این فعالیت‌ها در تمامی مناطق کشور گسترش پیدا کند.' }
+            ];
+        }
+
+        function addComment(videoId) {
+            let user = getLoggedInUser();
+            if (!user) {
+                alert('لطفاً ابتدا وارد سامانه شوید تا بتوانید نظر خود را ثبت کنید.');
+                openLoginModal();
+                return;
+            }
+            let inputElem = document.getElementById('commentInput');
+            let text = inputElem.value.trim();
+            if (!text) {
+                alert('لطفاً متن نظر را وارد کنید.');
+                return;
+            }
+            let comments = getComments(videoId);
+            comments.unshift({ user: user.name, text: text });
+            localStorage.setItem(`mehrnama_comments_${videoId}`, JSON.stringify(comments));
+            inputElem.value = '';
+            renderComments(videoId);
+        }
+
+        function renderComments(videoId) {
+            let listElem = document.getElementById('commentsList');
+            if (!listElem) return;
+            let comments = getComments(videoId);
+            listElem.innerHTML = '';
+            comments.forEach(c => {
+                let item = document.createElement('div');
+                item.className = 'comment-item';
+                item.innerHTML = `
+                    <div class="comment-user">👤 ${c.user}</div>
+                    <div class="comment-text">${c.text}</div>
+                `;
+                listElem.appendChild(item);
+            });
+        }
+
         async function loadWatchPage(id) {
             renderSidebar();
             let container = document.getElementById('main-content');
@@ -514,6 +624,15 @@
                         </div>
 
                         <div class="watch-desc">${project.description}</div>
+
+                        <div class="comments-section">
+                            <div class="comments-title">نظرات مردمی</div>
+                            <div class="comment-box-row">
+                                <input type="text" id="commentInput" class="comment-input" placeholder="نظر خود را بنویسید...">
+                                <button class="btn-primary" onclick="addComment(${project.id})">ثبت نظر</button>
+                            </div>
+                            <div id="commentsList"></div>
+                        </div>
                     </div>
                     <div class="related-sidebar">
                         <h3>کارهای نیک مرتبط</h3>
@@ -521,6 +640,8 @@
                     </div>
                 </div>
             `;
+
+            renderComments(project.id);
 
             let relatedList = document.getElementById('relatedList');
             projects.filter(p => p.id != project.id).slice(0, 5).forEach(p => {
@@ -539,6 +660,8 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            updateHeaderUser();
+
             let urlParams = new URLSearchParams(window.location.search);
             let videoId = urlParams.get('v');
             let provinceName = urlParams.get('province');
