@@ -94,7 +94,7 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
     }
 });
 
-// ۴. دریافت لیست تمام پروژه‌ها (مرتب‌شده بر اساس جدیدترین - Last-In, First-Show)
+// ۴. دریافت لیست تمام پروژه‌ها
 app.get('/api/projects', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -168,4 +168,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
