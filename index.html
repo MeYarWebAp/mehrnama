@@ -50,7 +50,7 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .btn-primary {
             background-color: #cc0000;
@@ -62,174 +62,78 @@
             font-weight: bold;
             font-size: 14px;
         }
-        .btn-primary:hover {
-            background-color: #b00000;
+        .btn-primary:hover { background-color: #b00000; }
+        .btn-outline {
+            background-color: transparent;
+            color: #cc0000;
+            border: 1px solid #cc0000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
         }
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
+        .btn-outline:hover { background-color: #fff5f5; }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .channel-header {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .channel-header h2 { margin: 0 0 10px 0; color: #111; }
         .channel-header p { margin: 0; color: #606060; font-size: 14px; }
         .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #111;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #111;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
+        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .video-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            cursor: pointer;
+            background: white; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer;
         }
         .video-card:hover { transform: translateY(-4px); }
         .media-box {
-            width: 100%;
-            height: 180px;
-            background-color: #eef2f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            width: 100%; height: 180px; background-color: #eef2f5;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-        .media-box video, .media-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .media-box video, .media-box img { width: 100%; height: 100%; object-fit: cover; }
         .video-info { padding: 15px; }
         .video-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #0f0f0f;
-            margin: 0 0 8px 0;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            font-size: 16px; font-weight: bold; color: #0f0f0f; margin: 0 0 8px 0;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
-        .channel-link {
-            font-size: 14px;
-            color: #065fd4;
-            text-decoration: none;
-            margin-bottom: 5px;
-            display: inline-block;
-        }
+        .channel-link { font-size: 14px; color: #065fd4; text-decoration: none; margin-bottom: 5px; display: inline-block; }
         .channel-link:hover { text-decoration: underline; }
         .video-desc {
-            font-size: 13px;
-            color: #888;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            font-size: 13px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         
         /* Modals & Tabs */
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;
         }
         .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            width: 420px;
-            max-width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: white; padding: 25px; border-radius: 12px; width: 420px;
+            max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
+            display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;
         }
         .tab-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            background: #f0f0f0;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
+            flex: 1; padding: 8px; border: none; background: #f0f0f0;
+            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;
         }
-        .tab-btn.active {
-            background: #cc0000;
-            color: white;
-        }
-        .form-group {
-            margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+        .tab-btn.active { background: #cc0000; color: white; }
+        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
         .form-group label { font-size: 12px; font-weight: bold; color: #333; }
         .form-group input, .form-group textarea {
-            padding: 8px 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-family: Tahoma, sans-serif;
+            padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif;
         }
-        .close-btn {
-            background: #ccc;
-            color: #333;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .watch-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .watch-media {
-            width: 100%;
-            max-height: 500px;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .watch-media video, .watch-media img {
-            width: 100%;
-            max-height: 500px;
-            object-fit: contain;
-        }
+        .close-btn { background: #ccc; color: #333; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .watch-container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .watch-media { width: 100%; max-height: 500px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .watch-media video, .watch-media img { width: 100%; max-height: 500px; object-fit: contain; }
         .watch-title { font-size: 22px; font-weight: bold; margin: 20px 0 10px 0; color: #111; }
         .watch-desc { font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .comments-section h3 { font-size: 18px; margin-bottom: 15px; }
@@ -250,7 +154,8 @@
             <div class="logo-text">مهرنما</div>
         </div>
         <div class="header-actions" id="headerActions">
-            <button class="btn-primary" onclick="openAuthModal()">ورود / ثبت‌نام</button>
+            <button class="btn-outline" onclick="openLoginModal()">ورود</button>
+            <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
         </div>
     </header>
 
@@ -258,17 +163,61 @@
         <p>در حال بارگذاری...</p>
     </div>
 
-    <!-- Modal Auth -->
-    <div class="modal" id="authModal">
+    <!-- Modal Login -->
+    <div class="modal" id="loginModal">
         <div class="modal-content">
             <div class="tab-buttons">
-                <button class="tab-btn active" id="btnUserTab" onclick="switchUserType('user')">کاربر حقیقی</button>
-                <button class="tab-btn" id="btnCharityTab" onclick="switchUserType('charity')">موسسه خیریه</button>
+                <button class="tab-btn active" id="btnLoginUserTab" onclick="switchLoginType('user')">ورود کاربر حقیقی</button>
+                <button class="tab-btn" id="btnLoginCharityTab" onclick="switchLoginType('charity')">ورود موسسه خیریه</button>
             </div>
 
-            <!-- فرم کاربر حقیقی -->
-            <div id="userForm">
-                <h3 style="margin-top:0; font-size:16px;">ورود / ثبت‌نام کاربر حقیقی</h3>
+            <!-- فرم ورود کاربر حقیقی -->
+            <div id="loginUserForm">
+                <h3 style="margin-top:0; font-size:16px;">ورود کاربر حقیقی</h3>
+                <div class="form-group">
+                    <label>شماره همراه</label>
+                    <input type="text" id="loginUserPhone" placeholder="09123456789">
+                </div>
+                <div class="form-group">
+                    <label>رمز عبور</label>
+                    <input type="password" id="loginUserPassword" placeholder="******">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
+                    <button class="btn-primary" onclick="loginUser()">ورود</button>
+                </div>
+            </div>
+
+            <!-- فرم ورود خیریه -->
+            <div id="loginCharityForm" style="display: none;">
+                <h3 style="margin-top:0; font-size:16px;">ورود موسسه خیریه</h3>
+                <div class="form-group">
+                    <label>ایمیل معتبر</label>
+                    <input type="email" id="loginCharityEmail" placeholder="info@charity.org">
+                </div>
+                <div class="form-group">
+                    <label>رمز عبور</label>
+                    <input type="password" id="loginCharityPassword" placeholder="******">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
+                    <button class="btn-primary" onclick="loginCharity()">ورود خیریه</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Register -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="tab-buttons">
+                <button class="tab-btn active" id="btnRegUserTab" onclick="switchRegisterType('user')">ثبت‌نام کاربر حقیقی</button>
+                <button class="tab-btn" id="btnRegCharityTab" onclick="switchRegisterType('charity')">ثبت‌نام موسسه خیریه</button>
+            </div>
+
+            <!-- فرم ثبت‌نام کاربر حقیقی -->
+            <div id="regUserForm">
+                <h3 style="margin-top:0; font-size:16px;">ثبت‌نام کاربر حقیقی</h3>
                 <div class="form-group">
                     <label>نام و نام خانوادگی</label>
                     <input type="text" id="userName" placeholder="علی رضایی">
@@ -282,13 +231,13 @@
                     <input type="password" id="userPassword" placeholder="******">
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                    <button class="close-btn" onclick="closeAuthModal()">انصراف</button>
-                    <button class="btn-primary" onclick="registerUser()">ثبت‌نام / ورود</button>
+                    <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
+                    <button class="btn-primary" onclick="registerUser()">ثبت‌نام</button>
                 </div>
             </div>
 
-            <!-- فرم موسسه خیریه -->
-            <div id="charityForm" style="display: none;">
+            <!-- فرم ثبت‌نام موسسه خیریه -->
+            <div id="regCharityForm" style="display: none;">
                 <h3 style="margin-top:0; font-size:16px;">ثبت‌نام موسسه خیریه</h3>
                 <div class="form-group">
                     <label>نام خیریه</label>
@@ -327,7 +276,7 @@
                     <input type="password" id="chPassword" placeholder="******">
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                    <button class="close-btn" onclick="closeAuthModal()">انصراف</button>
+                    <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
                     <button class="btn-primary" onclick="registerCharity()">ثبت‌نام خیریه</button>
                 </div>
             </div>
@@ -358,39 +307,42 @@
     </div>
 
     <script>
-        function openAuthModal() {
-            var m = document.getElementById('authModal');
-            if (m) m.style.display = 'flex';
-        }
-        function closeAuthModal() {
-            var m = document.getElementById('authModal');
-            if (m) m.style.display = 'none';
-        }
-        function openUploadModal() {
-            var m = document.getElementById('uploadModal');
-            if (m) m.style.display = 'flex';
-        }
-        function closeUploadModal() {
-            var m = document.getElementById('uploadModal');
-            if (m) m.style.display = 'none';
-        }
+        function openLoginModal() { var m = document.getElementById('loginModal'); if (m) m.style.display = 'flex'; }
+        function closeLoginModal() { var m = document.getElementById('loginModal'); if (m) m.style.display = 'none'; }
+        
+        function openRegisterModal() { var m = document.getElementById('registerModal'); if (m) m.style.display = 'flex'; }
+        function closeRegisterModal() { var m = document.getElementById('registerModal'); if (m) m.style.display = 'none'; }
 
-        function switchUserType(type) {
-            var uf = document.getElementById('userForm');
-            var cf = document.getElementById('charityForm');
-            var bu = document.getElementById('btnUserTab');
-            var bc = document.getElementById('btnCharityTab');
+        function openUploadModal() { var m = document.getElementById('uploadModal'); if (m) m.style.display = 'flex'; }
+        function closeUploadModal() { var m = document.getElementById('uploadModal'); if (m) m.style.display = 'none'; }
+
+        function switchLoginType(type) {
+            var uf = document.getElementById('loginUserForm');
+            var cf = document.getElementById('loginCharityForm');
+            var bu = document.getElementById('btnLoginUserTab');
+            var bc = document.getElementById('btnLoginCharityTab');
 
             if (type === 'user') {
-                if (uf) uf.style.display = 'block';
-                if (cf) cf.style.display = 'none';
-                if (bu) bu.classList.add('active');
-                if (bc) bc.classList.remove('active');
+                uf.style.display = 'block'; cf.style.display = 'none';
+                bu.classList.add('active'); bc.classList.remove('active');
             } else {
-                if (uf) uf.style.display = 'none';
-                if (cf) cf.style.display = 'block';
-                if (bc) bc.classList.add('active');
-                if (bu) bu.classList.remove('active');
+                uf.style.display = 'none'; cf.style.display = 'block';
+                bc.classList.add('active'); bu.classList.remove('active');
+            }
+        }
+
+        function switchRegisterType(type) {
+            var uf = document.getElementById('regUserForm');
+            var cf = document.getElementById('regCharityForm');
+            var bu = document.getElementById('btnRegUserTab');
+            var bc = document.getElementById('btnRegCharityTab');
+
+            if (type === 'user') {
+                uf.style.display = 'block'; cf.style.display = 'none';
+                bu.classList.add('active'); bc.classList.remove('active');
+            } else {
+                uf.style.display = 'none'; cf.style.display = 'block';
+                bc.classList.add('active'); bu.classList.remove('active');
             }
         }
 
@@ -422,15 +374,52 @@
             window.location.reload();
         }
 
+        async function loginUser() {
+            var phone = document.getElementById('loginUserPhone').value;
+            var password = document.getElementById('loginUserPassword').value;
+
+            try {
+                var res = await fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone, password: password })
+                });
+                var data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('regular_user', JSON.stringify(data.user));
+                    closeLoginModal();
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'خطا در ورود');
+                }
+            } catch (err) { alert('خطا در ارتباط با سرور'); }
+        }
+
+        async function loginCharity() {
+            var email = document.getElementById('loginCharityEmail').value;
+            var password = document.getElementById('loginCharityPassword').value;
+
+            try {
+                var res = await fetch('/api/charities/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: password })
+                });
+                var data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('charity_user', JSON.stringify(data.charity));
+                    closeLoginModal();
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'خطا در ورود');
+                }
+            } catch (err) { alert('خطا در ارتباط با سرور'); }
+        }
+
         async function registerUser() {
             var name = document.getElementById('userName').value;
             var phone = document.getElementById('userPhone').value;
             var password = document.getElementById('userPassword').value;
-
-            if (!name || !phone || !password) {
-                alert('لطفا اطلاعات را کامل وارد کنید.');
-                return;
-            }
 
             try {
                 var res = await fetch('/api/users/register', {
@@ -440,16 +429,12 @@
                 });
                 var data = await res.json();
                 if (res.ok) {
-                    alert('ثبت‌نام کاربر با موفقیت انجام شد!');
+                    alert('ثبت‌نام با موفقیت انجام شد!');
                     localStorage.setItem('regular_user', JSON.stringify(data.user));
-                    closeAuthModal();
+                    closeRegisterModal();
                     window.location.reload();
-                } else {
-                    alert(data.error || 'خطا در ثبت‌نام');
-                }
-            } catch (err) {
-                alert('خطا در ارتباط با سرور');
-            }
+                } else { alert(data.error || 'خطا در ثبت‌نام'); }
+            } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         async function registerCharity() {
@@ -465,11 +450,6 @@
                 password: document.getElementById('chPassword').value
             };
 
-            if (!body.name || !body.email || !body.password) {
-                alert('لطفا نام خیریه، ایمیل و رمز عبور را وارد کنید.');
-                return;
-            }
-
             try {
                 var res = await fetch('/api/charities/register', {
                     method: 'POST',
@@ -480,14 +460,10 @@
                 if (res.ok) {
                     alert('ثبت‌نام خیریه با موفقیت انجام شد!');
                     localStorage.setItem('charity_user', JSON.stringify(data.charity));
-                    closeAuthModal();
+                    closeRegisterModal();
                     window.location.reload();
-                } else {
-                    alert(data.error || 'خطا در ثبت‌نام خیریه');
-                }
-            } catch (err) {
-                alert('خطا در ارتباط با سرور');
-            }
+                } else { alert(data.error || 'خطا در ثبت‌نام خیریه'); }
+            } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         async function uploadProject() {
@@ -518,12 +494,8 @@
                     alert('پروژه با موفقیت آپلود شد!');
                     closeUploadModal();
                     window.location.reload();
-                } else {
-                    alert('خطا در آپلود پروژه.');
-                }
-            } catch (err) {
-                alert('خطا در ارتباط با سرور');
-            }
+                } else { alert('خطا در آپلود پروژه.'); }
+            } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         function isVideo(filePath) {
@@ -567,11 +539,7 @@
                         '</div>';
                     videoContainer.appendChild(card);
                 });
-            } catch (err) {
-                console.error('Error:', err);
-                var vc = document.getElementById('video-container');
-                if (vc) vc.innerHTML = '<p>خطا در بارگذاری پروژه‌ها از سرور.</p>';
-            }
+            } catch (err) { console.error('Error:', err); }
         }
 
         async function loadChannel(id) {
@@ -618,10 +586,7 @@
                         '</div>';
                     videoContainer.appendChild(card);
                 });
-            } catch (err) {
-                console.error('Error loading channel:', err);
-                container.innerHTML = '<p>خطا در ارتباط با سرور.</p>';
-            }
+            } catch (err) { console.error('Error loading channel:', err); }
         }
 
         async function loadWatchPage(id) {
@@ -661,9 +626,7 @@
                     '</div>';
 
                 loadComments(project.id);
-            } catch (err) {
-                console.error('Error loading watch page:', err);
-            }
+            } catch (err) { console.error('Error loading watch page:', err); }
         }
 
         async function loadComments(projectId) {
@@ -686,9 +649,7 @@
                         '<div class="comment-text">' + c.comment_text + '</div>';
                     list.appendChild(div);
                 });
-            } catch (err) {
-                console.error('Error loading comments:', err);
-            }
+            } catch (err) { console.error('Error loading comments:', err); }
         }
 
         async function postComment(projectId) {
@@ -711,29 +672,19 @@
                     document.getElementById('authorName').value = '';
                     document.getElementById('commentText').value = '';
                     loadComments(projectId);
-                } else {
-                    alert('خطا در ثبت نظر.');
-                }
-            } catch (err) {
-                console.error('Error posting comment:', err);
-            }
+                } else { alert('خطا در ثبت نظر.'); }
+            } catch (err) { console.error('Error posting comment:', err); }
         }
 
-        // اجرای توابع اصلی پس از بارگذاری صفحه
         window.addEventListener('DOMContentLoaded', function() {
             checkAuthHeader();
-
             var urlParams = new URLSearchParams(window.location.search);
             var videoId = urlParams.get('v');
             var charityId = urlParams.get('charity_id');
 
-            if (videoId) {
-                loadWatchPage(videoId);
-            } else if (charityId) {
-                loadChannel(charityId);
-            } else {
-                loadHome();
-            }
+            if (videoId) { loadWatchPage(videoId); }
+            else if (charityId) { loadChannel(charityId); }
+            else { loadHome(); }
         });
     </script>
 </body>
