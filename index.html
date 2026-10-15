@@ -107,7 +107,6 @@
             font-size: 13px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         
-        /* Province Selector / Map Box */
         .province-section {
             background: white;
             padding: 25px;
@@ -139,7 +138,6 @@
             border-color: #cc0000;
         }
 
-        /* Watch Layout */
         .watch-layout {
             display: grid;
             grid-template-columns: 1fr 380px;
@@ -165,7 +163,6 @@
         .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .related-channel { font-size: 11px; color: #666; margin-top: 4px; }
 
-        /* Modals */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;
@@ -361,4 +358,26 @@
             let phone = document.getElementById('userPhone').value;
             let password = document.getElementById('userPassword').value;
             try {
-                let res = await fetch('/api/users/register', { method: 'POST', headers: {'Content-
+                let res = await fetch('/api/users/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name, phone, password}) });
+                let data = await res.json();
+                if (res.ok) { alert('ثبت‌نام با موفقیت انجام شد!'); localStorage.setItem('regular_user', JSON.stringify(data.user)); closeRegisterModal(); window.location.reload(); }
+                else { alert(data.error || 'خطا در ثبت‌نام'); }
+            } catch (err) { alert('خطا در ارتباط با سرور'); }
+        }
+
+        async function registerCharity() {
+            let body = {
+                name: document.getElementById('chName').value,
+                registration_number: document.getElementById('chRegNum').value,
+                email: document.getElementById('chEmail').value,
+                phone: document.getElementById('chPhone').value,
+                landline_phone: document.getElementById('chLandline').value,
+                province: document.getElementById('chProvince').value,
+                district: document.getElementById('chDistrict').value,
+                location_name: document.getElementById('chLocation').value,
+                password: document.getElementById('chPassword').value
+            };
+            try {
+                let res = await fetch('/api/charities/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+                let data = await res.json();
+                if (res.ok) { alert('ثبت‌نام خیریه با موفقیت انجام شد!'); localStorage.setItem('charity_user', JSON.stringify(data.charity)); closeRegisterModal(); window.location.reload();
