@@ -27,9 +27,13 @@
         .tag-chip { background-color: #f0f0f0; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; border: none; transition: background 0.2s; }
         .tag-chip:hover, .tag-chip.active { background-color: #0f0f0f; color: white; }
 
-        .mobile-subs-bar { display: none; background: #fff; padding: 10px 15px; border-bottom: 1px solid #eee; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-        .mobile-subs-bar::-webkit-scrollbar { display: none; }
-        .mobile-sub-item { display: inline-flex; align-items: center; gap: 6px; background: #f3f4f6; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1f2937; margin-left: 8px; cursor: pointer; }
+        /* Mobile Subscriptions & Provinces Horizontal Bars */
+        .mobile-bars-container { display: none; background: #fff; border-bottom: 1px solid #eee; flex-direction: column; }
+        .mobile-bar-row { display: flex; gap: 8px; overflow-x: auto; padding: 8px 15px; white-space: nowrap; scrollbar-width: none; align-items: center; }
+        .mobile-bar-row::-webkit-scrollbar { display: none; }
+        .mobile-item-chip { display: inline-flex; align-items: center; gap: 6px; background: #f3f4f6; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1f2937; cursor: pointer; flex-shrink: 0; }
+        .mobile-item-chip.active { background: #cc0000; color: white; }
+        .mobile-bar-label { font-size: 11px; font-weight: bold; color: #666; padding-right: 5px; flex-shrink: 0; }
 
         .app-layout { display: flex; min-height: calc(100vh - 65px); }
         .sidebar { width: 240px; background: #ffffff; border-left: 1px solid #eee; padding: 15px; position: fixed; top: 65px; bottom: 0; right: 0; overflow-y: auto; box-sizing: border-box; z-index: 900; }
@@ -105,7 +109,7 @@
             .search-container { margin: 0 10px; }
             .sidebar { display: none !important; }
             .main-container, .tags-bar { margin-right: 0 !important; padding: 15px; }
-            .mobile-subs-bar { display: flex; }
+            .mobile-bars-container { display: flex; }
             .watch-layout { grid-template-columns: 1fr; }
             .video-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -144,7 +148,15 @@
         <button class="tag-chip" data-tag="بسته‌های معیشتی" onclick="filterByTag('بسته‌های معیشتی')">بسته‌های معیشتی</button>
     </div>
 
-    <div class="mobile-subs-bar" id="mobileSubsBar"></div>
+    <!-- Mobile Horizontal Bars for Subscriptions & Provinces -->
+    <div class="mobile-bars-container" id="mobileBarsContainer">
+        <div class="mobile-bar-row" id="mobileSubsRow">
+            <span class="mobile-bar-label">اشتراک‌ها:</span>
+        </div>
+        <div class="mobile-bar-row" id="mobileProvincesRow">
+            <span class="mobile-bar-label">استان‌ها:</span>
+        </div>
+    </div>
 
     <div class="app-layout">
         <aside class="sidebar" id="sidebarNav">
@@ -330,22 +342,36 @@
         function renderSidebar(activeProvince = null) {
             let subs = getSubscriptions();
             
-            let mobileSubsBar = document.getElementById('mobileSubsBar');
-            if (mobileSubsBar) {
-                mobileSubsBar.innerHTML = '';
+            // Render Mobile Subscriptions & Provinces Horizontal Bars
+            let mobileSubsRow = document.getElementById('mobileSubsRow');
+            if (mobileSubsRow) {
+                mobileSubsRow.innerHTML = '<span class="mobile-bar-label">اشتراک‌ها:</span>';
                 if (subs.length > 0) {
                     subs.forEach(s => {
                         let item = document.createElement('div');
-                        item.className = 'mobile-sub-item';
+                        item.className = 'mobile-item-chip';
                         item.innerHTML = `❤️ ${s.name}`;
                         item.onclick = () => window.location.href = `/?charity_id=${s.id}`;
-                        mobileSubsBar.appendChild(item);
+                        mobileSubsRow.appendChild(item);
                     });
                 } else {
-                    mobileSubsBar.innerHTML = '<span style="font-size:12px; color:#888;">اشتراکی ندارید</span>';
+                    mobileSubsRow.innerHTML += '<span style="font-size:11px; color:#888;">ندارد</span>';
                 }
             }
 
+            let mobileProvincesRow = document.getElementById('mobileProvincesRow');
+            if (mobileProvincesRow) {
+                mobileProvincesRow.innerHTML = '<span class="mobile-bar-label">استان‌ها:</span>';
+                provincesList.forEach(prov => {
+                    let item = document.createElement('div');
+                    item.className = 'mobile-item-chip' + (activeProvince === prov ? ' active' : '');
+                    item.innerHTML = `📍 ${prov}`;
+                    item.onclick = () => window.location.href = `/?province=${encodeURIComponent(prov)}`;
+                    mobileProvincesRow.appendChild(item);
+                });
+            }
+
+            // Render Desktop Sidebar
             let user = getLoggedInUser();
             let uploadSection = document.getElementById('sidebarUploadSection');
             if (uploadSection) {
