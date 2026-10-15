@@ -14,6 +14,9 @@
         .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .container { max-width: 1300px; margin: 30px auto; padding: 0 20px; }
+        .channel-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .channel-header h2 { margin: 0 0 10px 0; color: #111; }
+        .channel-header p { margin: 0; color: #606060; font-size: 14px; }
         .section-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #111; }
         .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
         .video-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
@@ -22,7 +25,8 @@
         .media-box img, .media-box video { width: 100%; height: 100%; object-fit: cover; }
         .video-info { padding: 15px; }
         .video-title { font-size: 16px; font-weight: bold; color: #0f0f0f; margin-bottom: 8px; }
-        .channel-link { font-size: 14px; color: #065fd4; margin-bottom: 5px; }
+        .channel-link { font-size: 14px; color: #065fd4; margin-bottom: 5px; cursor: pointer; display: inline-block; }
+        .channel-link:hover { text-decoration: underline; }
         .video-desc { font-size: 13px; color: #888; }
         .province-section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 40px; }
         .province-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 15px; }
@@ -46,6 +50,17 @@
         .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; }
         .related-channel { font-size: 11px; color: #666; margin-top: 4px; }
 
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 420px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .tab-btn { flex: 1; padding: 8px; border: none; background: #f0f0f0; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .tab-btn.active { background: #cc0000; color: white; }
+        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 12px; font-weight: bold; color: #333; }
+        .form-group input, .form-group textarea { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; }
+        .close-btn { background: #ccc; color: #333; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
         @media (max-width: 950px) { .watch-layout { grid-template-columns: 1fr; } .video-grid { grid-template-columns: repeat(2, 1fr); } .province-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .video-grid { grid-template-columns: 1fr; } .province-grid { grid-template-columns: 1fr; } }
     </style>
@@ -58,8 +73,8 @@
             <div class="logo-text">مهرنما</div>
         </div>
         <div class="header-actions">
-            <button class="btn-outline" onclick="alert('بخش ورود')">ورود</button>
-            <button class="btn-primary" onclick="alert('بخش ثبت‌نام')">ثبت‌نام</button>
+            <button class="btn-outline" onclick="openLoginModal()">ورود</button>
+            <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
         </div>
     </header>
 
@@ -67,7 +82,39 @@
         <p>در حال بارگذاری...</p>
     </div>
 
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">ورود به سامانه</h3>
+            <div class="form-group"><label>ایمیل یا شماره همراه</label><input type="text" id="loginEmail" placeholder="اطلاعات ورود..."></div>
+            <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPass" placeholder="******"></div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
+                <button class="btn-primary" onclick="alert('ورود با موفقیت انجام شد')">تایید ورود</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">ثبت‌نام در مهرنما</h3>
+            <div class="form-group"><label>نام کامل</label><input type="text" id="regName" placeholder="نام شما..."></div>
+            <div class="form-group"><label>شماره تماس</label><input type="text" id="regPhone" placeholder="09123456789"></div>
+            <div class="form-group"><label>رمز عبور</label><input type="password" id="regPass" placeholder="******"></div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
+                <button class="btn-primary" onclick="alert('ثبت‌نام با موفقیت انجام شد')">ثبت‌نام</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
+        function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+        function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
+        function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
+
         const fallbackProjects = [
             { id: 1, title: 'توزیع بسته‌های معیشتی در استان تهران', charity_name: 'خیریه مهر آفرین', charity_id: 1, description: 'گزارش کامل فعالیت خیرخواهانه در منطقه تجریش تهران.', file_path: 'https://picsum.photos/seed/mehrnama_1/600/400' },
             { id: 2, title: 'پویش تأمین لوازم‌التحریر در اصفهان', charity_name: 'بنیاد نیکوکاری باران', charity_id: 2, description: 'تهیه و توزیع کیف و لوازم‌التحریر برای دانش‌آموزان منطقه ۱.', file_path: 'https://picsum.photos/seed/mehrnama_2/600/400' },
@@ -86,7 +133,7 @@
                 let data = await res.json();
                 if (Array.isArray(data) && data.length > 0) return data;
             } catch (e) {
-                console.warn('API fetch failed or timed out, using fallback data.');
+                console.warn('Using fallback data.');
             }
             return fallbackProjects;
         }
@@ -132,11 +179,43 @@
                     <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
-                        <div class="channel-link">کانال: ${p.charity_name || 'خیریه مهرنما'}</div>
+                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name || 'خیریه مهرنما'}</div>
                         <div class="video-desc">${p.description}</div>
                     </div>
                 `;
                 topVc.appendChild(card);
+            });
+        }
+
+        async function loadChannelPage(charityId) {
+            let container = document.getElementById('main-content');
+            container.innerHTML = `
+                <div class="channel-header">
+                    <h2>پروژه‌های کانال خیریه</h2>
+                    <p>نمایش فعالیت‌ها و مستندات ثبت شده توسط این موسسه</p>
+                </div>
+                <div class="video-grid" id="channel-videos"></div>
+            `;
+
+            let projects = await fetchProjectsSafe();
+            let filtered = projects.filter(p => p.charity_id == charityId);
+            if (filtered.length === 0) filtered = projects.slice(0, 3);
+
+            let vc = document.getElementById('channel-videos');
+            vc.innerHTML = '';
+            filtered.forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => window.location.href = `/?v=${p.id}`;
+                card.innerHTML = `
+                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="video-info">
+                        <div class="video-title">${p.title}</div>
+                        <div class="channel-link">کانال: ${p.charity_name}</div>
+                        <div class="video-desc">${p.description}</div>
+                    </div>
+                `;
+                vc.appendChild(card);
             });
         }
 
@@ -149,7 +228,7 @@
 
             let projects = await fetchProjectsSafe();
             let filtered = projects.filter(p => (p.description && p.description.includes(provinceName)) || (p.charity_name && p.charity_name.includes(provinceName)));
-            if (filtered.length === 0) filtered = projects.slice(0, 3); // Fallback if no exact match
+            if (filtered.length === 0) filtered = projects.slice(0, 3);
 
             let vc = document.getElementById('province-videos');
             filtered.forEach(p => {
@@ -160,7 +239,7 @@
                     <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
-                        <div class="channel-link">کانال: ${p.charity_name}</div>
+                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
                         <div class="video-desc">${p.description}</div>
                     </div>
                 `;
@@ -178,7 +257,7 @@
                     <div class="watch-main">
                         <div class="watch-media"><img src="${project.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
                         <div class="watch-title">${project.title}</div>
-                        <div class="channel-link">کانال: ${project.charity_name}</div>
+                        <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
                         <div class="watch-desc">${project.description}</div>
                     </div>
                     <div class="related-sidebar">
@@ -197,7 +276,7 @@
                     <div class="related-thumb"><img src="${p.file_path}" alt="تصویر"></div>
                     <div class="related-info">
                         <div class="related-title">${p.title}</div>
-                        <div class="related-channel">${p.charity_name}</div>
+                        <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
                     </div>
                 `;
                 relatedList.appendChild(card);
@@ -208,8 +287,10 @@
             let urlParams = new URLSearchParams(window.location.search);
             let videoId = urlParams.get('v');
             let provinceName = urlParams.get('province');
+            let charityId = urlParams.get('charity_id');
 
             if (videoId) loadWatchPage(videoId);
+            else if (charityId) loadChannelPage(charityId);
             else if (provinceName) loadProvincePage(decodeURIComponent(provinceName));
             else loadHome();
         });
