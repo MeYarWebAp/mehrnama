@@ -31,7 +31,7 @@ const provincesAndCities = [
 
 const charityNames = [
     'خیریه مهر آفرین', 'بنیاد نیکوکاری باران', 'موسسه خیریه امید فردا', 'کانال همدلی و احسان',
-    'خیریه روشنای اندیشه', 'موسسه دست‌های مهربان', 'بنیاد خیریه פوران مهر', 'خیریه یاور محرومان',
+    'خیریه روشنای اندیشه', 'موسسه دست‌های مهربان', 'بنیاد خیریه فجر مهر', 'خیریه یاور محرومان',
     'موسسه همیار جوانان', 'خیریه پناه‌گاه عاطفه', 'بنیاد نیکوکاری نسیم رحمت', 'خیریه گل‌های بهشتی',
     'موسسه خیریه جوادالائمه', 'خیریه نور هدایت', 'بنیاد همدلان جوان', 'خیریه سبز اندیشان',
     'موسسه نیکوکاری پرتو مهر', 'خیریه فجر هدایت', 'بنیاد خیریه خیر ماندگار', 'موسسه حامیان کرامت'
@@ -50,7 +50,13 @@ const projectTitles = [
 
 async function seedDatabase() {
     try {
-        console.log("شروع درج اطلاعات نمونه...");
+        console.log("در حال پاکسازی جدول‌های قبلی برای درج دقیق داده‌های جدید...");
+        // حذف داده‌های قبلی با رعایت کلیدهای خارجی (Cascade)
+        await pool.query(`TRUNCATE TABLE project_comments CASCADE;`);
+        await pool.query(`TRUNCATE TABLE charity_projects CASCADE;`);
+        await pool.query(`TRUNCATE TABLE charity_users CASCADE;`);
+
+        console.log("شروع درج ۲۰ خیریه و پروژه‌های آن‌ها...");
         const hashedPassword = await bcrypt.hash('123456', 10);
 
         for (let i = 0; i < 20; i++) {
@@ -77,8 +83,6 @@ async function seedDatabase() {
             for (let j = 0; j < projectCount; j++) {
                 const title = projectTitles[Math.floor(Math.random() * projectTitles.length)];
                 const description = `گزارش کامل و مستندات مربوط به فعالیت خیرخواهانه انجام شده توسط ${name} در منطقه ${loc.location} استان ${loc.province}.`;
-                
-                // استفاده از تصاویر نمایشی استاندارد برای پروژه‌ها
                 const filePath = `https://picsum.photos/seed/mehrnama_${charityId}_${j}/600/400`;
 
                 await pool.query(
@@ -89,10 +93,10 @@ async function seedDatabase() {
             }
         }
 
-        console.log("با موفقیت ۲۰ خیریه و پروژه‌های آن‌ها اضافه شدند!");
+        console.log("عملیات با موفقیت کامل انجام شد! دقیقاً ۲۰ خیریه با پروژه‌هایشان ثبت شدند.");
         process.exit(0);
     } catch (err) {
-        console.error("خطا در ایجاد داده‌های نمونه:", err);
+        console.error("خطا در درج داده‌های نمونه:", err);
         process.exit(1);
     }
 }
