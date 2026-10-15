@@ -155,7 +155,51 @@ app.get('/api/charities/:id/projects', async (req, res) => {
   }
 });
 
-// 5. مسیر تستی جدید: بررسی وجود فایل‌ها در پوشه uploads سرور
+// 5. API ثبت نظر (کامنت) برای یک پروژه خاص
+app.post('/api/projects/:id/comments', async (req, res) => {
+  const projectId = req.params.id;
+  const { author_name, comment_text } = req.body;
+
+  if (!author_name || !comment_text) {
+    return res.status(400).json({ error: 'لطفاً نام و متن نظر را وارد کنید.' });
+  }
+
+  try {
+    const query = `
+      INSERT INTO project_comments (project_id, author_name, comment_text) 
+      VALUES ($1, $2, $3) 
+      RETURNING id, author_name, comment_text, created_at;
+    `;
+    const result = await pool.query(query, [projectId, author_name, comment_text]);
+    res.status(201).json({
+      message: 'نظر شما با موفقیت ثبت شد.',
+      comment: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Add comment error:', err);
+    res.status(500).json({ error: 'خطا در ثبت نظر.' });
+  }
+});
+
+// 6. API دریافت لیست نظرات (کامنت‌ها) یک پروژه خاص
+app.get('/api/projects/:id/comments', async (req, res) => {
+  const projectId = req.params.id;
+  try {
+    const query = `
+      SELECT id, author_name, comment_text, created_at 
+      FROM project_comments 
+      WHERE project_id = $1 
+      ORDER BY created_at DESC;
+    `;
+    const result = await pool.query(query, [projectId]);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Fetch comments error:', err);
+    res.status(500).json({ error: 'خطا در دریافت نظرات.' });
+  }
+});
+
+// 7. مسیر تستی: بررسی وجود فایل‌ها در پوشه uploads سرور
 app.get('/api/check-uploads', (req, res) => {
   const targetDir = path.join(__dirname, 'uploads');
   fs.readdir(targetDir, (err, files) => {
