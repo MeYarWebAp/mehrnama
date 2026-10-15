@@ -75,7 +75,7 @@
         }
         .btn-outline:hover { background-color: #fff5f5; }
 
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .container { max-width: 1300px; margin: 30px auto; padding: 0 20px; }
         .channel-header {
             background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
@@ -101,13 +101,40 @@
             font-size: 16px; font-weight: bold; color: #0f0f0f; margin: 0 0 8px 0;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
-        .channel-link { font-size: 14px; color: #065fd4; text-decoration: none; margin-bottom: 5px; display: inline-block; }
+        .channel-link { font-size: 14px; color: #065fd4; text-decoration: none; margin-bottom: 5px; display: inline-block; cursor: pointer; }
         .channel-link:hover { text-decoration: underline; }
         .video-desc {
             font-size: 13px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         
-        /* Modals & Tabs */
+        /* Watch Layout (YouTube Style Two-Column) */
+        .watch-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            align-items: start;
+        }
+        .watch-main { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .watch-media { width: 100%; max-height: 480px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .watch-media video, .watch-media img { width: 100%; max-height: 480px; object-fit: contain; }
+        .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
+        .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        
+        /* Sidebar Related Videos */
+        .related-sidebar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .related-sidebar h3 { font-size: 16px; margin-top: 0; margin-bottom: 15px; color: #111; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+        .related-card {
+            display: flex; gap: 10px; margin-bottom: 12px; cursor: pointer; background: #fafafa;
+            border-radius: 8px; overflow: hidden; padding: 6px; transition: background 0.2s;
+        }
+        .related-card:hover { background: #f0f0f0; }
+        .related-thumb { width: 120px; height: 75px; background: #eef2f5; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+        .related-thumb img, .related-thumb video { width: 100%; height: 100%; object-fit: cover; }
+        .related-info { display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+        .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .related-channel { font-size: 11px; color: #666; margin-top: 4px; }
+
+        /* Modals */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;
@@ -116,33 +143,25 @@
             background: white; padding: 25px; border-radius: 12px; width: 420px;
             max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .tab-buttons {
-            display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;
-        }
-        .tab-btn {
-            flex: 1; padding: 8px; border: none; background: #f0f0f0;
-            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;
-        }
+        .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .tab-btn { flex: 1; padding: 8px; border: none; background: #f0f0f0; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
         .tab-btn.active { background: #cc0000; color: white; }
         .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
         .form-group label { font-size: 12px; font-weight: bold; color: #333; }
-        .form-group input, .form-group textarea {
-            padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif;
-        }
+        .form-group input, .form-group textarea { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; }
         .close-btn { background: #ccc; color: #333; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
-        .watch-container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .watch-media { width: 100%; max-height: 500px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        .watch-media video, .watch-media img { width: 100%; max-height: 500px; object-fit: contain; }
-        .watch-title { font-size: 22px; font-weight: bold; margin: 20px 0 10px 0; color: #111; }
-        .watch-desc { font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+
         .comments-section h3 { font-size: 18px; margin-bottom: 15px; }
-        .comment-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        .comment-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
         .comment-form input, .comment-form textarea { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; }
-        .comment-card { background: #f9f9f9; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; }
-        .comment-author { font-weight: bold; font-size: 14px; color: #333; margin-bottom: 5px; }
-        .comment-text { font-size: 14px; color: #555; }
-        @media (max-width: 900px) { .video-grid { grid-template-columns: repeat(2, 1fr); } }
+        .comment-card { background: #f9f9f9; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; }
+        .comment-author { font-weight: bold; font-size: 13px; color: #333; margin-bottom: 4px; }
+        .comment-text { font-size: 13px; color: #555; }
+
+        @media (max-width: 950px) {
+            .watch-layout { grid-template-columns: 1fr; }
+            .video-grid { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 600px) { .video-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -163,42 +182,26 @@
         <p>در حال بارگذاری...</p>
     </div>
 
-    <!-- Modal Login -->
+    <!-- Modals (Login, Register, Upload) -->
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <div class="tab-buttons">
-                <button class="tab-btn active" id="btnLoginUserTab" onclick="switchLoginType('user')">ورود کاربر حقیقی</button>
-                <button class="tab-btn" id="btnLoginCharityTab" onclick="switchLoginType('charity')">ورود موسسه خیریه</button>
+                <button class="tab-btn active" id="btnLoginUserTab" onclick="switchLoginType('user')">کاربر حقیقی</button>
+                <button class="tab-btn" id="btnLoginCharityTab" onclick="switchLoginType('charity')">موسسه خیریه</button>
             </div>
-
-            <!-- فرم ورود کاربر حقیقی -->
             <div id="loginUserForm">
                 <h3 style="margin-top:0; font-size:16px;">ورود کاربر حقیقی</h3>
-                <div class="form-group">
-                    <label>شماره همراه</label>
-                    <input type="text" id="loginUserPhone" placeholder="09123456789">
-                </div>
-                <div class="form-group">
-                    <label>رمز عبور</label>
-                    <input type="password" id="loginUserPassword" placeholder="******">
-                </div>
+                <div class="form-group"><label>شماره همراه</label><input type="text" id="loginUserPhone" placeholder="09123456789"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="loginUserPassword" placeholder="******"></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
                     <button class="btn-primary" onclick="loginUser()">ورود</button>
                 </div>
             </div>
-
-            <!-- فرم ورود خیریه -->
             <div id="loginCharityForm" style="display: none;">
                 <h3 style="margin-top:0; font-size:16px;">ورود موسسه خیریه</h3>
-                <div class="form-group">
-                    <label>ایمیل معتبر</label>
-                    <input type="email" id="loginCharityEmail" placeholder="info@charity.org">
-                </div>
-                <div class="form-group">
-                    <label>رمز عبور</label>
-                    <input type="password" id="loginCharityPassword" placeholder="******">
-                </div>
+                <div class="form-group"><label>ایمیل معتبر</label><input type="email" id="loginCharityEmail" placeholder="info@charity.org"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="loginCharityPassword" placeholder="******"></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
                     <button class="btn-primary" onclick="loginCharity()">ورود خیریه</button>
@@ -207,74 +210,33 @@
         </div>
     </div>
 
-    <!-- Modal Register -->
     <div class="modal" id="registerModal">
         <div class="modal-content">
             <div class="tab-buttons">
-                <button class="tab-btn active" id="btnRegUserTab" onclick="switchRegisterType('user')">ثبت‌نام کاربر حقیقی</button>
-                <button class="tab-btn" id="btnRegCharityTab" onclick="switchRegisterType('charity')">ثبت‌نام موسسه خیریه</button>
+                <button class="tab-btn active" id="btnRegUserTab" onclick="switchRegisterType('user')">کاربر حقیقی</button>
+                <button class="tab-btn" id="btnRegCharityTab" onclick="switchRegisterType('charity')">موسسه خیریه</button>
             </div>
-
-            <!-- فرم ثبت‌نام کاربر حقیقی -->
             <div id="regUserForm">
                 <h3 style="margin-top:0; font-size:16px;">ثبت‌نام کاربر حقیقی</h3>
-                <div class="form-group">
-                    <label>نام و نام خانوادگی</label>
-                    <input type="text" id="userName" placeholder="علی رضایی">
-                </div>
-                <div class="form-group">
-                    <label>شماره همراه</label>
-                    <input type="text" id="userPhone" placeholder="09123456789">
-                </div>
-                <div class="form-group">
-                    <label>رمز عبور</label>
-                    <input type="password" id="userPassword" placeholder="******">
-                </div>
+                <div class="form-group"><label>نام و نام خانوادگی</label><input type="text" id="userName" placeholder="علی رضایی"></div>
+                <div class="form-group"><label>شماره همراه</label><input type="text" id="userPhone" placeholder="09123456789"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="userPassword" placeholder="******"></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
                     <button class="btn-primary" onclick="registerUser()">ثبت‌نام</button>
                 </div>
             </div>
-
-            <!-- فرم ثبت‌نام موسسه خیریه -->
             <div id="regCharityForm" style="display: none;">
                 <h3 style="margin-top:0; font-size:16px;">ثبت‌نام موسسه خیریه</h3>
-                <div class="form-group">
-                    <label>نام خیریه</label>
-                    <input type="text" id="chName" placeholder="خیریه مهر اکرام">
-                </div>
-                <div class="form-group">
-                    <label>شماره ثبت موسسه</label>
-                    <input type="text" id="chRegNum" placeholder="123456">
-                </div>
-                <div class="form-group">
-                    <label>ایمیل معتبر</label>
-                    <input type="email" id="chEmail" placeholder="info@charity.org">
-                </div>
-                <div class="form-group">
-                    <label>تلفن همراه رابط</label>
-                    <input type="text" id="chPhone" placeholder="09123456789">
-                </div>
-                <div class="form-group">
-                    <label>تلفن ثابت موسسه</label>
-                    <input type="text" id="chLandline" placeholder="02188888888">
-                </div>
-                <div class="form-group">
-                    <label>استان</label>
-                    <input type="text" id="chProvince" placeholder="تهران">
-                </div>
-                <div class="form-group">
-                    <label>بخش / شهرستان</label>
-                    <input type="text" id="chDistrict" placeholder="شمیرانات">
-                </div>
-                <div class="form-group">
-                    <label>نام محل / روستا / شهر</label>
-                    <input type="text" id="chLocation" placeholder="تجریش">
-                </div>
-                <div class="form-group">
-                    <label>رمز عبور</label>
-                    <input type="password" id="chPassword" placeholder="******">
-                </div>
+                <div class="form-group"><label>نام خیریه</label><input type="text" id="chName" placeholder="خیریه مهر اکرام"></div>
+                <div class="form-group"><label>شماره ثبت</label><input type="text" id="chRegNum" placeholder="123456"></div>
+                <div class="form-group"><label>ایمیل</label><input type="email" id="chEmail" placeholder="info@charity.org"></div>
+                <div class="form-group"><label>تلفن همراه</label><input type="text" id="chPhone" placeholder="09123456789"></div>
+                <div class="form-group"><label>تلفن ثابت</label><input type="text" id="chLandline" placeholder="02188888888"></div>
+                <div class="form-group"><label>استان</label><input type="text" id="chProvince" placeholder="تهران"></div>
+                <div class="form-group"><label>شهرستان</label><input type="text" id="chDistrict" placeholder="شمیرانات"></div>
+                <div class="form-group"><label>منطقه / روستا</label><input type="text" id="chLocation" placeholder="تجریش"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="chPassword" placeholder="******"></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
                     <button class="btn-primary" onclick="registerCharity()">ثبت‌نام خیریه</button>
@@ -283,22 +245,12 @@
         </div>
     </div>
 
-    <!-- Modal Upload Project -->
     <div class="modal" id="uploadModal">
         <div class="modal-content">
             <h3>آپلود پروژه یا ویدیو جدید</h3>
-            <div class="form-group">
-                <label>عنوان پروژه</label>
-                <input type="text" id="upTitle" placeholder="عنوان گزارش یا پروژه...">
-            </div>
-            <div class="form-group">
-                <label>توضیحات</label>
-                <textarea id="upDesc" rows="3" placeholder="توضیحات تکمیلی پروژه..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>فایل ویدیو یا تصویر</label>
-                <input type="file" id="upFile">
-            </div>
+            <div class="form-group"><label>عنوان پروژه</label><input type="text" id="upTitle" placeholder="عنوان گزارش..."></div>
+            <div class="form-group"><label>توضیحات</label><textarea id="upDesc" rows="3" placeholder="توضیحات تکمیلی..."></textarea></div>
+            <div class="form-group"><label>فایل ویدیو یا تصویر</label><input type="file" id="upFile"></div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                 <button class="close-btn" onclick="closeUploadModal()">انصراف</button>
                 <button class="btn-primary" onclick="uploadProject()">آپلود و انتشار</button>
@@ -307,138 +259,85 @@
     </div>
 
     <script>
-        function openLoginModal() { var m = document.getElementById('loginModal'); if (m) m.style.display = 'flex'; }
-        function closeLoginModal() { var m = document.getElementById('loginModal'); if (m) m.style.display = 'none'; }
-        
-        function openRegisterModal() { var m = document.getElementById('registerModal'); if (m) m.style.display = 'flex'; }
-        function closeRegisterModal() { var m = document.getElementById('registerModal'); if (m) m.style.display = 'none'; }
-
-        function openUploadModal() { var m = document.getElementById('uploadModal'); if (m) m.style.display = 'flex'; }
-        function closeUploadModal() { var m = document.getElementById('uploadModal'); if (m) m.style.display = 'none'; }
+        function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
+        function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+        function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
+        function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
+        function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+        function closeUploadModal() { document.getElementById('uploadModal').style.display = 'none'; }
 
         function switchLoginType(type) {
-            var uf = document.getElementById('loginUserForm');
-            var cf = document.getElementById('loginCharityForm');
-            var bu = document.getElementById('btnLoginUserTab');
-            var bc = document.getElementById('btnLoginCharityTab');
-
-            if (type === 'user') {
-                uf.style.display = 'block'; cf.style.display = 'none';
-                bu.classList.add('active'); bc.classList.remove('active');
-            } else {
-                uf.style.display = 'none'; cf.style.display = 'block';
-                bc.classList.add('active'); bu.classList.remove('active');
-            }
+            document.getElementById('loginUserForm').style.display = type === 'user' ? 'block' : 'none';
+            document.getElementById('loginCharityForm').style.display = type === 'charity' ? 'block' : 'none';
+            document.getElementById('btnLoginUserTab').classList.toggle('active', type === 'user');
+            document.getElementById('btnLoginCharityTab').classList.toggle('active', type === 'charity');
         }
 
         function switchRegisterType(type) {
-            var uf = document.getElementById('regUserForm');
-            var cf = document.getElementById('regCharityForm');
-            var bu = document.getElementById('btnRegUserTab');
-            var bc = document.getElementById('btnRegCharityTab');
-
-            if (type === 'user') {
-                uf.style.display = 'block'; cf.style.display = 'none';
-                bu.classList.add('active'); bc.classList.remove('active');
-            } else {
-                uf.style.display = 'none'; cf.style.display = 'block';
-                bc.classList.add('active'); bu.classList.remove('active');
-            }
+            document.getElementById('regUserForm').style.display = type === 'user' ? 'block' : 'none';
+            document.getElementById('regCharityForm').style.display = type === 'charity' ? 'block' : 'none';
+            document.getElementById('btnRegUserTab').classList.toggle('active', type === 'user');
+            document.getElementById('btnRegCharityTab').classList.toggle('active', type === 'charity');
         }
 
         function checkAuthHeader() {
-            var charity = null;
-            var user = null;
+            let charity = null, user = null;
             try {
                 charity = JSON.parse(localStorage.getItem('charity_user'));
                 user = JSON.parse(localStorage.getItem('regular_user'));
             } catch(e) {}
 
-            var headerActions = document.getElementById('headerActions');
+            let headerActions = document.getElementById('headerActions');
             if (!headerActions) return;
 
             if (charity && charity.name) {
-                headerActions.innerHTML = 
-                    '<span style="font-size: 14px; font-weight: bold;">خیریه: ' + charity.name + '</span> ' +
-                    '<button class="btn-primary" onclick="openUploadModal()">آپلود پروژه</button> ' +
-                    '<button class="close-btn" onclick="logout()">خروج</button>';
+                headerActions.innerHTML = `<span style="font-size: 14px; font-weight: bold;">خیریه: ${charity.name}</span> <button class="btn-primary" onclick="openUploadModal()">آپلود پروژه</button> <button class="close-btn" onclick="logout()">خروج</button>`;
             } else if (user && user.name) {
-                headerActions.innerHTML = 
-                    '<span style="font-size: 14px; font-weight: bold;">خوش‌آمدید، ' + user.name + '</span> ' +
-                    '<button class="close-btn" onclick="logout()">خروج</button>';
+                headerActions.innerHTML = `<span style="font-size: 14px; font-weight: bold;">خوش‌آمدید، ${user.name}</span> <button class="close-btn" onclick="logout()">خروج</button>`;
             }
         }
 
         function logout() {
             localStorage.clear();
-            window.location.reload();
+            window.location.href = '/';
         }
 
         async function loginUser() {
-            var phone = document.getElementById('loginUserPhone').value;
-            var password = document.getElementById('loginUserPassword').value;
-
+            let phone = document.getElementById('loginUserPhone').value;
+            let password = document.getElementById('loginUserPassword').value;
             try {
-                var res = await fetch('/api/users/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: phone, password: password })
-                });
-                var data = await res.json();
-                if (res.ok) {
-                    localStorage.setItem('regular_user', JSON.stringify(data.user));
-                    closeLoginModal();
-                    window.location.reload();
-                } else {
-                    alert(data.error || 'خطا در ورود');
-                }
+                let res = await fetch('/api/users/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({phone, password}) });
+                let data = await res.json();
+                if (res.ok) { localStorage.setItem('regular_user', JSON.stringify(data.user)); closeLoginModal(); window.location.reload(); }
+                else { alert(data.error || 'خطا در ورود'); }
             } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         async function loginCharity() {
-            var email = document.getElementById('loginCharityEmail').value;
-            var password = document.getElementById('loginCharityPassword').value;
-
+            let email = document.getElementById('loginCharityEmail').value;
+            let password = document.getElementById('loginCharityPassword').value;
             try {
-                var res = await fetch('/api/charities/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, password: password })
-                });
-                var data = await res.json();
-                if (res.ok) {
-                    localStorage.setItem('charity_user', JSON.stringify(data.charity));
-                    closeLoginModal();
-                    window.location.reload();
-                } else {
-                    alert(data.error || 'خطا در ورود');
-                }
+                let res = await fetch('/api/charities/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password}) });
+                let data = await res.json();
+                if (res.ok) { localStorage.setItem('charity_user', JSON.stringify(data.charity)); closeLoginModal(); window.location.reload(); }
+                else { alert(data.error || 'خطا در ورود'); }
             } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         async function registerUser() {
-            var name = document.getElementById('userName').value;
-            var phone = document.getElementById('userPhone').value;
-            var password = document.getElementById('userPassword').value;
-
+            let name = document.getElementById('userName').value;
+            let phone = document.getElementById('userPhone').value;
+            let password = document.getElementById('userPassword').value;
             try {
-                var res = await fetch('/api/users/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, phone: phone, password: password })
-                });
-                var data = await res.json();
-                if (res.ok) {
-                    alert('ثبت‌نام با موفقیت انجام شد!');
-                    localStorage.setItem('regular_user', JSON.stringify(data.user));
-                    closeRegisterModal();
-                    window.location.reload();
-                } else { alert(data.error || 'خطا در ثبت‌نام'); }
+                let res = await fetch('/api/users/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name, phone, password}) });
+                let data = await res.json();
+                if (res.ok) { alert('ثبت‌نام با موفقیت انجام شد!'); localStorage.setItem('regular_user', JSON.stringify(data.user)); closeRegisterModal(); window.location.reload(); }
+                else { alert(data.error || 'خطا در ثبت‌نام'); }
             } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         async function registerCharity() {
-            var body = {
+            let body = {
                 name: document.getElementById('chName').value,
                 registration_number: document.getElementById('chRegNum').value,
                 email: document.getElementById('chEmail').value,
@@ -449,242 +348,197 @@
                 location_name: document.getElementById('chLocation').value,
                 password: document.getElementById('chPassword').value
             };
-
             try {
-                var res = await fetch('/api/charities/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                var data = await res.json();
-                if (res.ok) {
-                    alert('ثبت‌نام خیریه با موفقیت انجام شد!');
-                    localStorage.setItem('charity_user', JSON.stringify(data.charity));
-                    closeRegisterModal();
-                    window.location.reload();
-                } else { alert(data.error || 'خطا در ثبت‌نام خیریه'); }
+                let res = await fetch('/api/charities/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+                let data = await res.json();
+                if (res.ok) { alert('ثبت‌نام خیریه با موفقیت انجام شد!'); localStorage.setItem('charity_user', JSON.stringify(data.charity)); closeRegisterModal(); window.location.reload(); }
+                else { alert(data.error || 'خطا در ثبت‌نام خیریه'); }
             } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         async function uploadProject() {
-            var charity = JSON.parse(localStorage.getItem('charity_user'));
+            let charity = JSON.parse(localStorage.getItem('charity_user'));
             if (!charity) return;
+            let title = document.getElementById('upTitle').value;
+            let description = document.getElementById('upDesc').value;
+            let fileInput = document.getElementById('upFile');
+            if (!title || fileInput.files.length === 0) { alert('لطفاً عنوان و فایل را انتخاب کنید.'); return; }
 
-            var title = document.getElementById('upTitle').value;
-            var description = document.getElementById('upDesc').value;
-            var fileInput = document.getElementById('upFile');
-
-            if (!title || fileInput.files.length === 0) {
-                alert('لطفاً عنوان و فایل را انتخاب کنید.');
-                return;
-            }
-
-            var formData = new FormData();
+            let formData = new FormData();
             formData.append('charity_id', charity.id);
             formData.append('title', title);
             formData.append('description', description);
             formData.append('projectFile', fileInput.files[0]);
 
             try {
-                var res = await fetch('/api/projects/create', {
-                    method: 'POST',
-                    body: formData
-                });
-                if (res.ok) {
-                    alert('پروژه با موفقیت آپلود شد!');
-                    closeUploadModal();
-                    window.location.reload();
-                } else { alert('خطا در آپلود پروژه.'); }
+                let res = await fetch('/api/projects/create', { method: 'POST', body: formData });
+                if (res.ok) { alert('پروژه با موفقیت آپلود شد!'); closeUploadModal(); window.location.reload(); }
+                else { alert('خطا در آپلود پروژه.'); }
             } catch (err) { alert('خطا در ارتباط با سرور'); }
         }
 
         function isVideo(filePath) {
             if (!filePath) return false;
-            var ext = filePath.toLowerCase();
+            let ext = filePath.toLowerCase();
             return ext.endsWith('.mp4') || ext.endsWith('.webm') || ext.endsWith('.ogg') || ext.endsWith('.mov');
         }
 
         async function loadHome() {
-            var container = document.getElementById('main-content');
-            container.innerHTML = 
-                '<div class="section-title"><span>ویدیوهای منتخب و اخیر</span></div>' +
-                '<div class="video-grid" id="video-container"><p>در حال بارگذاری پروژه‌ها...</p></div>';
-
+            let container = document.getElementById('main-content');
+            container.innerHTML = `<div class="section-title"><span>ویدیوها و پروژه‌های خیریه سراسر کشور</span></div><div class="video-grid" id="video-container"><p>در حال بارگذاری...</p></div>`;
             try {
-                var response = await fetch('/api/projects');
-                var projects = await response.json();
-                var videoContainer = document.getElementById('video-container');
-                videoContainer.innerHTML = '';
+                let res = await fetch('/api/projects');
+                let projects = await res.json();
+                let vc = document.getElementById('video-container');
+                vc.innerHTML = '';
+                if (!Array.isArray(projects) || projects.length === 0) { vc.innerHTML = '<p>موردی یافت نشد.</p>'; return; }
 
-                if (!Array.isArray(projects) || projects.length === 0) {
-                    videoContainer.innerHTML = '<p>هنوز آیتمی ثبت نشده است.</p>';
-                    return;
-                }
-
-                projects.slice(0, 6).forEach(function(project) {
-                    var card = document.createElement('div');
+                projects.forEach(p => {
+                    let card = document.createElement('div');
                     card.className = 'video-card';
-                    card.onclick = function() { window.location.href = '/?v=' + project.id; };
-
-                    var mediaHtml = isVideo(project.file_path)
-                        ? '<div class="media-box"><video src="' + project.file_path + '"></video></div>'
-                        : '<div class="media-box"><img src="' + project.file_path + '" alt="پروژه" onerror="this.src=\'https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama\';"></div>';
-
-                    card.innerHTML = 
-                        mediaHtml +
-                        '<div class="video-info">' +
-                            '<div class="video-title">' + (project.title || '') + '</div>' +
-                            '<div class="channel-link" onclick="event.stopPropagation(); window.location.href=\'/?charity_id=' + project.charity_id + '\'">کانال: ' + (project.charity_name || '') + '</div>' +
-                            '<div class="video-desc">' + (project.description || '') + '</div>' +
-                        '</div>';
-                    videoContainer.appendChild(card);
+                    card.onclick = () => window.location.href = `/?v=${p.id}`;
+                    let media = isVideo(p.file_path) ? `<div class="media-box"><video src="${p.file_path}"></video></div>` : `<div class="media-box"><img src="${p.file_path}" alt="پروژه"></div>`;
+                    card.innerHTML = `${media}<div class="video-info"><div class="video-title">${p.title}</div><div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div><div class="video-desc">${p.description}</div></div>`;
+                    vc.appendChild(card);
                 });
-            } catch (err) { console.error('Error:', err); }
+            } catch(e) { console.error(e); }
         }
 
         async function loadChannel(id) {
-            var container = document.getElementById('main-content');
-            container.innerHTML = '<p>در حال بارگذاری اطلاعات کانال...</p>';
-
+            let container = document.getElementById('main-content');
+            container.innerHTML = '<p>در حال بارگذاری کانال...</p>';
             try {
-                var response = await fetch('/api/charities/' + id + '/projects');
-                var data = await response.json();
+                let res = await fetch(`/api/charities/${id}/projects`);
+                let data = await res.json();
+                if (!res.ok) { container.innerHTML = `<p>${data.error || 'خطا'}</p>`; return; }
 
-                if (response.status !== 200) {
-                    container.innerHTML = '<p>' + (data.error || 'خطا در بارگذاری کانال') + '</p>';
-                    return;
-                }
-
-                container.innerHTML = 
-                    '<div class="channel-header">' +
-                        '<h2>کانال: ' + data.charity.name + '</h2>' +
-                        '<p>ایمیل ارتباطی: ' + data.charity.email + ' | تلفن: ' + (data.charity.phone || 'ثبت نشده') + '</p>' +
-                    '</div>' +
-                    '<div class="section-title">ویدیوها و پروژه‌های این کانال</div>' +
-                    '<div class="video-grid" id="channel-videos"></div>';
-
-                var videoContainer = document.getElementById('channel-videos');
-                if (!data.projects || data.projects.length === 0) {
-                    videoContainer.innerHTML = '<p>این کانال هنوز موردی آپلود نکرده است.</p>';
-                    return;
-                }
-
-                data.projects.forEach(function(project) {
-                    var card = document.createElement('div');
+                container.innerHTML = `<div class="channel-header"><h2>کانال: ${data.charity.name}</h2><p>ایمیل: ${data.charity.email} | تلفن: ${data.charity.phone || 'ثبت نشده'}</p></div><div class="section-title">پروژه‌های این کانال</div><div class="video-grid" id="channel-videos"></div>`;
+                let vc = document.getElementById('channel-videos');
+                data.projects.forEach(p => {
+                    let card = document.createElement('div');
                     card.className = 'video-card';
-                    card.onclick = function() { window.location.href = '/?v=' + project.id; };
-
-                    var mediaHtml = isVideo(project.file_path)
-                        ? '<div class="media-box"><video src="' + project.file_path + '"></video></div>'
-                        : '<div class="media-box"><img src="' + project.file_path + '" alt="پروژه" onerror="this.src=\'https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama\';"></div>';
-
-                    card.innerHTML = 
-                        mediaHtml +
-                        '<div class="video-info">' +
-                            '<div class="video-title">' + (project.title || '') + '</div>' +
-                            '<div class="video-desc">' + (project.description || '') + '</div>' +
-                        '</div>';
-                    videoContainer.appendChild(card);
+                    card.onclick = () => window.location.href = `/?v=${p.id}`;
+                    let media = isVideo(p.file_path) ? `<div class="media-box"><video src="${p.file_path}"></video></div>` : `<div class="media-box"><img src="${p.file_path}" alt="پروژه"></div>`;
+                    card.innerHTML = `${media}<div class="video-info"><div class="video-title">${p.title}</div><div class="video-desc">${p.description}</div></div>`;
+                    vc.appendChild(card);
                 });
-            } catch (err) { console.error('Error loading channel:', err); }
+            } catch(e) { console.error(e); }
         }
 
         async function loadWatchPage(id) {
-            var container = document.getElementById('main-content');
+            let container = document.getElementById('main-content');
             container.innerHTML = '<p>در حال بارگذاری ویدیو...</p>';
-
             try {
-                var response = await fetch('/api/projects');
-                var projects = await response.json();
-                var project = projects.find(function(p) { return p.id == id; });
+                let res = await fetch('/api/projects');
+                let projects = await res.json();
+                let project = projects.find(p => p.id == id);
+                if (!project) { container.innerHTML = '<p>پروژه مورد نظر یافت نشد.</p>'; return; }
 
-                if (!project) {
-                    container.innerHTML = '<p>ویدیو مورد نظر یافت نشد.</p>';
-                    return;
-                }
+                let media = isVideo(project.file_path) ? `<div class="watch-media"><video controls autoplay src="${project.file_path}"></video></div>` : `<div class="watch-media"><img src="${project.file_path}" alt="پروژه"></div>`;
 
-                var mediaHtml = isVideo(project.file_path)
-                    ? '<div class="watch-media"><video controls autoplay src="' + project.file_path + '"></video></div>'
-                    : '<div class="watch-media"><img src="' + project.file_path + '" alt="پروژه"></div>';
-
-                container.innerHTML = 
-                    '<div class="watch-container">' +
-                        mediaHtml +
-                        '<div class="watch-title">' + project.title + '</div>' +
-                        '<div class="channel-link" style="margin-bottom: 15px; cursor: pointer;" onclick="window.location.href=\'/?charity_id=' + project.charity_id + '\'">کانال: ' + project.charity_name + '</div>' +
-                        '<div class="watch-desc">' + project.description + '</div>' +
-
-                        '<div class="comments-section">' +
-                            '<h3>نظرات کاربران</h3>' +
-                            '<div class="comment-form">' +
-                                '<input type="text" id="authorName" placeholder="نام شما">' +
-                                '<textarea id="commentText" rows="3" placeholder="نظر خود را درباره این ویدیو بنویسید..."></textarea>' +
-                                '<button class="btn-primary" onclick="postComment(' + project.id + ')">ارسال نظر</button>' +
-                            '</div>' +
-                            '<div id="commentsList"><p>در حال بارگذاری نظرات...</p></div>' +
-                        '</div>' +
-                    '</div>';
+                container.innerHTML = `
+                    <div class="watch-layout">
+                        <div class="watch-main">
+                            ${media}
+                            <div class="watch-title">${project.title}</div>
+                            <div class="channel-link" style="margin-bottom: 12px;" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
+                            <div class="watch-desc">${project.description}</div>
+                            <div class="comments-section">
+                                <h3>نظرات کاربران</h3>
+                                <div class="comment-form">
+                                    <input type="text" id="authorName" placeholder="نام شما">
+                                    <textarea id="commentText" rows="2" placeholder="نظر خود را بنویسید..."></textarea>
+                                    <button class="btn-primary" onclick="postComment(${project.id})">ارسال نظر</button>
+                                </div>
+                                <div id="commentsList"><p>در حال بارگذاری نظرات...</p></div>
+                            </div>
+                        </div>
+                        <div class="related-sidebar">
+                            <h3>ویدیوهای مرتبط</h3>
+                            <div id="relatedList"><p>در حال بارگذاری...</p></div>
+                        </div>
+                    </div>
+                `;
 
                 loadComments(project.id);
-            } catch (err) { console.error('Error loading watch page:', err); }
+                loadRelatedVideos(projects, project);
+            } catch(e) { console.error(e); }
+        }
+
+        function loadRelatedVideos(allProjects, currentProject) {
+            let relatedList = document.getElementById('relatedList');
+            relatedList.innerHTML = '';
+
+            // فیلتر کردن ویدیوهای مرتبط (اول ویدیوهای هم‌کانال یا سایر پروژه‌ها، به جز خود ویدیو)
+            let related = allProjects.filter(p => p.id != currentProject.id);
+
+            if (related.length === 0) {
+                relatedList.innerHTML = '<p style="font-size: 13px; color: #777;">ویدیو مرتبطی یافت نشد.</p>';
+                return;
+            }
+
+            related.slice(0, 8).forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'related-card';
+                card.onclick = () => window.location.href = `/?v=${p.id}`;
+                let thumb = isVideo(p.file_path) ? `<video src="${p.file_path}"></video>` : `<img src="${p.file_path}" alt="تصویر">`;
+                card.innerHTML = `
+                    <div class="related-thumb">${thumb}</div>
+                    <div class="related-info">
+                        <div class="related-title">${p.title}</div>
+                        <div class="related-channel">${p.charity_name}</div>
+                    </div>
+                `;
+                relatedList.appendChild(card);
+            });
         }
 
         async function loadComments(projectId) {
             try {
-                var res = await fetch('/api/projects/' + projectId + '/comments');
-                var comments = await res.json();
-                var list = document.getElementById('commentsList');
+                let res = await fetch(`/api/projects/${projectId}/comments`);
+                let comments = await res.json();
+                let list = document.getElementById('commentsList');
                 list.innerHTML = '';
-
                 if (!Array.isArray(comments) || comments.length === 0) {
-                    list.innerHTML = '<p style="color: #778; font-size: 14px;">هنوز نظری ثبت نشده است.</p>';
+                    list.innerHTML = '<p style="color: #778; font-size: 13px;">هنوز نظری ثبت نشده است.</p>';
                     return;
                 }
-
-                comments.forEach(function(c) {
-                    var div = document.createElement('div');
+                comments.forEach(c => {
+                    let div = document.createElement('div');
                     div.className = 'comment-card';
-                    div.innerHTML = 
-                        '<div class="comment-author">' + c.author_name + '</div>' +
-                        '<div class="comment-text">' + c.comment_text + '</div>';
+                    div.innerHTML = `<div class="comment-author">${c.author_name}</div><div class="comment-text">${c.comment_text}</div>`;
                     list.appendChild(div);
                 });
-            } catch (err) { console.error('Error loading comments:', err); }
+            } catch(e) { console.error(e); }
         }
 
         async function postComment(projectId) {
-            var authorName = document.getElementById('authorName').value.trim();
-            var commentText = document.getElementById('commentText').value.trim();
-
-            if (!authorName || !commentText) {
-                alert('لطفاً نام و متن نظر را وارد کنید.');
-                return;
-            }
-
+            let author_name = document.getElementById('authorName').value.trim();
+            let comment_text = document.getElementById('commentText').value.trim();
+            if (!author_name || !comment_text) { alert('لطفاً نام و متن نظر را وارد کنید.'); return; }
             try {
-                var res = await fetch('/api/projects/' + projectId + '/comments', {
+                let res = await fetch(`/api/projects/${projectId}/comments`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ author_name: authorName, comment_text: commentText })
+                    body: JSON.stringify({ author_name, comment_text })
                 });
-
                 if (res.ok) {
                     document.getElementById('authorName').value = '';
                     document.getElementById('commentText').value = '';
                     loadComments(projectId);
                 } else { alert('خطا در ثبت نظر.'); }
-            } catch (err) { console.error('Error posting comment:', err); }
+            } catch(e) { console.error(e); }
         }
 
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', () => {
             checkAuthHeader();
-            var urlParams = new URLSearchParams(window.location.search);
-            var videoId = urlParams.get('v');
-            var charityId = urlParams.get('charity_id');
+            let urlParams = new URLSearchParams(window.location.search);
+            let videoId = urlParams.get('v');
+            let charityId = urlParams.get('charity_id');
 
-            if (videoId) { loadWatchPage(videoId); }
-            else if (charityId) { loadChannel(charityId); }
-            else { loadHome(); }
+            if (videoId) loadWatchPage(videoId);
+            else if (charityId) loadChannel(charityId);
+            else loadHome();
         });
     </script>
 </body>
