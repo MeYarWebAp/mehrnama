@@ -35,6 +35,10 @@
         .province-shape { fill: #e2e8f0; stroke: #ffffff; stroke-width: 1.5; cursor: pointer; transition: fill 0.2s; }
         .province-shape:hover { fill: #cc0000; }
         
+        .district-map-box { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+        .district-region-btn { background: #eef2f5; border: 2px solid #cbd5e1; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px; color: #1e293b; transition: all 0.2s; }
+        .district-region-btn:hover { background: #cc0000; color: white; border-color: #cc0000; }
+
         .province-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 20px; text-align: right; }
         .province-btn { background: #f4f4f4; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; text-align: center; color: #333; }
         .province-btn:hover { background: #cc0000; color: white; border-color: #cc0000; }
@@ -153,7 +157,6 @@
                     
                     <div class="iran-map-container">
                         <svg viewBox="0 0 600 550" width="380" height="350">
-                            <!-- Simplified clean SVG interactive regions for Iran provinces -->
                             <g>
                                 <path class="province-shape" d="M50,80 L120,60 L150,110 L90,130 Z" onclick="window.location.href='/?province=آذربایجان%20شرقی'" title="آذربایجان شرقی"/>
                                 <path class="province-shape" d="M120,60 L200,50 L220,100 L150,110 Z" onclick="window.location.href='/?province=تهران'" title="تهران"/>
@@ -215,11 +218,18 @@
                     <h2>${titleText}</h2>
                     <p>نمایش ویدیوها و مستندات خیرخواهانه ثبت شده</p>
                 </div>
+
+                <div class="province-section">
+                    <div class="section-title" style="margin-bottom: 5px;">نقشه تعاملی شهرستان‌های استان ${provinceName}</div>
+                    <p style="color: #666; font-size: 14px; margin-top: 0;">برای مشاهده کارهای نیک هر شهرستان، روی نام آن کلیک کنید:</p>
+                    <div class="district-map-box" id="districtMapBox"></div>
+                </div>
+
                 <div class="section-title">کارهای نیک این منطقه</div>
                 <div class="video-grid" id="province-videos"></div>
 
                 <div class="province-section" id="districtSection" style="display:none; text-align:right;">
-                    <div class="section-title" style="margin-bottom: 10px;">انتخاب شهرستان / منطقه در استان ${provinceName}</div>
+                    <div class="section-title" style="margin-bottom: 10px;">فهرست کامل مناطق استان ${provinceName}</div>
                     <div class="province-grid" id="districtGrid"></div>
                 </div>
             `;
@@ -229,6 +239,19 @@
             
             let filtered = districtName ? provinceProjects.filter(p => (p.district && p.district.includes(districtName)) || (p.description && p.description.includes(districtName))) : provinceProjects;
             if (filtered.length === 0) filtered = provinceProjects;
+
+            let districts = [...new Set(provinceProjects.map(p => p.district).filter(Boolean))];
+            if (districts.length === 0) districts = ['مرکزی', 'منطقه ۱', 'منطقه ۲', 'حومه'];
+
+            // Render interactive district map buttons box
+            let districtMapBox = document.getElementById('districtMapBox');
+            districts.forEach(dist => {
+                let regionBtn = document.createElement('button');
+                regionBtn.className = 'district-region-btn';
+                regionBtn.innerText = `📍 شهرستان/منطقه ${dist}`;
+                regionBtn.onclick = () => window.location.href = `/?province=${encodeURIComponent(provinceName)}&district=${encodeURIComponent(dist)}`;
+                districtMapBox.appendChild(regionBtn);
+            });
 
             let vc = document.getElementById('province-videos');
             vc.innerHTML = '';
@@ -246,9 +269,6 @@
                 `;
                 vc.appendChild(card);
             });
-
-            let districts = [...new Set(provinceProjects.map(p => p.district).filter(Boolean))];
-            if (districts.length === 0) districts = ['مرکزی', 'منطقه ۱', 'منطقه ۲', 'حومه'];
 
             if (!districtName && districts.length > 0) {
                 document.getElementById('districtSection').style.display = 'block';
