@@ -76,6 +76,31 @@ app.post('/api/projects', async (req, res) => {
     }
 });
 
+// ویرایش پروژه در دیتابیس PostgreSQL
+app.put('/api/projects/:id', async (req, res) => {
+    try {
+        const projectId = req.params.id;
+        const { title, province, district, description, file_path } = req.body;
+        
+        const query = `
+            UPDATE projects 
+            SET title = $1, province = $2, district = $3, description = $4, file_path = $5
+            WHERE id = $6 RETURNING *;
+        `;
+        const values = [title, province, district || 'مرکزی', description, file_path, projectId];
+        const result = await pool.query(query, values);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'پروژه مورد نظر یافت نشد' });
+        }
+        
+        res.json({ success: true, project: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'خطا در ویرایش پروژه' });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
