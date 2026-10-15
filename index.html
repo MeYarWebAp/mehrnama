@@ -53,9 +53,6 @@
         /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 420px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .tab-btn { flex: 1; padding: 8px; border: none; background: #f0f0f0; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
-        .tab-btn.active { background: #cc0000; color: white; }
         .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
         .form-group label { font-size: 12px; font-weight: bold; color: #333; }
         .form-group input, .form-group textarea { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; }
@@ -116,12 +113,12 @@
         function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
 
         const fallbackProjects = [
-            { id: 1, title: 'توزیع بسته‌های معیشتی در استان تهران', charity_name: 'خیریه مهر آفرین', charity_id: 1, description: 'گزارش کامل فعالیت خیرخواهانه در منطقه تجریش تهران.', file_path: 'https://picsum.photos/seed/mehrnama_1/600/400' },
-            { id: 2, title: 'پویش تأمین لوازم‌التحریر در اصفهان', charity_name: 'بنیاد نیکوکاری باران', charity_id: 2, description: 'تهیه و توزیع کیف و لوازم‌التحریر برای دانش‌آموزان منطقه ۱.', file_path: 'https://picsum.photos/seed/mehrnama_2/600/400' },
-            { id: 3, title: 'پروژه تأمین دارو و درمان در مشهد', charity_name: 'موسسه خیریه امید فردا', charity_id: 3, description: 'یاری‌رسانی به بیماران نیازمند در احمدآباد مشهد.', file_path: 'https://picsum.photos/seed/mehrnama_3/600/400' },
-            { id: 4, title: 'یاری‌رسانی عمومی در شیراز', charity_name: 'کانال همدلی و احسان', charity_id: 4, description: 'توزیع اقلام گرمایشی و نیازمندی‌ها در عفیف‌آباد شیراز.', file_path: 'https://picsum.photos/seed/mehrnama_4/600/400' },
-            { id: 5, title: 'احداث و بازسازی خانه نیازمندان در تبریز', charity_name: 'خیریه روشنای اندیشه', charity_id: 5, description: 'مرمت و بازسازی مسکن محرومان در ولیعصر تبریز.', file_path: 'https://picsum.photos/seed/mehrnama_5/600/400' },
-            { id: 6, title: 'توزیع پوشاک عیدانه در اهواز', charity_name: 'موسسه دست‌های مهربان', charity_id: 6, description: 'تهیه پوشاک برای کودکان محروم در کیانپارس اهواز.', file_path: 'https://picsum.photos/seed/mehrnama_6/600/400' }
+            { id: 1, title: 'توزیع بسته‌های معیشتی در استان تهران', charity_name: 'خیریه مهر آفرین', charity_id: 1, province: 'تهران', district: 'تجریش', description: 'گزارش کامل فعالیت خیرخواهانه در منطقه تجریش تهران.', file_path: 'https://picsum.photos/seed/mehrnama_1/600/400' },
+            { id: 2, title: 'پویش تأمین لوازم‌التحریر در اصفهان', charity_name: 'بنیاد نیکوکاری باران', charity_id: 2, province: 'اصفهان', district: 'منطقه ۱', description: 'تهیه و توزیع کیف و لوازم‌التحریر برای دانش‌آموزان منطقه ۱.', file_path: 'https://picsum.photos/seed/mehrnama_2/600/400' },
+            { id: 3, title: 'پروژه تأمین دارو و درمان در مشهد', charity_name: 'موسسه خیریه امید فردا', charity_id: 3, province: 'خراسان رضوی', district: 'احمدآباد', description: 'یاری‌رسانی به بیماران نیازمند در احمدآباد مشهد.', file_path: 'https://picsum.photos/seed/mehrnama_3/600/400' },
+            { id: 4, title: 'یاری‌رسانی عمومی در شیراز', charity_name: 'کانال همدلی و احسان', charity_id: 4, province: 'فارس', district: 'عفیف‌آباد', description: 'توزیع اقلام گرمایشی و نیازمندی‌ها در عفیف‌آباد شیراز.', file_path: 'https://picsum.photos/seed/mehrnama_4/600/400' },
+            { id: 5, title: 'احداث و بازسازی خانه نیازمندان در تبریز', charity_name: 'خیریه روشنای اندیشه', charity_id: 5, province: 'آذربایجان شرقی', district: 'ولیعصر', description: 'مرمت و بازسازی مسکن محرومان در ولیعصر تبریز.', file_path: 'https://picsum.photos/seed/mehrnama_5/600/400' },
+            { id: 6, title: 'توزیع پوشاک عیدانه در اهواز', charity_name: 'موسسه دست‌های مهربان', charity_id: 6, province: 'خوزستان', district: 'کیانپارس', description: 'تهیه پوشاک برای کودکان محروم در کیانپارس اهواز.', file_path: 'https://picsum.photos/seed/mehrnama_6/600/400' }
         ];
 
         async function fetchProjectsSafe() {
@@ -187,6 +184,65 @@
             });
         }
 
+        async function loadProvincePage(provinceName, districtName = null) {
+            let container = document.getElementById('main-content');
+            let titleText = districtName ? `استان ${provinceName} - شهرستان/منطقه: ${districtName}` : `استان: ${provinceName}`;
+            
+            container.innerHTML = `
+                <div class="channel-header">
+                    <h2>${titleText}</h2>
+                    <p>نمایش ویدیوها و مستندات خیرخواهانه ثبت شده</p>
+                </div>
+                <div class="section-title">پروژه‌ها</div>
+                <div class="video-grid" id="province-videos"></div>
+
+                <div class="province-section" id="districtSection" style="display:none;">
+                    <div class="section-title" style="margin-bottom: 10px;">انتخاب شهرستان / منطقه در استان ${provinceName}</div>
+                    <div class="province-grid" id="districtGrid"></div>
+                </div>
+            `;
+
+            let projects = await fetchProjectsSafe();
+            let provinceProjects = projects.filter(p => (p.province && p.province.includes(provinceName)) || (p.description && p.description.includes(provinceName)));
+            
+            let filtered = districtName ? provinceProjects.filter(p => (p.district && p.district.includes(districtName)) || (p.description && p.description.includes(districtName))) : provinceProjects;
+            if (filtered.length === 0) filtered = provinceProjects;
+
+            let vc = document.getElementById('province-videos');
+            vc.innerHTML = '';
+            filtered.forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => window.location.href = `/?v=${p.id}`;
+                card.innerHTML = `
+                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="video-info">
+                        <div class="video-title">${p.title}</div>
+                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
+                        <div class="video-desc">${p.description}</div>
+                    </div>
+                `;
+                vc.appendChild(card);
+            });
+
+            // Extract unique districts or show standard sample districts for the province
+            let districts = [...new Set(provinceProjects.map(p => p.district).filter(Boolean))];
+            if (districts.length === 0) districts = ['مرکزی', 'منطقه ۱', 'منطقه ۲', 'حومه'];
+
+            if (!districtName && districts.length > 0) {
+                document.getElementById('districtSection').style.display = 'block';
+                let dGrid = document.getElementById('districtGrid');
+                dGrid.innerHTML = '';
+                districts.forEach(dist => {
+                    let btn = document.createElement('button');
+                    btn.className = 'province-btn';
+                    btn.innerText = dist;
+                    btn.onclick = () => window.location.href = `/?province=${encodeURIComponent(provinceName)}&district=${encodeURIComponent(dist)}`;
+                    dGrid.appendChild(btn);
+                });
+            }
+        }
+
         async function loadChannelPage(charityId) {
             let container = document.getElementById('main-content');
             container.innerHTML = `
@@ -212,34 +268,6 @@
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link">کانال: ${p.charity_name}</div>
-                        <div class="video-desc">${p.description}</div>
-                    </div>
-                `;
-                vc.appendChild(card);
-            });
-        }
-
-        async function loadProvincePage(provinceName) {
-            let container = document.getElementById('main-content');
-            container.innerHTML = `
-                <div class="section-title">پروژه‌های استان ${provinceName}</div>
-                <div class="video-grid" id="province-videos"></div>
-            `;
-
-            let projects = await fetchProjectsSafe();
-            let filtered = projects.filter(p => (p.description && p.description.includes(provinceName)) || (p.charity_name && p.charity_name.includes(provinceName)));
-            if (filtered.length === 0) filtered = projects.slice(0, 3);
-
-            let vc = document.getElementById('province-videos');
-            filtered.forEach(p => {
-                let card = document.createElement('div');
-                card.className = 'video-card';
-                card.onclick = () => window.location.href = `/?v=${p.id}`;
-                card.innerHTML = `
-                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
-                    <div class="video-info">
-                        <div class="video-title">${p.title}</div>
-                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
                         <div class="video-desc">${p.description}</div>
                     </div>
                 `;
@@ -287,11 +315,12 @@
             let urlParams = new URLSearchParams(window.location.search);
             let videoId = urlParams.get('v');
             let provinceName = urlParams.get('province');
+            let districtName = urlParams.get('district');
             let charityId = urlParams.get('charity_id');
 
             if (videoId) loadWatchPage(videoId);
             else if (charityId) loadChannelPage(charityId);
-            else if (provinceName) loadProvincePage(decodeURIComponent(provinceName));
+            else if (provinceName) loadProvincePage(decodeURIComponent(provinceName), districtName ? decodeURIComponent(districtName) : null);
             else loadHome();
         });
     </script>
