@@ -19,6 +19,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-sizing: border-box;
+            width: 100%;
         }
         .logo-box {
             display: flex;
@@ -44,6 +46,24 @@
             font-weight: bold;
             color: #111;
             letter-spacing: -0.5px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-primary {
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .btn-primary:hover {
+            background-color: #b00000;
         }
         .container {
             max-width: 1200px;
@@ -71,6 +91,9 @@
             font-weight: bold;
             margin-bottom: 20px;
             color: #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .video-grid {
             display: grid;
@@ -133,6 +156,48 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .modal-content h3 { margin-top: 0; margin-bottom: 20px; }
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label { font-size: 13px; font-weight: bold; color: #333; }
+        .form-group input, .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: Tahoma, sans-serif;
+        }
+        .close-btn {
+            background: #ccc;
+            color: #333;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        /* Watch Page Styles */
         .watch-container {
             max-width: 900px;
             margin: 0 auto;
@@ -170,10 +235,7 @@
             padding-bottom: 20px;
             border-bottom: 1px solid #eee;
         }
-        .comments-section h3 {
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
+        .comments-section h3 { font-size: 18px; margin-bottom: 15px; }
         .comment-form {
             display: flex;
             flex-direction: column;
@@ -186,38 +248,16 @@
             border-radius: 6px;
             font-family: Tahoma, sans-serif;
         }
-        .comment-form button {
-            background-color: #cc0000;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            align-self: flex-end;
-        }
         .comment-card {
             background: #f9f9f9;
             padding: 12px 15px;
             border-radius: 8px;
             margin-bottom: 10px;
         }
-        .comment-author {
-            font-weight: bold;
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        .comment-text {
-            font-size: 14px;
-            color: #555;
-        }
-        @media (max-width: 900px) {
-            .video-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .video-grid { grid-template-columns: 1fr; }
-        }
+        .comment-author { font-weight: bold; font-size: 14px; color: #333; margin-bottom: 5px; }
+        .comment-text { font-size: 14px; color: #555; }
+        @media (max-width: 900px) { .video-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .video-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -227,237 +267,69 @@
             <div class="logo-icon">م</div>
             <div class="logo-text">مهرنما</div>
         </div>
-        <div style="font-size: 14px; color: #606060; font-weight: 500;">تصویر شفاف مهربانی</div>
+        <div class="header-actions" id="headerActions">
+            <button class="btn-primary" onclick="openAuthModal()">ورود / ثبت‌نام خیریه</button>
+        </div>
     </header>
 
     <div class="container" id="main-content">
         <p>در حال بارگذاری...</p>
     </div>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = urlParams.get('v');
-        const charityId = urlParams.get('charity_id');
+    <!-- Modal Auth -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">ورود خیریه</h3>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>ایمیل</label>
+                    <input type="email" id="loginEmail" placeholder="charity@example.com">
+                </div>
+                <div class="form-group">
+                    <label>رمز عبور</label>
+                    <input type="password" id="loginPassword" placeholder="******">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <button class="close-btn" onclick="closeAuthModal()">انصراف</button>
+                    <button class="btn-primary" onclick="loginCharity()">ورود</button>
+                </div>
+                <p style="text-align: center; margin-top: 15px; font-size: 13px;">
+                    حساب ندارید؟ <a href="#" onclick="toggleAuthMode(true)" style="color: #cc0000;">ثبت‌نام خیریه</a>
+                </p>
+            </div>
 
-        function isVideo(filePath) {
-            if (!filePath) return false;
-            const ext = filePath.toLowerCase();
-            return ext.endsWith('.mp4') || ext.endsWith('.webm') || ext.endsWith('.ogg') || ext.endsWith('.mov');
-        }
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label>نام خیریه</label>
+                    <input type="text" id="regName" placeholder="خیریه مهر">
+                </div>
+                <div class="form-group">
+                    <label>ایمیل</label>
+                    <input type="email" id="regEmail" placeholder="charity@example.com">
+                </div>
+                <div class="form-group">
+                    <label>تلفن</label>
+                    <input type="text" id="regPhone" placeholder="02188888888">
+                </div>
+                <div class="form-group">
+                    <label>رمز عبور</label>
+                    <input type="password" id="regPassword" placeholder="******">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <button class="close-btn" onclick="closeAuthModal()">انصراف</button>
+                    <button class="btn-primary" onclick="registerCharity()">ثبت‌نام</button>
+                </div>
+                <p style="text-align: center; margin-top: 15px; font-size: 13px;">
+                    قبلاً ثبت‌نام کرده‌اید؟ <a href="#" onclick="toggleAuthMode(false)" style="color: #cc0000;">ورود به حساب</a>
+                </p>
+            </div>
+        </div>
+    </div>
 
-        async function loadHome() {
-            const container = document.getElementById('main-content');
-            container.innerHTML = `
-                <div class="section-title">ویدیوهای منتخب و اخیر</div>
-                <div class="video-grid" id="video-container"><p>در حال بارگذاری کادرها...</p></div>
-            `;
-
-            try {
-                const response = await fetch('/api/projects');
-                if (!response.ok) {
-                    throw new Error('Server responded with status ' + response.status);
-                }
-                const projects = await response.json();
-                const videoContainer = document.getElementById('video-container');
-                videoContainer.innerHTML = '';
-
-                if (!Array.isArray(projects) || projects.length === 0) {
-                    videoContainer.innerHTML = '<p>هنوز آیتمی ثبت نشده است.</p>';
-                    return;
-                }
-
-                // نمایش فقط ۶ ویدیوی آخر (Last-In, First-Show)
-                const recentProjects = projects.slice(0, 6);
-
-                recentProjects.forEach(project => {
-                    const card = document.createElement('div');
-                    card.className = 'video-card';
-                    card.onclick = () => { window.location.href = `/?v=${project.id}`; };
-
-                    const filePath = project.file_path || '';
-                    const charityName = project.charity_name || 'خیریه ناشناس';
-                    const title = project.title || 'بدون عنوان';
-                    const description = project.description || '';
-
-                    let mediaHtml = isVideo(filePath)
-                        ? `<div class="media-box"><video src="${filePath}"></video></div>`
-                        : `<div class="media-box"><img src="${filePath}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
-
-                    card.innerHTML = `
-                        ${mediaHtml}
-                        <div class="video-info">
-                            <div class="video-title">${title}</div>
-                            <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${project.charity_id}'">کانال: ${charityName}</div>
-                            <div class="video-desc">${description}</div>
-                        </div>
-                    `;
-                    videoContainer.appendChild(card);
-                });
-            } catch (err) {
-                console.error('Error in loadHome:', err);
-                container.innerHTML = `<p style="color: red;">خطا در دریافت اطلاعات: ${err.message}</p>`;
-            }
-        }
-
-        async function loadChannel(id) {
-            const container = document.getElementById('main-content');
-            container.innerHTML = `<p>در حال بارگذاری اطلاعات کانال...</p>`;
-
-            try {
-                const response = await fetch(`/api/charities/${id}/projects`);
-                const data = await response.json();
-
-                if (response.status !== 200) {
-                    container.innerHTML = `<p>${data.error || 'خطا در بارگذاری کانال'}</p>`;
-                    return;
-                }
-
-                container.innerHTML = `
-                    <div class="channel-header">
-                        <h2>کانال: ${data.charity.name}</h2>
-                        <p>ایمیل ارتباطی: ${data.charity.email} | تلفن: ${data.charity.phone || 'ثبت نشده'}</p>
-                    </div>
-                    <div class="section-title">ویدیوها و پروژه‌های این کانال</div>
-                    <div class="video-grid" id="channel-videos"></div>
-                `;
-
-                const videoContainer = document.getElementById('channel-videos');
-                if (!data.projects || data.projects.length === 0) {
-                    videoContainer.innerHTML = '<p>این کانال هنوز موردی آپلود نکرده است.</p>';
-                    return;
-                }
-
-                data.projects.forEach(project => {
-                    const card = document.createElement('div');
-                    card.className = 'video-card';
-                    card.onclick = () => { window.location.href = `/?v=${project.id}`; };
-
-                    const filePath = project.file_path || '';
-                    let mediaHtml = isVideo(filePath)
-                        ? `<div class="media-box"><video src="${filePath}"></video></div>`
-                        : `<div class="media-box"><img src="${filePath}" alt="پروژه" onerror="this.src='https://via.placeholder.com/300x180/eef2f5/999999?text=Mehrnama';"></div>`;
-
-                    card.innerHTML = `
-                        ${mediaHtml}
-                        <div class="video-info">
-                            <div class="video-title">${project.title}</div>
-                            <div class="video-desc">${project.description}</div>
-                        </div>
-                    `;
-                    videoContainer.appendChild(card);
-                });
-
-            } catch (err) {
-                console.error('Error loading channel:', err);
-                container.innerHTML = '<p>خطا در ارتباط با سرور.</p>';
-            }
-        }
-
-        async function loadWatchPage(id) {
-            const container = document.getElementById('main-content');
-            container.innerHTML = `<p>در حال بارگذاری ویدیو...</p>`;
-
-            try {
-                const response = await fetch('/api/projects');
-                const projects = await response.json();
-                const project = projects.find(p => p.id == id);
-
-                if (!project) {
-                    container.innerHTML = `<p>ویدیو مورد نظر یافت نشد.</p>`;
-                    return;
-                }
-
-                const filePath = project.file_path || '';
-                let mediaHtml = isVideo(filePath)
-                    ? `<div class="watch-media"><video controls autoplay src="${filePath}"></video></div>`
-                    : `<div class="watch-media"><img src="${filePath}" alt="پروژه"></div>`;
-
-                container.innerHTML = `
-                    <div class="watch-container">
-                        ${mediaHtml}
-                        <div class="watch-title">${project.title}</div>
-                        <div class="channel-link" style="margin-bottom: 15px; cursor: pointer;" onclick="window.location.href='/?charity_id=${project.charity_id}'">کانال: ${project.charity_name}</div>
-                        <div class="watch-desc">${project.description}</div>
-
-                        <div class="comments-section">
-                            <h3>نظرات کاربران</h3>
-                            <div class="comment-form">
-                                <input type="text" id="authorName" placeholder="نام شما">
-                                <textarea id="commentText" rows="3" placeholder="نظر خود را درباره این ویدیو بنویسید..."></textarea>
-                                <button onclick="postComment(${project.id})">ارسال نظر</button>
-                            </div>
-                            <div id="commentsList"><p>در حال بارگذاری نظرات...</p></div>
-                        </div>
-                    </div>
-                `;
-
-                loadComments(project.id);
-            } catch (err) {
-                console.error('Error loading watch page:', err);
-            }
-        }
-
-        async function loadComments(projectId) {
-            try {
-                const res = await fetch(`/api/projects/${projectId}/comments`);
-                const comments = await res.json();
-                const list = document.getElementById('commentsList');
-                list.innerHTML = '';
-
-                if (!Array.isArray(comments) || comments.length === 0) {
-                    list.innerHTML = '<p style="color: #778; font-size: 14px;">هنوز نظری ثبت نشده است. اولین نفر باشید که نظر می‌دهد!</p>';
-                    return;
-                }
-
-                comments.forEach(c => {
-                    const div = document.createElement('div');
-                    div.className = 'comment-card';
-                    div.innerHTML = `
-                        <div class="comment-author">${c.author_name}</div>
-                        <div class="comment-text">${c.comment_text}</div>
-                    `;
-                    list.appendChild(div);
-                });
-            } catch (err) {
-                console.error('Error loading comments:', err);
-            }
-        }
-
-        async function postComment(projectId) {
-            const authorName = document.getElementById('authorName').value.trim();
-            const commentText = document.getElementById('commentText').value.trim();
-
-            if (!authorName || !commentText) {
-                alert('لطفاً نام و متن نظر را وارد کنید.');
-                return;
-            }
-
-            try {
-                const res = await fetch(`/api/projects/${projectId}/comments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ author_name: authorName, comment_text: commentText })
-                });
-
-                if (res.ok) {
-                    document.getElementById('authorName').value = '';
-                    document.getElementById('commentText').value = '';
-                    loadComments(projectId);
-                } else {
-                    alert('خطا در ثبت نظر.');
-                }
-            } catch (err) {
-                console.error('Error posting comment:', err);
-            }
-        }
-
-        if (videoId) {
-            loadWatchPage(videoId);
-        } else if (charityId) {
-            loadChannel(charityId);
-        } else {
-            loadHome();
-        }
-    </script>
-</body>
-</html>
+    <!-- Modal Upload Project -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <h3>آپلود پروژه یا ویدیو جدید</h3>
+            <div class="form-group">
+                <label>عنوان پروژه</label>
+                <input type="text" id="upTitle" placeholder="
