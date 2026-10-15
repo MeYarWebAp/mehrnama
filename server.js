@@ -7,10 +7,9 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// اتصال به پایگاه داده ریموت PostgreSQL (Runflare)
+// اتصال به پایگاه داده ریموت PostgreSQL (بدون نیاز به SSL)
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    connectionString: process.env.DATABASE_URL
 });
 
 // تابع ایجاد جداول اولیه و داده‌های نمونه در صورت خالی بودن
