@@ -20,6 +20,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 async function initDB() {
     try {
+        // ایجاد جداول پایه
         await pool.query(`
             CREATE TABLE IF NOT EXISTS charity_users (
                 id SERIAL PRIMARY KEY,
@@ -27,12 +28,7 @@ async function initDB() {
                 email VARCHAR(100) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 phone VARCHAR(20),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                registration_number VARCHAR(100),
-                landline_phone VARCHAR(50),
-                province VARCHAR(100),
-                district VARCHAR(100),
-                location_name VARCHAR(100)
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
             CREATE TABLE IF NOT EXISTS regular_users (
@@ -60,7 +56,17 @@ async function initDB() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("DB Tables initialized successfully.");
+
+        // اضافه کردن ستون‌های تکمیلی به جدول خیریه اگر وجود نداشته باشند
+        await pool.query(`
+            ALTER TABLE charity_users ADD COLUMN IF NOT EXISTS registration_number VARCHAR(100);
+            ALTER TABLE charity_users ADD COLUMN IF NOT EXISTS landline_phone VARCHAR(50);
+            ALTER TABLE charity_users ADD COLUMN IF NOT EXISTS province VARCHAR(100);
+            ALTER TABLE charity_users ADD COLUMN IF NOT EXISTS district VARCHAR(100);
+            ALTER TABLE charity_users ADD COLUMN IF NOT EXISTS location_name VARCHAR(100);
+        `);
+
+        console.log("DB Tables and columns verified successfully.");
 
         const checkCharities = await pool.query('SELECT COUNT(*) FROM charity_users;');
         const count = parseInt(checkCharities.rows[0].count);
@@ -111,7 +117,7 @@ async function seedSampleData() {
     ];
 
     const projectTitles = [
-        'توزیع بسته‌های معیشتی و مواد غذایی',
+        'تزیع بسته‌های معیشتی و مواد غذایی',
         'پویش تأمین لوازم‌التحریر دانش‌آموزان',
         'پروژه تأمین دارو و درمان بیماران نیازمند',
         'یاری‌رسانی عمومی و توزیع اقلام گرمایشی',
@@ -145,7 +151,7 @@ async function seedSampleData() {
         for (let j = 0; j < projectCount; j++) {
             const title = projectTitles[Math.floor(Math.random() * projectTitles.length)];
             const description = `گزارش کامل و مستندات مربوط به فعالیت خیرخواهانه انجام شده توسط ${name} در منطقه ${loc.location} استان ${loc.province}.`;
-            const filePath = `https://picsum.photos/seed/mehrnama_${charityId}_${j}/600/400`;
+            const filePath = `https://picsum.photos/seed/mehrnama_${charityId_${j}}/600/400`;
 
             await pool.query(
                 `INSERT INTO charity_projects (charity_id, title, description, file_path) 
@@ -168,7 +174,6 @@ app.post('/api/users/register', async (req, res) => {
         );
         res.status(201).json({ message: 'User registered', user: result.rows[0] });
     } catch (err) {
-        console.error('User register error:', err);
         res.status(400).json({ error: 'Registration error' });
     }
 });
@@ -303,8 +308,9 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start server first, then init DB in background
-app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
-    initDB();
+// ابتدا دیتابیس کامل مقداردهی و به‌روزرسانی شود، سپس سرور روشن شود
+initDB().then(() => {
+    app.listen(port, () => {
+        console.log(`Server listening on port ${port}`);
+    });
 });
