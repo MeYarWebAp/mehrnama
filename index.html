@@ -227,11 +227,6 @@
 
                 <div class="section-title">کارهای نیک این منطقه</div>
                 <div class="video-grid" id="province-videos"></div>
-
-                <div class="province-section" id="districtSection" style="display:none; text-align:right;">
-                    <div class="section-title" style="margin-bottom: 10px;">فهرست کامل مناطق استان ${provinceName}</div>
-                    <div class="province-grid" id="districtGrid"></div>
-                </div>
             `;
 
             let projects = await fetchProjectsSafe();
@@ -243,7 +238,6 @@
             let districts = [...new Set(provinceProjects.map(p => p.district).filter(Boolean))];
             if (districts.length === 0) districts = ['مرکزی', 'منطقه ۱', 'منطقه ۲', 'حومه'];
 
-            // Render interactive district map buttons box
             let districtMapBox = document.getElementById('districtMapBox');
             districts.forEach(dist => {
                 let regionBtn = document.createElement('button');
@@ -269,19 +263,6 @@
                 `;
                 vc.appendChild(card);
             });
-
-            if (!districtName && districts.length > 0) {
-                document.getElementById('districtSection').style.display = 'block';
-                let dGrid = document.getElementById('districtGrid');
-                dGrid.innerHTML = '';
-                districts.forEach(dist => {
-                    let btn = document.createElement('button');
-                    btn.className = 'province-btn';
-                    btn.innerText = dist;
-                    btn.onclick = () => window.location.href = `/?province=${encodeURIComponent(provinceName)}&district=${encodeURIComponent(dist)}`;
-                    dGrid.appendChild(btn);
-                });
-            }
         }
 
         async function loadChannelPage(charityId) {
