@@ -8,7 +8,6 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// اتصال به دیتابیس PostgreSQL (بدون SSL اجباری)
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL
 });
@@ -16,12 +15,59 @@ const pool = new Pool({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// سرو کردن فایل‌های استاتیک پوشه فرانت‌اند
 app.use(express.static(path.join(__dirname)));
-// سرو کردن پوشه آپلودها
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// تنظیمات Multer برای آپلود فایل‌ها
+// ساخت خودکار جدول‌ها در زمان راه‌اندازی سرور برای جلوگیری از خطای دیتابیس
+async function initDB() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS charity_users (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                phone VARCHAR(20),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                registration_number VARCHAR(100),
+                landline_phone VARCHAR(50),
+                province VARCHAR(100),
+                district VARCHAR(100),
+                location_name VARCHAR(100)
+            );
+
+            CREATE TABLE IF NOT EXISTS regular_users (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                phone VARCHAR(20) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS charity_projects (
+                id SERIAL PRIMARY KEY,
+                charity_id INT REFERENCES charity_users(id),
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                file_path TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS project_comments (
+                id SERIAL PRIMARY KEY,
+                project_id INT REFERENCES charity_projects(id),
+                author_name VARCHAR(100) NOT NULL,
+                comment_text TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log("Database tables checked/created successfully.");
+    } catch (err) {
+        console.error("Error initializing database tables:", err);
+    }
+}
+initDB();
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = path.join(__dirname, 'uploads');
@@ -37,23 +83,41 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// ۱. ثبت‌نام خیریه جدید
-app.post('/api/charities/register', async (req, res) => {
-    const { name, email, phone, password } = req.body;
+// ثبت‌نام کاربر حقیقی
+app.post('/api/users/register', async (req, res) => {
+    const { name, phone, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await pool.query(
-            'INSERT INTO charity_users (name, email, phone, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
-            [name, email, phone, hashedPassword]
+            'INSERT INTO regular_users (name, phone, password) VALUES ($1, $2, $3) RETURNING id, name, phone',
+            [name, phone, hashedPassword]
         );
-        res.status(201).json({ message: 'ثبت‌نام با موفقیت انجام شد', charity: result.rows[0] });
+        res.status(201).json({ message: 'ثبت‌نام کاربر با موفقیت انجام شد', user: result.rows[0] });
     } catch (err) {
-        console.error('Register error:', err);
-        res.status(400).json({ error: 'خطا در ثبت‌نام. ممکن است ایمیل تکراری باشد.' });
+        console.error('User register error:', err);
+        res.status(400).json({ error: 'خطا در ثبت‌نام. ممکن است شماره تلفن تکراری باشد.' });
     }
 });
 
-// ۲. ورود خیریه
+// ثبت‌نام خیریه با فیلدهای کامل
+app.post('/api/charities/register', async (req, res) => {
+    const { name, email, phone, password, registration_number, landline_phone, province, district, location_name } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const result = await pool.query(
+            `INSERT INTO charity_users 
+            (name, email, phone, password, registration_number, landline_phone, province, district, location_name) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, email`,
+            [name, email, phone, hashedPassword, registration_number, landline_phone, province, district, location_name]
+        );
+        res.status(201).json({ message: 'ثبت‌نام خیریه با موفقیت انجام شد', charity: result.rows[0] });
+    } catch (err) {
+        console.error('Charity register error:', err);
+        res.status(400).json({ error: 'خطا در ثبت‌نام خیریه. ایمیل یا اطلاعات تکراری است.' });
+    }
+});
+
+// ورود خیریه
 app.post('/api/charities/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -76,7 +140,7 @@ app.post('/api/charities/login', async (req, res) => {
     }
 });
 
-// ۳. ایجاد پروژه جدید (آپلود ویدیو/تصویر)
+// ایجاد پروژه جدید
 app.post('/api/projects/create', upload.single('projectFile'), async (req, res) => {
     const { charity_id, title, description } = req.body;
     const filePath = req.file ? `/uploads/${req.file.filename}` : null;
@@ -93,7 +157,7 @@ app.post('/api/projects/create', upload.single('projectFile'), async (req, res) 
     }
 });
 
-// ۴. دریافت لیست تمام پروژه‌ها
+// دریافت لیست تمام پروژه‌ها
 app.get('/api/projects', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -109,7 +173,7 @@ app.get('/api/projects', async (req, res) => {
     }
 });
 
-// ۵. دریافت پروژه‌های یک کانال خاص
+// دریافت پروژه‌های یک کانال خاص
 app.get('/api/charities/:id/projects', async (req, res) => {
     const charityId = req.params.id;
     try {
@@ -131,7 +195,7 @@ app.get('/api/charities/:id/projects', async (req, res) => {
     }
 });
 
-// ۶. دریافت نظرات یک پروژه
+// دریافت نظرات
 app.get('/api/projects/:id/comments', async (req, res) => {
     const projectId = req.params.id;
     try {
@@ -146,7 +210,7 @@ app.get('/api/projects/:id/comments', async (req, res) => {
     }
 });
 
-// ۷. ثبت نظر جدید برای پروژه
+// ثبت نظر جدید
 app.post('/api/projects/:id/comments', async (req, res) => {
     const projectId = req.params.id;
     const { author_name, comment_text } = req.body;
@@ -162,7 +226,6 @@ app.post('/api/projects/:id/comments', async (req, res) => {
     }
 });
 
-// مسیر اصلی فرانت‌اند
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
