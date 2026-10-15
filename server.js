@@ -8,10 +8,9 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// اتصال به دیتابیس PostgreSQL
+// اتصال به دیتابیس PostgreSQL (بدون SSL اجباری)
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    connectionString: process.env.DATABASE_URL
 });
 
 app.use(express.json());
