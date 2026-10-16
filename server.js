@@ -5,9 +5,16 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// فعال‌سازی Helmet برای امنیت هدرهای HTTP
+app.use(helmet({
+    contentSecurityPolicy: false, // غیرفعال‌سازی موقت CSP برای جلوگیری از اختلال در تصاویر Picsum یا منابع خارجی اولیه در صورت نیاز
+    crossOriginEmbedderPolicy: false
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
