@@ -8,7 +8,6 @@
         body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
         header { background-color: #ffffff; padding: 12px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
         
-        /* Refined Logo Styles with Lighter, Smoother Font */
         .logo-box { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
         .logo-icon-wrapper { background: linear-gradient(135deg, #cc0000, #ff4d4d); color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2); flex-shrink: 0; }
         .logo-text-group { display: flex; flex-direction: column; }
@@ -897,19 +896,20 @@
                 let res = await fetch(`/api/projects/${videoId}/view`, { method: 'POST' });
                 let data = await res.json();
                 if (data.success) {
-                    let viewCountElem = document.getElementById('viewCountDisplay');
-                    if (viewCountElem) {
-                        viewCountElem.innerText = `${data.views} بازدید`;
-                    }
+                    return data.views;
                 }
             } catch (e) {
                 console.warn('Error incrementing view count');
             }
+            return null;
         }
 
         async function loadWatchPage(id) {
             renderSidebar();
             let container = document.getElementById('main-content');
+            
+            let updatedViews = await incrementViewCount(id);
+
             let projects = await fetchProjectsSafe();
             let project = projects.find(p => p.id == id) || projects[0];
             if (!project) {
@@ -917,7 +917,9 @@
                 return;
             }
 
-            incrementViewCount(project.id);
+            if (updatedViews !== null) {
+                project.views = updatedViews;
+            }
 
             let subs = await getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
@@ -930,7 +932,7 @@
                         <div class="watch-media"><img src="${project.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
                         <div class="watch-title">${project.title}</div>
                         <div class="watch-sub-info">
-                            <span id="viewCountDisplay">${project.views || 0} بازدید</span> • <span>📍 استان ${project.province} (${project.district})</span>
+                            <span id="viewCountDisplay">👁️ ${project.views || 0} بازدید</span> • <span>📍 استان ${project.province} (${project.district})</span>
                         </div>
                         
                         <div class="watch-channel-row">
