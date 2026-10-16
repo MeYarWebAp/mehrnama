@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// اتصال به دیتابیس با غیرفعال کردن SSL جهت جلوگیری از خطای Runflare
+// Connessione al database PostgreSQL con SSL disabilitato per Runflare
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mehrnama',
     ssl: false
@@ -58,6 +58,11 @@ async function initDB() {
                 views INT DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        `);
+
+        // Aggiunta/Verifica automatica della colonna views per evitare l'errore 500
+        await pool.query(`
+            ALTER TABLE projects ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
         `);
 
         await pool.query(`
