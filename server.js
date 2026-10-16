@@ -12,10 +12,10 @@ const { body, validationResult } = require('express-validator');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// فعال‌سازی trust proxy برای سازگاری با پروکسی و سرورهای ابری (Runflare)
+// Tsayar da trust proxy domin aiki tare da sabobin gajimare (Runflare)
 app.set('trust proxy', 1);
 
-// تنظیمات امنیتی CORS
+// Tsarin tsaro na CORS
 const corsOptions = {
     origin: ['https://mehrnama.info', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -23,7 +23,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// فعال‌سازی Helmet برای امنیت هدرهای HTTP
+// Kunna Helmet domin tsaron shafukan HTTP
 app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
@@ -33,7 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// تنظیمات Rate Limiting برای امنیت APIها و فرم‌های احراز هویت
+// Tsarin Rate Limiting domin kare API da wuraren shiga
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -59,7 +59,7 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// تنظیمات امن آپلود فایل (Multer) با بررسی نوع واقعی فایل و نام‌گذاری تصادفی
+// Tsarin loda fayiloli cikin amincin Multer da sanya musu suna na musamman
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => {
@@ -177,7 +177,7 @@ async function initDB() {
 }
 initDB();
 
-// ثبت‌نام با اعتبارسنجی ورودی‌ها
+// Rajistar tare da tantance bayanan shigarwa
 app.post('/api/register', [
     body('name').notEmpty().withMessage('نام و نام خانوادگی الزامی است.'),
     body('phone_or_id').notEmpty().withMessage('شناسه یا شماره تلفن الزامی است.'),
@@ -202,7 +202,7 @@ app.post('/api/register', [
     }
 });
 
-// ورود با اعتبارسنجی ورودی‌ها
+// Shiga tare da tantance bayanan shigarwa
 app.post('/api/login', [
     body('phone_or_id').notEmpty().withMessage('وارد کردن شناسه یا شماره تلفن الزامی است.'),
     body('password').notEmpty().withMessage('وارد کردن رمز عبور الزامی است.')
@@ -241,13 +241,23 @@ app.get('/api/projects', async (req, res, next) => {
     }
 });
 
+// Sabuntawa da sanya dokar hana masu amfani na gida loda ayyuka ko bidiyo
 app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
     try {
-        const { title, charity_name, charity_id, province, district, description } = req.body;
+        const { title, charity_name, charity_id, province, district, description, user_type } = req.body;
+
+        if (user_type !== 'charity') {
+            return res.status(403).json({ 
+                success: false, 
+                error: 'دسترسی غیرمجاز. فقط حساب‌های کاربری خیریه اجازه بارگذاری پروژه و ویدیو را دارند.' 
+            });
+        }
+
         let filePath = 'https://picsum.photos/600/400';
         if (req.file) {
             filePath = '/uploads/' + req.file.filename;
         }
+
         const result = await pool.query(
             `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0) RETURNING *`,
@@ -405,7 +415,7 @@ app.post('/api/subscriptions/toggle', async (req, res, next) => {
     }
 });
 
-// میدل‌ور سراسری مدیریت ایمن خطاها
+// Middleware na musamman don sarrafa kurakurai a tsare
 app.use((err, req, res, next) => {
     console.error('Server Error Detail:', err.message);
     res.status(500).json({
