@@ -10,14 +10,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// پوشه ذخیره‌سازی فایل‌های آپلود شده
+// Upload folder setup
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 app.use('/uploads', express.static(uploadDir));
 
-// تنظیمات Multer برای آپلود فایل
+// Multer storage setup for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadDir);
@@ -29,12 +29,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// اتصال به دیتابیس PostgreSQL روی Runflare
+// PostgreSQL Database Connection on Runflare
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL
 });
 
-// ساخت جداول پایگاه داده در صورت عدم وجود
+// Initialize Database Tables
 async function initDB() {
     try {
         await pool.query(`
@@ -59,6 +59,7 @@ async function initDB() {
                 district VARCHAR(100) DEFAULT 'مرکزی',
                 description TEXT,
                 file_path TEXT,
+                views INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -86,14 +87,14 @@ async function initDB() {
 
 initDB();
 
-// ثبت‌نام کاربر / خیریه
+// Register User / Charity
 app.post('/api/register', async (req, res) => {
     try {
         const { name, user_type, phone_or_id, password, province, city, district } = req.body;
         
         const checkUser = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
         if (checkUser.rows.length > 0) {
-            return res.status(400).json({ error: 'کاربری با این شماره یا شناسه قبلاً ثبت‌نام کرده است.' });
+            return res.status(400).json({ error: 'Karbari ba in shomare ya shenase ghablan sabt-nam karde ast.' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -108,24 +109,24 @@ app.post('/api/register', async (req, res) => {
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در ثبت‌نام کاربر' });
+        res.status(500).json({ error: 'Khata dar sabt-nam karbar' });
     }
 });
 
-// ورود به سامانه
+// User Login
 app.post('/api/login', async (req, res) => {
     try {
         const { phone_or_id, password, user_type } = req.body;
 
         const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1 AND user_type = $2', [phone_or_id, user_type]);
         if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'کاربری با این اطلاعات یافت نشد.' });
+            return res.status(400).json({ error: 'Karbari ba in etelaat yaft nashod.' });
         }
 
         const user = result.rows[0];
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ error: 'رمز عبور نادرست است.' });
+            return res.status(400).json({ error: 'Ramz-e oboor nadorost ast.' });
         }
 
         res.json({
@@ -139,22 +140,22 @@ app.post('/api/login', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در فرآیند ورود' });
+        res.status(500).json({ error: 'Khata dar farayand-e vorood' });
     }
 });
 
-// دریافت لیست پروژه‌ها
+// Get Projects List
 app.get('/api/projects', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM projects ORDER BY id DESC');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در دریافت پروژه‌ها' });
+        res.status(500).json({ error: 'Khata dar daryaft-e پروژه ها' });
     }
 });
 
-// ثبت پروژه جدید همراه با آپلود فایل
+// Create New Project with File Upload
 app.post('/api/projects', upload.single('media_file'), async (req, res) => {
     try {
         const { title, charity_name, charity_id, province, district, description } = req.body;
@@ -170,11 +171,11 @@ app.post('/api/projects', upload.single('media_file'), async (req, res) => {
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در ثبت پروژه' });
+        res.status(500).json({ error: 'Khata dar sabt-e proje' });
     }
 });
 
-// ویرایش پروژه همراه با امکان به‌روزرسانی فایل
+// Edit Project
 app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
     try {
         const projectId = req.params.id;
@@ -182,12 +183,12 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
         
         const checkProj = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
         if (checkProj.rows.length === 0) {
-            return res.status(404).json({ error: 'پروژه یافت نشد' });
+            return res.status(404).json({ error: 'Proje yaft nashod' });
         }
 
         const project = checkProj.rows[0];
         if (charity_id && project.charity_id != charity_id && charity_id != 99) {
-            return res.status(403).json({ error: 'شما اجازه ویرایش این پروژه را ندارید' });
+            return res.status(403).json({ error: 'Shoma ejaze-ye virayesh in proje ra nadarid' });
         }
         
         let file_path = req.file ? `/uploads/${req.file.filename}` : (req.body.file_path || project.file_path);
@@ -203,11 +204,30 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در ویرایش پروژه' });
+        res.status(500).json({ error: 'Khata dar virayesh-e proje' });
     }
 });
 
-// دریافت نظرات از دیتابیس
+// Increment View Count
+app.post('/api/projects/:id/view', async (req, res) => {
+    try {
+        const projectId = req.params.id;
+        const result = await pool.query(
+            'UPDATE projects SET views = views + 1 WHERE id = $1 RETURNING views',
+            [projectId]
+        );
+        if (result.rows.length > 0) {
+            res.json({ success: true, views: result.rows[0].views });
+        } else {
+            res.status(404).json({ error: 'Proje yaft nashod' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Khata dar sabt-e bazdid' });
+    }
+});
+
+// Get Comments
 app.get('/api/comments/:videoId', async (req, res) => {
     try {
         const { videoId } = req.params;
@@ -215,11 +235,11 @@ app.get('/api/comments/:videoId', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در دریافت نظرات' });
+        res.status(500).json({ error: 'Khata dar daryaft-e nazarat' });
     }
 });
 
-// ثبت نظر جدید در دیتابیس
+// Add Comment
 app.post('/api/comments', async (req, res) => {
     try {
         const { video_id, user_name, text } = req.body;
@@ -230,11 +250,11 @@ app.post('/api/comments', async (req, res) => {
         res.json({ success: true, comment: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در ثبت نظر' });
+        res.status(500).json({ error: 'Khata dar sabt-e nazar' });
     }
 });
 
-// دریافت اشتراک‌های کاربر از دیتابیس
+// Get Subscriptions
 app.get('/api/subscriptions/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
@@ -242,11 +262,11 @@ app.get('/api/subscriptions/:userId', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در دریافت اشتراک‌ها' });
+        res.status(500).json({ error: 'Khata dar daryaft-e eshterak-ha' });
     }
 });
 
-// تغییر وضعیت اشتراک (ثبت یا حذف) در دیتابیس
+// Toggle Subscription
 app.post('/api/subscriptions/toggle', async (req, res) => {
     try {
         const { user_id, charity_id, charity_name } = req.body;
@@ -261,7 +281,7 @@ app.post('/api/subscriptions/toggle', async (req, res) => {
         }
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'خطا در تغییر وضعیت اشتراک' });
+        res.status(500).json({ error: 'Khata dar taghyir-e vaziat-e eshterak' });
     }
 });
 
