@@ -22,6 +22,8 @@
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-like { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-like:hover { background-color: #fee2e2; color: #cc0000; border-color: #fca5a5; }
         .btn-subscribed { background-color: #e5e7eb; color: #374151; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-subscribe { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
         
@@ -748,7 +750,7 @@
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name || 'خیریه مهرنما'}</div>
                         <div class="video-meta">
-                            <span>👁️ ${p.views || 0} بازدید</span>
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
                             <span>📍 ${p.province}</span>
                         </div>
                         <div class="video-desc">${p.description}</div>
@@ -809,7 +811,7 @@
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
                         <div class="video-meta">
-                            <span>👁️ ${p.views || 0} بازدید</span>
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
                             <span>📍 ${p.province}</span>
                         </div>
                         <div class="video-desc">${p.description}</div>
@@ -856,7 +858,7 @@
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link">کانال: ${p.charity_name}</div>
                         <div class="video-meta">
-                            <span>👁️ ${p.views || 0} بازدید</span>
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
                             <span>📍 ${p.province}</span>
                         </div>
                         <div class="video-desc">${p.description}</div>
@@ -942,6 +944,24 @@
             return null;
         }
 
+        async function submitLike(videoId) {
+            try {
+                let res = await fetch(`/api/projects/${videoId}/like`, { method: 'POST' });
+                let data = await res.json();
+                if (data.success) {
+                    let likeDisplay = document.getElementById('likeCountDisplay');
+                    if (likeDisplay) {
+                        likeDisplay.innerText = `👍 ${data.likes} پسندیدم`;
+                    }
+                } else {
+                    alert('خطا در ثبت لایک.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
         async function loadWatchPage(id) {
             renderSidebar();
             let container = document.getElementById('main-content');
@@ -976,6 +996,9 @@
                         <div class="watch-channel-row">
                             <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">کانال: ${project.charity_name}</div>
                             <div style="display: flex; gap: 10px; align-items: center;">
+                                <button class="btn-like" id="likeBtn" onclick="submitLike(${project.id})">
+                                    <span id="likeCountDisplay">👍 ${project.likes || 0} پسندیدم</span>
+                                </button>
                                 ${isOwner ? `<button class="btn-outline" onclick="loadEditPage(${project.id})">✏️ ویرایش پروژه و فایل</button>` : ''}
                                 <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
                                     ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
@@ -1013,7 +1036,7 @@
                     <div class="related-info">
                         <div class="related-title">${p.title}</div>
                         <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
-                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید</div>
+                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید • 👍 ${p.likes || 0} لایک</div>
                     </div>
                 `;
                 relatedList.appendChild(card);
