@@ -54,9 +54,10 @@
         .media-box { width: 100%; height: 180px; background-color: #eef2f5; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .media-box img, .media-box video { width: 100%; height: 100%; object-fit: cover; }
         .video-info { padding: 15px; }
-        .video-title { font-size: 16px; font-weight: bold; color: #0f0f0f; margin-bottom: 8px; }
-        .channel-link { font-size: 14px; color: #065fd4; margin-bottom: 5px; cursor: pointer; display: inline-block; }
+        .video-title { font-size: 16px; font-weight: bold; color: #0f0f0f; margin-bottom: 6px; }
+        .channel-link { font-size: 14px; color: #065fd4; margin-bottom: 6px; cursor: pointer; display: inline-block; }
         .channel-link:hover { text-decoration: underline; }
+        .video-meta { font-size: 12px; color: #606060; margin-bottom: 6px; display: flex; gap: 10px; }
         .video-desc { font-size: 13px; color: #888; }
         
         .district-map-box { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
@@ -68,6 +69,7 @@
         .watch-media { width: 100%; max-height: 480px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
         .watch-media video, .watch-media img { width: 100%; max-height: 480px; object-fit: contain; }
         .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
+        .watch-sub-info { font-size: 13px; color: #606060; margin-bottom: 15px; }
         .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
         .watch-channel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
 
@@ -697,6 +699,10 @@
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name || 'خیریه مهرنما'}</div>
+                        <div class="video-meta">
+                            <span>👁️ ${p.views || 0} بازدید</span>
+                            <span>📍 ${p.province}</span>
+                        </div>
                         <div class="video-desc">${p.description}</div>
                     </div>
                 `;
@@ -754,6 +760,10 @@
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
+                        <div class="video-meta">
+                            <span>👁️ ${p.views || 0} بازدید</span>
+                            <span>📍 ${p.province}</span>
+                        </div>
                         <div class="video-desc">${p.description}</div>
                     </div>
                 `;
@@ -797,6 +807,10 @@
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link">کانال: ${p.charity_name}</div>
+                        <div class="video-meta">
+                            <span>👁️ ${p.views || 0} بازدید</span>
+                            <span>📍 ${p.province}</span>
+                        </div>
                         <div class="video-desc">${p.description}</div>
                     </div>
                 `;
@@ -867,6 +881,21 @@
             });
         }
 
+        async function incrementViewCount(videoId) {
+            try {
+                let res = await fetch(`/api/projects/${videoId}/view`, { method: 'POST' });
+                let data = await res.json();
+                if (data.success) {
+                    let viewCountElem = document.getElementById('viewCountDisplay');
+                    if (viewCountElem) {
+                        viewCountElem.innerText = `${data.views} بازدید`;
+                    }
+                }
+            } catch (e) {
+                console.warn('Error incrementing view count');
+            }
+        }
+
         async function loadWatchPage(id) {
             renderSidebar();
             let container = document.getElementById('main-content');
@@ -876,6 +905,8 @@
                 container.innerHTML = '<p style="padding:40px; text-align:center;">پروژه مورد نظر یافت نشد.</p>';
                 return;
             }
+
+            incrementViewCount(project.id);
 
             let subs = await getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
@@ -887,6 +918,9 @@
                     <div class="watch-main">
                         <div class="watch-media"><img src="${project.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
                         <div class="watch-title">${project.title}</div>
+                        <div class="watch-sub-info">
+                            <span id="viewCountDisplay">${project.views || 0} بازدید</span> • <span>📍 استان ${project.province} (${project.district})</span>
+                        </div>
                         
                         <div class="watch-channel-row">
                             <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">کانال: ${project.charity_name}</div>
@@ -928,6 +962,7 @@
                     <div class="related-info">
                         <div class="related-title">${p.title}</div>
                         <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">کانال: ${p.charity_name}</div>
+                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید</div>
                     </div>
                 `;
                 relatedList.appendChild(card);
