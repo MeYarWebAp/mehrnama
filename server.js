@@ -2,24 +2,46 @@ const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// پوشه ذخیره‌سازی فایل‌های آپلود شده
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadDir));
+
+// تنظیمات Multer برای آپلود فایل
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
 // اتصال به دیتابیس PostgreSQL روی Runflare
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL
 });
 
-// ساخت جداول کاربران و پروژه‌ها
+// ساخت جداول پایگاه داده در صورت عدم وجود
 async function initDB() {
     try {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
-                user_type VARCHAR(50) NOT NULL, -- 'real' یا 'legal'
+                user_type VARCHAR(50) NOT NULL,
                 phone_or_id VARCHAR(100) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 province VARCHAR(100),
@@ -48,18 +70,16 @@ async function initDB() {
 
 initDB();
 
-// ثبت‌نام کاربر جدید در دیتابیس
+// ثبت‌نام کاربر / خیریه
 app.post('/api/register', async (req, res) => {
     try {
         const { name, user_type, phone_or_id, password, province, city, district } = req.body;
         
-        // بررسی تکراری نبودن شماره/شناسه
         const checkUser = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
         if (checkUser.rows.length > 0) {
             return res.status(400).json({ error: 'کاربری با این شماره یا شناسه قبلاً ثبت‌نام کرده است.' });
         }
 
-        // هش کردن رمز عبور
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const query = `
@@ -76,7 +96,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// ورود کاربر بر اساس دیتابیس
+// ورود به سامانه
 app.post('/api/login', async (req, res) => {
     try {
         const { phone_or_id, password, user_type } = req.body;
@@ -118,16 +138,19 @@ app.get('/api/projects', async (req, res) => {
     }
 });
 
-// ثبت پروژه جدید
-app.post('/api/projects', async (req, res) => {
+// ثبت پروژه جدید همراه با آپلود فایل
+app.post('/api/projects', upload.single('media_file'), async (req, res) => {
     try {
-        const { title, charity_name, charity_id, province, district, description, file_path } = req.body;
+        const { title, charity_name, charity_id, province, district, description } = req.body;
+        const file_path = req.file ? `/uploads/${req.file.filename}` : (req.body.file_path || 'https://picsum.photos/seed/upload/600/400');
+
         const query = `
             INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path)
             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
         `;
         const values = [title, charity_name, charity_id || 1, province, district || 'مرکزی', description, file_path];
         const result = await pool.query(query, values);
+        
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         console.error(err);
@@ -135,11 +158,11 @@ app.post('/api/projects', async (req, res) => {
     }
 });
 
-// ویرایش پروژه (با بررسی مالکیت)
-app.put('/api/projects/:id', async (req, res) => {
+// ویرایش پروژه همراه با امکان به‌روزرسانی فایل
+app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
     try {
         const projectId = req.params.id;
-        const { title, province, district, description, file_path, charity_id } = req.body;
+        const { title, province, district, description, charity_id } = req.body;
         
         const checkProj = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
         if (checkProj.rows.length === 0) {
@@ -147,11 +170,12 @@ app.put('/api/projects/:id', async (req, res) => {
         }
 
         const project = checkProj.rows[0];
-
         if (charity_id && project.charity_id != charity_id && charity_id != 99) {
             return res.status(403).json({ error: 'شما اجازه ویرایش این پروژه را ندارید' });
         }
         
+        let file_path = req.file ? `/uploads/${req.file.filename}` : (req.body.file_path || project.file_path);
+
         const query = `
             UPDATE projects 
             SET title = $1, province = $2, district = $3, description = $4, file_path = $5
