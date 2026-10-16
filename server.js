@@ -6,13 +6,22 @@ const bcrypt = require('bcrypt');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// تنظیمات امنیتی CORS (فقط اجازه دسترسی به دامنه اصلی سامانه مهرنما)
+const corsOptions = {
+    origin: ['https://mehrnama.info', 'http://localhost:3000'], // دامنه‌های مجاز
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+
 // فعال‌سازی Helmet برای امنیت هدرهای HTTP
 app.use(helmet({
-    contentSecurityPolicy: false, // غیرفعال‌سازی موقت CSP برای جلوگیری از اختلال در تصاویر Picsum یا منابع خارجی اولیه در صورت نیاز
+    contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
 }));
 
@@ -20,9 +29,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// تنظیمات Rate Limiting برای امنیت
+// تنظیمات Rate Limiting
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // ۱۵ دقیقه
+    windowMs: 15 * 60 * 1000,
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
@@ -46,7 +55,6 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// تنظیمات امن آپلود فایل (Multer) با بررسی نوع واقعی فایل و نام‌گذاری تصادفی
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => {
@@ -56,9 +64,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    // فقط فرمت‌های مجاز تصویری و ویدیویی پذیرفته می‌شوند
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4', 'video/mkv', 'video/quicktime'];
-    
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
@@ -68,7 +74,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 200 * 1024 * 1024 }, // محدودیت حجم تا ۲۰۰ مگابایت
+    limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: fileFilter
 });
 
@@ -109,13 +115,8 @@ async function initDB() {
             );
         `);
 
-        await pool.query(`
-            ALTER TABLE projects ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
-        `);
-
-        await pool.query(`
-            ALTER TABLE projects ADD COLUMN IF NOT EXISTS likes INT DEFAULT 0;
-        `);
+        await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`);
+        await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS likes INT DEFAULT 0;`);
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS project_likes (
@@ -171,7 +172,7 @@ async function initDB() {
 }
 initDB();
 
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', async (req, res, next) => {
     try {
         const { name, user_type, phone_or_id, password, province, city, district } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -182,12 +183,11 @@ app.post('/api/register', async (req, res) => {
         );
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
-        console.error(err);
-        res.status(400).json({ success: false, error: 'شناسه یا شماره تلفن قبلا ثبت شده است.' });
+        next(err); // هدایت خطا به میدل‌ور مرکزی
     }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', async (req, res, next) => {
     try {
         const { phone_or_id, password } = req.body;
         const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
@@ -204,22 +204,20 @@ app.post('/api/login', async (req, res) => {
             user: { id: user.id, name: user.name, type: user.user_type }
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: 'خطا در ورود به سامانه.' });
+        next(err);
     }
 });
 
-app.get('/api/projects', async (req, res) => {
+app.get('/api/projects', async (req, res, next) => {
     try {
         const result = await pool.query('SELECT * FROM projects ORDER BY id DESC');
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Khata dar daryaft-e projaha' });
+        next(err);
     }
 });
 
-app.post('/api/projects', upload.single('media_file'), async (req, res) => {
+app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
     try {
         const { title, charity_name, charity_id, province, district, description } = req.body;
         let filePath = 'https://picsum.photos/600/400';
@@ -233,12 +231,11 @@ app.post('/api/projects', upload.single('media_file'), async (req, res) => {
         );
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: err.message || 'Khata dar sabt-e proje' });
+        next(err);
     }
 });
 
-app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
+app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next) => {
     try {
         const { id } = req.params;
         const { title, province, district, description } = req.body;
@@ -258,12 +255,11 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
         const result = await pool.query(query, params);
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: err.message || 'Khata dar virayesh-e proje' });
+        next(err);
     }
 });
 
-app.post('/api/projects/:id/view', async (req, res) => {
+app.post('/api/projects/:id/view', async (req, res, next) => {
     try {
         const projectId = req.params.id;
         const result = await pool.query(
@@ -276,12 +272,11 @@ app.post('/api/projects/:id/view', async (req, res) => {
             res.status(404).json({ success: false, error: 'Proje yaft nashod' });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: 'Khata dar sabt-e bazdid' });
+        next(err);
     }
 });
 
-app.post('/api/projects/:id/like', async (req, res) => {
+app.post('/api/projects/:id/like', async (req, res, next) => {
     try {
         const projectId = req.params.id;
         const { user_id } = req.body;
@@ -320,12 +315,11 @@ app.post('/api/projects/:id/like', async (req, res) => {
             likes: updateResult.rows[0].likes
         });
     } catch (err) {
-        console.error("Like Error Detail:", err);
-        res.status(500).json({ success: false, error: 'Khata dar sabt-e like' });
+        next(err);
     }
 });
 
-app.get('/api/projects/:id/user-liked', async (req, res) => {
+app.get('/api/projects/:id/user-liked', async (req, res, next) => {
     try {
         const projectId = req.params.id;
         const userId = req.query.user_id;
@@ -337,44 +331,41 @@ app.get('/api/projects/:id/user-liked', async (req, res) => {
         );
         res.json({ liked: check.rows.length > 0 });
     } catch (err) {
-        res.json({ liked: false });
+        next(err);
     }
 });
 
-app.get('/api/comments/:video_id', async (req, res) => {
+app.get('/api/comments/:video_id', async (req, res, next) => {
     try {
         const { video_id } = req.params;
         const result = await pool.query('SELECT user_name as user, text FROM comments WHERE video_id = $1 ORDER BY id DESC', [video_id]);
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
-        res.status(500).json([]);
+        next(err);
     }
 });
 
-app.post('/api/comments', async (req, res) => {
+app.post('/api/comments', async (req, res, next) => {
     try {
         const { video_id, user_name, text } = req.body;
         await pool.query('INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3)', [video_id, user_name, text]);
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
+        next(err);
     }
 });
 
-app.get('/api/subscriptions/:user_id', async (req, res) => {
+app.get('/api/subscriptions/:user_id', async (req, res, next) => {
     try {
         const { user_id } = req.params;
         const result = await pool.query('SELECT charity_id as id, charity_name as name FROM subscriptions WHERE user_id = $1', [user_id]);
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
-        res.status(500).json([]);
+        next(err);
     }
 });
 
-app.post('/api/subscriptions/toggle', async (req, res) => {
+app.post('/api/subscriptions/toggle', async (req, res, next) => {
     try {
         const { user_id, charity_id, charity_name } = req.body;
         const check = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
@@ -386,9 +377,17 @@ app.post('/api/subscriptions/toggle', async (req, res) => {
             res.json({ success: true, subscribed: true });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
+        next(err);
     }
+});
+
+// میدل‌ور سراسری مدیریت ایمن خطاها (جلوگیری از لو رفتن Stack Trace و جزئیات سرور)
+app.use((err, req, res, next) => {
+    console.error('Server Error Detail:', err.message);
+    res.status(500).json({
+        success: false,
+        error: err.message || 'خطای داخلی سرور رخ داده است. لطفاً بعداً تلاش کنید.'
+    });
 });
 
 app.listen(port, () => {
