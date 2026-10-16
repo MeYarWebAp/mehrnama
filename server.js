@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,6 +12,27 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+// Tanzimat-e Rate Limiting baraye amniyat
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 daghighe
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Tedad-e darkhast-ha-ye shoma bishtar az had-e mojaz ast. Lotfan kami sabr konid.' }
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Talash-ha-ye namovafagh bishtar az had-e mojaz. Lotfan 15 daghighe digar talash konid.' }
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
 
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
