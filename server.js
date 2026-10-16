@@ -21,9 +21,12 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
-const upload = multer({ storage });
 
-// Connessione al database PostgreSQL con SSL disabilitato per Runflare
+const upload = multer({ 
+    storage,
+    limits: { fileSize: 200 * 1024 * 1024 } // محدودیت حجم فایل تا ۲۰۰ مگابایت برای ویدیوهای زیر ۱۰ دقیقه
+});
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mehrnama',
     ssl: false
@@ -60,7 +63,6 @@ async function initDB() {
             );
         `);
 
-        // Aggiunta/Verifica automatica della colonna views per evitare l'errore 500
         await pool.query(`
             ALTER TABLE projects ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
         `);
