@@ -23,9 +23,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// اتصال به دیتابیس با غیرفعال کردن SSL جهت جلوگیری از خطای Runflare
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mehrnama',
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    ssl: false
 });
 
 async function initDB() {
