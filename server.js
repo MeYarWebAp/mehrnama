@@ -61,6 +61,22 @@ async function initDB() {
                 file_path TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS comments (
+                id SERIAL PRIMARY KEY,
+                video_id INTEGER NOT NULL,
+                user_name VARCHAR(255) NOT NULL,
+                text TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                charity_id INTEGER NOT NULL,
+                charity_name VARCHAR(255) NOT NULL,
+                UNIQUE(user_id, charity_id)
+            );
         `);
         console.log('Database tables initialized successfully.');
     } catch (err) {
@@ -188,6 +204,64 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'خطا در ویرایش پروژه' });
+    }
+});
+
+// دریافت نظرات از دیتابیس
+app.get('/api/comments/:videoId', async (req, res) => {
+    try {
+        const { videoId } = req.params;
+        const result = await pool.query('SELECT user_name as user, text FROM comments WHERE video_id = $1 ORDER BY id DESC', [videoId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'خطا در دریافت نظرات' });
+    }
+});
+
+// ثبت نظر جدید در دیتابیس
+app.post('/api/comments', async (req, res) => {
+    try {
+        const { video_id, user_name, text } = req.body;
+        const result = await pool.query(
+            'INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3) RETURNING user_name as user, text',
+            [video_id, user_name, text]
+        );
+        res.json({ success: true, comment: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'خطا در ثبت نظر' });
+    }
+});
+
+// دریافت اشتراک‌های کاربر از دیتابیس
+app.get('/api/subscriptions/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const result = await pool.query('SELECT charity_id as id, charity_name as name FROM subscriptions WHERE user_id = $1', [userId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'خطا در دریافت اشتراک‌ها' });
+    }
+});
+
+// تغییر وضعیت اشتراک (ثبت یا حذف) در دیتابیس
+app.post('/api/subscriptions/toggle', async (req, res) => {
+    try {
+        const { user_id, charity_id, charity_name } = req.body;
+        const check = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
+        
+        if (check.rows.length > 0) {
+            await pool.query('DELETE FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
+            res.json({ success: true, subscribed: false });
+        } else {
+            await pool.query('INSERT INTO subscriptions (user_id, charity_id, charity_name) VALUES ($1, $2, $3)', [user_id, charity_id, charity_name]);
+            res.json({ success: true, subscribed: true });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'خطا در تغییر وضعیت اشتراک' });
     }
 });
 
