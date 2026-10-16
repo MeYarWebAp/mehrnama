@@ -1,40 +1,33 @@
 const express = require('express');
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt');
-const path = require('path');
-const fs = require('fs');
 const multer = require('multer');
+const path = require('path');
+const bcrypt = require('bcrypt');
+const fs = require('fs');
 
 const app = express();
+const port = process.env.PORT || 3000;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-// Upload folder setup
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadDir));
 
-// Multer storage setup for file uploads
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-// PostgreSQL Database Connection on Runflare
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mehrnama',
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
-// Initialize Database Tables
 async function initDB() {
     try {
         await pool.query(`
@@ -42,236 +35,221 @@ async function initDB() {
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 user_type VARCHAR(50) NOT NULL,
-                phone_or_id VARCHAR(100) UNIQUE NOT NULL,
+                phone_or_id VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 province VARCHAR(100),
                 city VARCHAR(100),
                 district VARCHAR(100),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        `);
 
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS projects (
                 id SERIAL PRIMARY KEY,
                 title VARCHAR(255) NOT NULL,
                 charity_name VARCHAR(255) NOT NULL,
-                charity_id INTEGER DEFAULT 1,
-                province VARCHAR(100) NOT NULL,
-                district VARCHAR(100) DEFAULT 'مرکزی',
+                charity_id INT,
+                province VARCHAR(100),
+                district VARCHAR(100),
                 description TEXT,
-                file_path TEXT,
-                views INTEGER DEFAULT 0,
+                file_path VARCHAR(255),
+                views INT DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        `);
 
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS comments (
                 id SERIAL PRIMARY KEY,
-                video_id INTEGER NOT NULL,
+                video_id INT NOT NULL,
                 user_name VARCHAR(255) NOT NULL,
                 text TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        `);
 
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS subscriptions (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                charity_id INTEGER NOT NULL,
+                user_id INT NOT NULL,
+                charity_id INT NOT NULL,
                 charity_name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(user_id, charity_id)
             );
         `);
+
+        const projectCheck = await pool.query('SELECT COUNT(*) FROM projects');
+        if (parseInt(projectCheck.rows[0].count) === 0) {
+            await pool.query(`
+                INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views)
+                VALUES (
+                    'ساخت دبستان سه کلاسه روستایی در مناطق محروم',
+                    'موسسه خیریه و نیکوکاری باران مهر',
+                    1,
+                    'سیستان و بلوچستان',
+                    'دشتیاری',
+                    'پروژه احداث و تجهیز یک دبستان استاندارد و ایمن برای دانش‌آموزان عزیز روستاهای دورافتاده سیستان و بلوچستان.',
+                    'https://picsum.photos/600/400',
+                    0
+                )
+            `);
+        }
         console.log('Database tables initialized successfully.');
     } catch (err) {
-        console.error('Error initializing database:', err);
+        console.error('Error initializing DB:', err);
     }
 }
-
 initDB();
 
-// Register User / Charity
 app.post('/api/register', async (req, res) => {
     try {
         const { name, user_type, phone_or_id, password, province, city, district } = req.body;
-        
-        const checkUser = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
-        if (checkUser.rows.length > 0) {
-            return res.status(400).json({ error: 'Karbari ba in shomare ya shenase ghablan sabt-nam karde ast.' });
-        }
-
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        const query = `
-            INSERT INTO users (name, user_type, phone_or_id, password, province, city, district)
-            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, user_type, phone_or_id;
-        `;
-        const values = [name, user_type, phone_or_id, hashedPassword, province || null, city || null, district || null];
-        const result = await pool.query(query, values);
-
+        const result = await pool.query(
+            `INSERT INTO users (name, user_type, phone_or_id, password, province, city, district)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, user_type`,
+            [name, user_type, phone_or_id, hashedPassword, province, city, district]
+        );
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar sabt-nam karbar' });
+        res.status(400).json({ success: false, error: 'شناسه یا شماره تلفن قبلا ثبت شده است.' });
     }
 });
 
-// User Login
 app.post('/api/login', async (req, res) => {
     try {
-        const { phone_or_id, password, user_type } = req.body;
-
-        const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1 AND user_type = $2', [phone_or_id, user_type]);
+        const { phone_or_id, password } = req.body;
+        const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
         if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'Karbari ba in etelaat yaft nashod.' });
+            return res.status(400).json({ success: false, error: 'کاربری با این مشخصات یافت نشد.' });
         }
-
         const user = result.rows[0];
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ error: 'Ramz-e oboor nadorost ast.' });
+            return res.status(400).json({ success: false, error: 'رمز عبور اشتباه است.' });
         }
-
         res.json({
             success: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                type: user.user_type,
-                phone_or_id: user.phone_or_id
-            }
+            user: { id: user.id, name: user.name, type: user.user_type }
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar farayand-e vorood' });
+        res.status(500).json({ success: false, error: 'خطا در ورود به سامانه.' });
     }
 });
 
-// Get Projects List
 app.get('/api/projects', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM projects ORDER BY id DESC');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar daryaft-e پروژه ها' });
+        res.status(500).json({ error: 'Khata dar daryaft-e projaha' });
     }
 });
 
-// Create New Project with File Upload
 app.post('/api/projects', upload.single('media_file'), async (req, res) => {
     try {
         const { title, charity_name, charity_id, province, district, description } = req.body;
-        const file_path = req.file ? `/uploads/${req.file.filename}` : (req.body.file_path || 'https://picsum.photos/seed/upload/600/400');
-
-        const query = `
-            INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path)
-            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
-        `;
-        const values = [title, charity_name, charity_id || 1, province, district || 'مرکزی', description, file_path];
-        const result = await pool.query(query, values);
-        
+        let filePath = 'https://picsum.photos/600/400';
+        if (req.file) {
+            filePath = '/uploads/' + req.file.filename;
+        }
+        const result = await pool.query(
+            `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 0) RETURNING *`,
+            [title, charity_name, charity_id || 1, province, district || 'مرکزی', description, filePath]
+        );
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar sabt-e proje' });
+        res.status(500).json({ success: false, error: 'Khata dar sabt-e proje' });
     }
 });
 
-// Edit Project
 app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
     try {
-        const projectId = req.params.id;
-        const { title, province, district, description, charity_id } = req.body;
+        const { id } = req.params;
+        const { title, province, district, description } = req.body;
         
-        const checkProj = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
-        if (checkProj.rows.length === 0) {
-            return res.status(404).json({ error: 'Proje yaft nashod' });
+        let query = `UPDATE projects SET title = $1, province = $2, district = $3, description = $4`;
+        let params = [title, province, district, description];
+
+        if (req.file) {
+            const filePath = '/uploads/' + req.file.filename;
+            query += `, file_path = $5 WHERE id = $6 RETURNING *`;
+            params.push(filePath, id);
+        } else {
+            query += ` WHERE id = $5 RETURNING *`;
+            params.push(id);
         }
 
-        const project = checkProj.rows[0];
-        if (charity_id && project.charity_id != charity_id && charity_id != 99) {
-            return res.status(403).json({ error: 'Shoma ejaze-ye virayesh in proje ra nadarid' });
-        }
-        
-        let file_path = req.file ? `/uploads/${req.file.filename}` : (req.body.file_path || project.file_path);
-
-        const query = `
-            UPDATE projects 
-            SET title = $1, province = $2, district = $3, description = $4, file_path = $5
-            WHERE id = $6 RETURNING *;
-        `;
-        const values = [title, province, district || 'مرکزی', description, file_path, projectId];
-        const result = await pool.query(query, values);
-        
+        const result = await pool.query(query, params);
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar virayesh-e proje' });
+        res.status(500).json({ success: false, error: 'Khata dar virayesh-e proje' });
     }
 });
 
-// Increment View Count
 app.post('/api/projects/:id/view', async (req, res) => {
     try {
         const projectId = req.params.id;
         const result = await pool.query(
-            'UPDATE projects SET views = views + 1 WHERE id = $1 RETURNING views',
+            'UPDATE projects SET views = COALESCE(views, 0) + 1 WHERE id = $1 RETURNING views',
             [projectId]
         );
         if (result.rows.length > 0) {
             res.json({ success: true, views: result.rows[0].views });
         } else {
-            res.status(404).json({ error: 'Proje yaft nashod' });
+            res.status(404).json({ success: false, error: 'Proje yaft nashod' });
         }
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar sabt-e bazdid' });
+        res.status(500).json({ success: false, error: 'Khata dar sabt-e bazdid' });
     }
 });
 
-// Get Comments
-app.get('/api/comments/:videoId', async (req, res) => {
+app.get('/api/comments/:video_id', async (req, res) => {
     try {
-        const { videoId } = req.params;
-        const result = await pool.query('SELECT user_name as user, text FROM comments WHERE video_id = $1 ORDER BY id DESC', [videoId]);
+        const { video_id } = req.params;
+        const result = await pool.query('SELECT user_name as user, text FROM comments WHERE video_id = $1 ORDER BY id DESC', [video_id]);
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar daryaft-e nazarat' });
+        res.status(500).json([]);
     }
 });
 
-// Add Comment
 app.post('/api/comments', async (req, res) => {
     try {
         const { video_id, user_name, text } = req.body;
-        const result = await pool.query(
-            'INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3) RETURNING user_name as user, text',
-            [video_id, user_name, text]
-        );
-        res.json({ success: true, comment: result.rows[0] });
+        await pool.query('INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3)', [video_id, user_name, text]);
+        res.json({ success: true });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar sabt-e nazar' });
+        res.status(500).json({ success: false });
     }
 });
 
-// Get Subscriptions
-app.get('/api/subscriptions/:userId', async (req, res) => {
+app.get('/api/subscriptions/:user_id', async (req, res) => {
     try {
-        const { userId } = req.params;
-        const result = await pool.query('SELECT charity_id as id, charity_name as name FROM subscriptions WHERE user_id = $1', [userId]);
+        const { user_id } = req.params;
+        const result = await pool.query('SELECT charity_id as id, charity_name as name FROM subscriptions WHERE user_id = $1', [user_id]);
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar daryaft-e eshterak-ha' });
+        res.status(500).json([]);
     }
 });
 
-// Toggle Subscription
 app.post('/api/subscriptions/toggle', async (req, res) => {
     try {
         const { user_id, charity_id, charity_name } = req.body;
         const check = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
-        
         if (check.rows.length > 0) {
             await pool.query('DELETE FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
             res.json({ success: true, subscribed: false });
@@ -281,11 +259,10 @@ app.post('/api/subscriptions/toggle', async (req, res) => {
         }
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Khata dar taghyir-e vaziat-e eshterak' });
+        res.status(500).json({ success: false });
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Mehrnama server is running on port ${port}`);
 });
