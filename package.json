@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^5.1.1", "express-rate-limit": "^7.x.x",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
