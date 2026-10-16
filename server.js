@@ -12,6 +12,9 @@ const { body, validationResult } = require('express-validator');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// فعال‌سازی trust proxy برای سازگاری با پروکسی و سرورهای ابری (Runflare)
+app.set('trust proxy', 1);
+
 // تنظیمات امنیتی CORS
 const corsOptions = {
     origin: ['https://mehrnama.info', 'http://localhost:3000'],
