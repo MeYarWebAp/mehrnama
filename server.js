@@ -72,7 +72,6 @@ async function initDB() {
             ALTER TABLE projects ADD COLUMN IF NOT EXISTS likes INT DEFAULT 0;
         `);
 
-        // جدول نگهداری لایک‌های یکتا به ازای هر کاربر و پروژه
         await pool.query(`
             CREATE TABLE IF NOT EXISTS project_likes (
                 id SERIAL PRIMARY KEY,
@@ -237,17 +236,15 @@ app.post('/api/projects/:id/view', async (req, res) => {
     }
 });
 
-// مدیریت لایک و آنلایک یکتا به ازای هر کاربر
 app.post('/api/projects/:id/like', async (req, res) => {
     try {
         const projectId = req.params.id;
         const { user_id } = req.body;
 
         if (!user_id) {
-            return res.status(401).json({ success: false, error: 'لطفاً ابتدا وارد سامانه شوید.' });
+            return res.status(400).json({ success: false, error: 'شناسه کاربر معتبر نیست.' });
         }
 
-        // بررسی اینکه آیا کاربر قبلاً این پروژه را لایک کرده است یا خیر
         const check = await pool.query(
             'SELECT * FROM project_likes WHERE user_id = $1 AND project_id = $2',
             [user_id, projectId]
@@ -257,7 +254,6 @@ app.post('/api/projects/:id/like', async (req, res) => {
         let updateResult;
 
         if (check.rows.length > 0) {
-            // اگر لایک کرده بود، لایک را بردار (Unlike)
             await pool.query('DELETE FROM project_likes WHERE user_id = $1 AND project_id = $2', [user_id, projectId]);
             updateResult = await pool.query(
                 'UPDATE projects SET likes = GREATEST(COALESCE(likes, 0) - 1, 0) WHERE id = $1 RETURNING likes',
@@ -265,7 +261,6 @@ app.post('/api/projects/:id/like', async (req, res) => {
             );
             liked = false;
         } else {
-            // اگر لایک نکرده بود، ثبت کن (Like)
             await pool.query('INSERT INTO project_likes (user_id, project_id) VALUES ($1, $2)', [user_id, projectId]);
             updateResult = await pool.query(
                 'UPDATE projects SET likes = COALESCE(likes, 0) + 1 WHERE id = $1 RETURNING likes',
@@ -280,12 +275,11 @@ app.post('/api/projects/:id/like', async (req, res) => {
             likes: updateResult.rows[0].likes
         });
     } catch (err) {
-        console.error(err);
+        console.error("Like Error Detail:", err);
         res.status(500).json({ success: false, error: 'Khata dar sabt-e like' });
     }
 });
 
-// بررسی اینکه آیا کاربر فعلی این ویدیو را لایک کرده است یا خیر
 app.get('/api/projects/:id/user-liked', async (req, res) => {
     try {
         const projectId = req.params.id;
