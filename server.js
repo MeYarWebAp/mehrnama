@@ -13,13 +13,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Tanzimat-e Rate Limiting baraye amniyat
+// تنظیمات Rate Limiting برای امنیت
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 daghighe
+    windowMs: 15 * 60 * 1000, // ۱۵ دقیقه
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { success: false, error: 'Tedad-e darkhast-ha-ye shoma bishtar az had-e mojaz ast. Lotfan kami sabr konid.' }
+    message: { success: false, error: 'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً کمی صبر کنید.' }
 });
 
 const authLimiter = rateLimit({
@@ -27,7 +27,7 @@ const authLimiter = rateLimit({
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { success: false, error: 'Talash-ha-ye namovafagh bishtar az had-e mojaz. Lotfan 15 daghighe digar talash konid.' }
+    message: { success: false, error: 'تلاش‌های ناموفق بیش از حد مجاز. لطفاً ۱۵ دقیقه دیگر تلاش کنید.' }
 });
 
 app.use('/api/', apiLimiter);
@@ -39,14 +39,30 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// تنظیمات امن آپلود فایل (Multer) با بررسی نوع واقعی فایل و نام‌گذاری تصادفی
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
-    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname).toLowerCase());
+    }
 });
 
+const fileFilter = (req, file, cb) => {
+    // فقط فرمت‌های مجاز تصویری و ویدیویی پذیرفته می‌شوند
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4', 'video/mkv', 'video/quicktime'];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('فرمت فایل نامعتبر است. فقط تصاویر و ویدیوهای مجاز پذیرفته می‌شوند.'), false);
+    }
+};
+
 const upload = multer({ 
-    storage,
-    limits: { fileSize: 200 * 1024 * 1024 }
+    storage: storage,
+    limits: { fileSize: 200 * 1024 * 1024 }, // محدودیت حجم تا ۲۰۰ مگابایت
+    fileFilter: fileFilter
 });
 
 const pool = new Pool({
@@ -211,7 +227,7 @@ app.post('/api/projects', upload.single('media_file'), async (req, res) => {
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, error: 'Khata dar sabt-e proje' });
+        res.status(500).json({ success: false, error: err.message || 'Khata dar sabt-e proje' });
     }
 });
 
@@ -236,7 +252,7 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res) => {
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, error: 'Khata dar virayesh-e proje' });
+        res.status(500).json({ success: false, error: err.message || 'Khata dar virayesh-e proje' });
     }
 });
 
