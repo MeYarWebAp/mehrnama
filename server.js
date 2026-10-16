@@ -7,13 +7,14 @@ const fs = require('fs');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// تنظیمات امنیتی CORS (فقط اجازه دسترسی به دامنه اصلی سامانه مهرنما)
+// تنظیمات امنیتی CORS
 const corsOptions = {
-    origin: ['https://mehrnama.info', 'http://localhost:3000'], // دامنه‌های مجاز
+    origin: ['https://mehrnama.info', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
@@ -29,7 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// تنظیمات Rate Limiting
+// تنظیمات Rate Limiting برای امنیت APIها و فرم‌های احراز هویت
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -55,6 +56,7 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// تنظیمات امن آپلود فایل (Multer) با بررسی نوع واقعی فایل و نام‌گذاری تصادفی
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => {
@@ -172,7 +174,17 @@ async function initDB() {
 }
 initDB();
 
-app.post('/api/register', async (req, res, next) => {
+// ثبت‌نام با اعتبارسنجی ورودی‌ها
+app.post('/api/register', [
+    body('name').notEmpty().withMessage('نام و نام خانوادگی الزامی است.'),
+    body('phone_or_id').notEmpty().withMessage('شناسه یا شماره تلفن الزامی است.'),
+    body('password').isLength({ min: 6 }).withMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const { name, user_type, phone_or_id, password, province, city, district } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -183,11 +195,20 @@ app.post('/api/register', async (req, res, next) => {
         );
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
-        next(err); // هدایت خطا به میدل‌ور مرکزی
+        next(err);
     }
 });
 
-app.post('/api/login', async (req, res, next) => {
+// ورود با اعتبارسنجی ورودی‌ها
+app.post('/api/login', [
+    body('phone_or_id').notEmpty().withMessage('وارد کردن شناسه یا شماره تلفن الزامی است.'),
+    body('password').notEmpty().withMessage('وارد کردن رمز عبور الزامی است.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const { phone_or_id, password } = req.body;
         const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
@@ -381,7 +402,7 @@ app.post('/api/subscriptions/toggle', async (req, res, next) => {
     }
 });
 
-// میدل‌ور سراسری مدیریت ایمن خطاها (جلوگیری از لو رفتن Stack Trace و جزئیات سرور)
+// میدل‌ور سراسری مدیریت ایمن خطاها
 app.use((err, req, res, next) => {
     console.error('Server Error Detail:', err.message);
     res.status(500).json({
