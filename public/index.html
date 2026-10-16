@@ -7,9 +7,13 @@
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
         header { background-color: #ffffff; padding: 12px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
-        .logo-box { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .logo-icon { background-color: #cc0000; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; }
-        .logo-text { font-size: 22px; font-weight: bold; color: #111; }
+        
+        /* New Logo Styles */
+        .logo-box { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
+        .logo-icon-wrapper { background: linear-gradient(135deg, #cc0000, #ff4d4d); color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 20px; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2); flex-shrink: 0; }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-title { font-size: 20px; font-weight: 900; color: #111; letter-spacing: -0.5px; line-height: 1.2; }
+        .logo-subtitle { font-size: 11px; font-weight: 600; color: #666; letter-spacing: 0.2px; margin-top: 2px; white-space: nowrap; }
         
         .search-container { display: flex; align-items: center; flex: 1; max-width: 600px; margin: 0 20px; }
         .search-input { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px 0 0 20px; font-size: 14px; outline: none; font-family: Tahoma, sans-serif; }
@@ -43,7 +47,7 @@
 
         .main-container { flex: 1; margin-right: 240px; padding: 30px; box-sizing: border-box; }
 
-        .channel-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .channel-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .channel-header h2 { margin: 0 0 5px 0; color: #111; }
         .channel-header p { margin: 0; color: #606060; font-size: 14px; }
         
@@ -58,7 +62,7 @@
         .channel-link { font-size: 14px; color: #065fd4; margin-bottom: 6px; cursor: pointer; display: inline-block; }
         .channel-link:hover { text-decoration: underline; }
         .video-meta { font-size: 12px; color: #606060; margin-bottom: 6px; display: flex; gap: 10px; }
-        .video-desc { font-size: 13px; color: #888; }
+        .video-desc { font-size: 13px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         
         .district-map-box { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
         .district-region-btn { background: #eef2f5; border: 2px solid #cbd5e1; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px; color: #1e293b; transition: all 0.2s; }
@@ -70,7 +74,7 @@
         .watch-media video, .watch-media img { width: 100%; max-height: 480px; object-fit: contain; }
         .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
         .watch-sub-info { font-size: 13px; color: #606060; margin-bottom: 15px; }
-        .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; white-space: pre-line; }
         .watch-channel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
 
         .comments-section { margin-top: 20px; }
@@ -106,7 +110,7 @@
 
         @media (max-width: 900px) {
             header { padding: 10px 15px; }
-            .logo-text { display: none; }
+            .logo-subtitle { display: none; }
             .search-container { margin: 0 10px; }
             .sidebar { display: none !important; }
             .main-container, .tags-bar { margin-right: 0 !important; padding: 15px; }
@@ -123,10 +127,13 @@
 <body>
 
     <header>
-        <div class="logo-box" onclick="window.location.href='/'">
-            <div class="logo-icon">م</div>
-            <div class="logo-text">مهرنما</div>
-        </div>
+        <a class="logo-box" href="/">
+            <div class="logo-icon-wrapper">م</div>
+            <div class="logo-text-group">
+                <div class="logo-title">مهرنما</div>
+                <div class="logo-subtitle">تصویر شفاف مهربانی</div>
+            </div>
+        </a>
         <div class="search-container">
             <input type="text" id="searchInput" class="search-input" placeholder="جستجوی کارهای نیک، خیریه‌ها، مناطق...">
             <button class="search-btn" onclick="performSearch()">🔍</button>
