@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage,
-    limits: { fileSize: 200 * 1024 * 1024 } // محدودیت حجم فایل تا ۲۰۰ مگابایت برای ویدیوهای زیر ۱۰ دقیقه
+    limits: { fileSize: 200 * 1024 * 1024 } // محدودیت حجم فایل تا ۲۰۰ مگابایت
 });
 
 const pool = new Pool({
@@ -59,12 +59,17 @@ async function initDB() {
                 description TEXT,
                 file_path VARCHAR(255),
                 views INT DEFAULT 0,
+                likes INT DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
 
         await pool.query(`
             ALTER TABLE projects ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
+        `);
+
+        await pool.query(`
+            ALTER TABLE projects ADD COLUMN IF NOT EXISTS likes INT DEFAULT 0;
         `);
 
         await pool.query(`
@@ -91,7 +96,7 @@ async function initDB() {
         const projectCheck = await pool.query('SELECT COUNT(*) FROM projects');
         if (parseInt(projectCheck.rows[0].count) === 0) {
             await pool.query(`
-                INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views)
+                INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
                 VALUES (
                     'ساخت دبستان سه کلاسه روستایی در مناطق محروم',
                     'موسسه خیریه و نیکوکاری باران مهر',
@@ -100,6 +105,7 @@ async function initDB() {
                     'دشتیاری',
                     'پروژه احداث و تجهیز یک دبستان استاندارد و ایمن برای دانش‌آموزان عزیز روستاهای دورافتاده سیستان و بلوچستان.',
                     'https://picsum.photos/600/400',
+                    0,
                     0
                 )
             `);
@@ -167,8 +173,8 @@ app.post('/api/projects', upload.single('media_file'), async (req, res) => {
             filePath = '/uploads/' + req.file.filename;
         }
         const result = await pool.query(
-            `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 0) RETURNING *`,
+            `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0) RETURNING *`,
             [title, charity_name, charity_id || 1, province, district || 'مرکزی', description, filePath]
         );
         res.json({ success: true, project: result.rows[0] });
@@ -218,6 +224,25 @@ app.post('/api/projects/:id/view', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: 'Khata dar sabt-e bazdid' });
+    }
+});
+
+// مسیر ثبت لایک جدید
+app.post('/api/projects/:id/like', async (req, res) => {
+    try {
+        const projectId = req.params.id;
+        const result = await pool.query(
+            'UPDATE projects SET likes = COALESCE(likes, 0) + 1 WHERE id = $1 RETURNING likes',
+            [projectId]
+        );
+        if (result.rows.length > 0) {
+            res.json({ success: true, likes: result.rows[0].likes });
+        } else {
+            res.status(404).json({ success: false, error: 'Proje yaft nashod' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Khata dar sabt-e like' });
     }
 });
 
