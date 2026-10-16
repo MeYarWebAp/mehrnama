@@ -362,12 +362,19 @@
             'قم', 'کرمانشاه', 'سیستان و بلوچستان', 'هرمزگان', 'یزد'
         ];
 
-        function getSubscriptions() {
-            let subs = localStorage.getItem('mehrnama_subs');
-            return subs ? JSON.parse(subs) : [];
+        async function getSubscriptions() {
+            let user = getLoggedInUser();
+            if (!user) return [];
+            try {
+                let res = await fetch(`/api/subscriptions/${user.id}`);
+                let data = await res.json();
+                return Array.isArray(data) ? data : [];
+            } catch (e) {
+                return [];
+            }
         }
 
-        function toggleSubscribe(charityId, charityName) {
+        async function toggleSubscribe(charityId, charityName) {
             let user = getLoggedInUser();
             if (!user) {
                 alert('لطفاً برای عضویت و دنبال کردن کانال‌ها، ابتدا وارد سامانه شوید.');
@@ -375,32 +382,35 @@
                 return;
             }
 
-            let subs = getSubscriptions();
-            let index = subs.findIndex(s => s.id == charityId);
-            if (index > -1) {
-                subs.splice(index, 1);
-            } else {
-                subs.push({ id: charityId, name: charityName });
-            }
-            localStorage.setItem('mehrnama_subs', JSON.stringify(subs));
-            renderSidebar();
-            
-            let subBtn = document.getElementById('subscribeBtn');
-            if (subBtn) {
-                let isSub = subs.some(s => s.id == charityId);
-                subBtn.className = isSub ? 'btn-subscribed' : 'btn-subscribe';
-                subBtn.innerText = isSub ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
-            }
-            let channelSubBtn = document.getElementById('channelSubBtn');
-            if (channelSubBtn) {
-                let isSub = subs.some(s => s.id == charityId);
-                channelSubBtn.className = isSub ? 'btn-subscribed' : 'btn-subscribe';
-                channelSubBtn.innerText = isSub ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+            try {
+                let res = await fetch('/api/subscriptions/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user.id, charity_id: charityId, charity_name: charityName })
+                });
+                let data = await res.json();
+                if (data.success) {
+                    renderSidebar();
+                    
+                    let subBtn = document.getElementById('subscribeBtn');
+                    if (subBtn) {
+                        subBtn.className = data.subscribed ? 'btn-subscribed' : 'btn-subscribe';
+                        subBtn.innerText = data.subscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+                    }
+                    let channelSubBtn = document.getElementById('channelSubBtn');
+                    if (channelSubBtn) {
+                        channelSubBtn.className = data.subscribed ? 'btn-subscribed' : 'btn-subscribe';
+                        channelSubBtn.innerText = data.subscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
             }
         }
 
-        function renderSidebar(activeProvince = null) {
-            let subs = getSubscriptions();
+        async function renderSidebar(activeProvince = null) {
+            let subs = await getSubscriptions();
             
             let mobileSubsRow = document.getElementById('mobileSubsRow');
             if (mobileSubsRow) {
@@ -758,7 +768,7 @@
             let channelProjects = projects.filter(p => p.charity_id == charityId);
             let charityName = channelProjects.length > 0 ? channelProjects[0].charity_name : 'کانال خیریه';
 
-            let subs = getSubscriptions();
+            let subs = await getSubscriptions();
             let isSubscribed = subs.some(s => s.id == charityId);
 
             container.innerHTML = `
@@ -794,15 +804,17 @@
             });
         }
 
-        function getComments(videoId) {
-            let comms = localStorage.getItem(`mehrnama_comments_${videoId}`);
-            return comms ? JSON.parse(comms) : [
-                { user: 'علی رضایی', text: 'بسیار عالی و خداقوت به دست‌اندرکاران این پروژه خیرخواهانه.' },
-                { user: 'مریم احمدی', text: 'امیدوارم این فعالیت‌ها در تمامی مناطق کشور گسترش پیدا کند.' }
-            ];
+        async function getComments(videoId) {
+            try {
+                let res = await fetch(`/api/comments/${videoId}`);
+                let data = await res.json();
+                return Array.isArray(data) ? data : [];
+            } catch (e) {
+                return [];
+            }
         }
 
-        function addComment(videoId) {
+        async function addComment(videoId) {
             let user = getLoggedInUser();
             if (!user) {
                 alert('لطفاً ابتدا وارد سامانه شوید.');
@@ -815,18 +827,35 @@
                 alert('لطفاً متن نظر را وارد کنید.');
                 return;
             }
-            let comments = getComments(videoId);
-            comments.unshift({ user: user.name, text: text });
-            localStorage.setItem(`mehrnama_comments_${videoId}`, JSON.stringify(comments));
-            inputElem.value = '';
-            renderComments(videoId);
+
+            try {
+                let res = await fetch('/api/comments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ video_id: videoId, user_name: user.name, text: text })
+                });
+                let data = await res.json();
+                if (data.success) {
+                    inputElem.value = '';
+                    renderComments(videoId);
+                } else {
+                    alert('خطا در ثبت نظر.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
         }
 
-        function renderComments(videoId) {
+        async function renderComments(videoId) {
             let listElem = document.getElementById('commentsList');
             if (!listElem) return;
-            let comments = getComments(videoId);
+            let comments = await getComments(videoId);
             listElem.innerHTML = '';
+            if (comments.length === 0) {
+                listElem.innerHTML = '<p style="font-size:13px; color:#888;">هنوز نظری ثبت نشده است.</p>';
+                return;
+            }
             comments.forEach(c => {
                 let item = document.createElement('div');
                 item.className = 'comment-item';
@@ -848,7 +877,7 @@
                 return;
             }
 
-            let subs = getSubscriptions();
+            let subs = await getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
             let user = getLoggedInUser();
             let isOwner = user && (user.id == project.charity_id || user.id == 99);
@@ -861,7 +890,7 @@
                         
                         <div class="watch-channel-row">
                             <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">کانال: ${project.charity_name}</div>
-                            <div style="display: flex; gap: 10px; align- items: center;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
                                 ${isOwner ? `<button class="btn-outline" onclick="loadEditPage(${project.id})">✏️ ویرایش پروژه و فایل</button>` : ''}
                                 <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
                                     ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
