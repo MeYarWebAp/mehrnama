@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage,
-    limits: { fileSize: 200 * 1024 * 1024 } // محدودیت حجم فایل تا ۲۰۰ مگابایت
+    limits: { fileSize: 200 * 1024 * 1024 }
 });
 
 const pool = new Pool({
@@ -70,6 +70,16 @@ async function initDB() {
 
         await pool.query(`
             ALTER TABLE projects ADD COLUMN IF NOT EXISTS likes INT DEFAULT 0;
+        `);
+
+        // جدول نگهداری لایک‌های یکتا به ازای هر کاربر و پروژه
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS project_likes (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL,
+                project_id INT NOT NULL,
+                UNIQUE(user_id, project_id)
+            );
         `);
 
         await pool.query(`
@@ -227,22 +237,68 @@ app.post('/api/projects/:id/view', async (req, res) => {
     }
 });
 
-// مسیر ثبت لایک جدید
+// مدیریت لایک و آنلایک یکتا به ازای هر کاربر
 app.post('/api/projects/:id/like', async (req, res) => {
     try {
         const projectId = req.params.id;
-        const result = await pool.query(
-            'UPDATE projects SET likes = COALESCE(likes, 0) + 1 WHERE id = $1 RETURNING likes',
-            [projectId]
-        );
-        if (result.rows.length > 0) {
-            res.json({ success: true, likes: result.rows[0].likes });
-        } else {
-            res.status(404).json({ success: false, error: 'Proje yaft nashod' });
+        const { user_id } = req.body;
+
+        if (!user_id) {
+            return res.status(401).json({ success: false, error: 'لطفاً ابتدا وارد سامانه شوید.' });
         }
+
+        // بررسی اینکه آیا کاربر قبلاً این پروژه را لایک کرده است یا خیر
+        const check = await pool.query(
+            'SELECT * FROM project_likes WHERE user_id = $1 AND project_id = $2',
+            [user_id, projectId]
+        );
+
+        let liked = false;
+        let updateResult;
+
+        if (check.rows.length > 0) {
+            // اگر لایک کرده بود، لایک را بردار (Unlike)
+            await pool.query('DELETE FROM project_likes WHERE user_id = $1 AND project_id = $2', [user_id, projectId]);
+            updateResult = await pool.query(
+                'UPDATE projects SET likes = GREATEST(COALESCE(likes, 0) - 1, 0) WHERE id = $1 RETURNING likes',
+                [projectId]
+            );
+            liked = false;
+        } else {
+            // اگر لایک نکرده بود، ثبت کن (Like)
+            await pool.query('INSERT INTO project_likes (user_id, project_id) VALUES ($1, $2)', [user_id, projectId]);
+            updateResult = await pool.query(
+                'UPDATE projects SET likes = COALESCE(likes, 0) + 1 WHERE id = $1 RETURNING likes',
+                [projectId]
+            );
+            liked = true;
+        }
+
+        res.json({
+            success: true,
+            liked: liked,
+            likes: updateResult.rows[0].likes
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: 'Khata dar sabt-e like' });
+    }
+});
+
+// بررسی اینکه آیا کاربر فعلی این ویدیو را لایک کرده است یا خیر
+app.get('/api/projects/:id/user-liked', async (req, res) => {
+    try {
+        const projectId = req.params.id;
+        const userId = req.query.user_id;
+        if (!userId) return res.json({ liked: false });
+
+        const check = await pool.query(
+            'SELECT * FROM project_likes WHERE user_id = $1 AND project_id = $2',
+            [userId, projectId]
+        );
+        res.json({ liked: check.rows.length > 0 });
+    } catch (err) {
+        res.json({ liked: false });
     }
 });
 
