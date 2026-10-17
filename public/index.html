@@ -4,553 +4,1103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مهرنما - تصویر شفاف مهربانی</title>
-    <link rel="stylesheet" href="style.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+        body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
+        header { background-color: #ffffff; padding: 12px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
+        
+        .logo-box { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
+        .logo-icon-wrapper { background: linear-gradient(135deg, #cc0000, #ff4d4d); color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2); flex-shrink: 0; }
+        .logo-text-group { display: flex; flex-direction: column; }
+        .logo-title { font-size: 21px; font-weight: 700; color: #111; letter-spacing: -0.3px; line-height: 1.2; font-family: Tahoma, sans-serif; }
+        .logo-subtitle { font-size: 11px; font-weight: 600; color: #666; letter-spacing: 0.2px; margin-top: 2px; white-space: nowrap; }
+        
+        .search-container { display: flex; align-items: center; flex: 1; max-width: 600px; margin: 0 20px; }
+        .search-input { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px 0 0 20px; font-size: 14px; outline: none; font-family: Tahoma, sans-serif; }
+        .search-btn { background-color: #f8f8f8; border: 1px solid #ccc; border-right: none; padding: 10px 20px; border-radius: 0 20px 20px 0; cursor: pointer; font-size: 14px; }
+        .search-btn:hover { background-color: #f0f0f0; }
+
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-like { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-like:hover { background-color: #fee2e2; color: #cc0000; border-color: #fca5a5; }
+        .btn-like.liked { background-color: #fee2e2; color: #cc0000; border-color: #ef4444; }
+        .btn-subscribed { background-color: #e5e7eb; color: #374151; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-subscribe { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        
+        .tags-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 30px; background: #fff; border-bottom: 1px solid #eee; white-space: nowrap; scrollbar-width: none; margin-right: 240px; }
+        .tags-bar::-webkit-scrollbar { display: none; }
+        .tag-chip { background-color: #f0f0f0; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; border: none; transition: background 0.2s; }
+        .tag-chip:hover, .tag-chip.active { background-color: #0f0f0f; color: white; }
+
+        .mobile-bars-container { display: none; background: #fff; border-bottom: 1px solid #eee; flex-direction: column; }
+        .mobile-bar-row { display: flex; gap: 8px; overflow-x: auto; padding: 8px 15px; white-space: nowrap; scrollbar-width: none; align-items: center; }
+        .mobile-bar-row::-webkit-scrollbar { display: none; }
+        .mobile-item-chip { display: inline-flex; align-items: center; gap: 6px; background: #f3f4f6; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1f2937; cursor: pointer; flex-shrink: 0; }
+        .mobile-item-chip.active { background: #cc0000; color: white; }
+        .mobile-bar-label { font-size: 11px; font-weight: bold; color: #666; padding-right: 5px; flex-shrink: 0; }
+
+        .app-layout { display: flex; min-height: calc(100vh - 65px); }
+        .sidebar { width: 240px; background: #ffffff; border-left: 1px solid #eee; padding: 15px; position: fixed; top: 65px; bottom: 0; right: 0; overflow-y: auto; box-sizing: border-box; z-index: 900; }
+        .sidebar-section-title { font-size: 14px; font-weight: bold; color: #606060; margin: 15px 10px 8px 10px; }
+        .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #111; font-weight: 500; text-decoration: none; }
+        .sidebar-item:hover { background-color: #f2f2f2; }
+        .sidebar-item.active { background-color: #e5e7eb; font-weight: bold; }
+
+        .main-container { flex: 1; margin-right: 240px; padding: 30px; box-sizing: border-box; }
+
+        .channel-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .channel-header h2 { margin: 0 0 5px 0; color: #111; }
+        .channel-header p { margin: 0; color: #606060; font-size: 14px; }
+        
+        .section-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #111; }
+        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .video-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+        .video-card:hover { transform: translateY(-4px); }
+        .media-box { width: 100%; height: 180px; background-color: #eef2f5; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .media-box img, .media-box video { width: 100%; height: 100%; object-fit: cover; }
+        .video-info { padding: 15px; }
+        .video-title { font-size: 16px; font-weight: bold; color: #0f0f0f; margin-bottom: 6px; }
+        .channel-link { font-size: 14px; color: #065fd4; margin-bottom: 6px; cursor: pointer; display: inline-block; }
+        .channel-link:hover { text-decoration: underline; }
+        .video-meta { font-size: 12px; color: #606060; margin-bottom: 6px; display: flex; gap: 10px; }
+        .video-desc { font-size: 13px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .district-map-box { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+        .district-region-btn { background: #eef2f5; border: 2px solid #cbd5e1; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px; color: #1e293b; transition: all 0.2s; }
+        .district-region-btn:hover { background: #cc0000; color: white; border-color: #cc0000; }
+        
+        .watch-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+        .watch-main { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .watch-media { width: 100%; max-height: 480px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .watch-media video, .watch-media img { width: 100%; max-height: 480px; object-fit: contain; }
+        .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
+        .watch-sub-info { font-size: 13px; color: #606060; margin-bottom: 15px; }
+        .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; white-space: pre-line; }
+        .watch-channel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+
+        .comments-section { margin-top: 20px; }
+        .comments-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #111; }
+        .comment-box-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .comment-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; font-size: 14px; }
+        .comment-item { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; }
+        .comment-user { font-size: 13px; font-weight: bold; color: #111; margin-bottom: 4px; }
+        .comment-text { font-size: 13px; color: #333; }
+        
+        .related-sidebar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .related-sidebar h3 { font-size: 16px; margin-top: 0; margin-bottom: 15px; color: #111; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+        .related-card { display: flex; gap: 10px; margin-bottom: 12px; cursor: pointer; background: #fafafa; border-radius: 8px; overflow: hidden; padding: 6px; }
+        .related-card:hover { background: #f0f0f0; }
+        .related-thumb { width: 120px; height: 75px; background: #eef2f5; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+        .related-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .related-info { display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+        .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; }
+        .related-channel { font-size: 11px; color: #666; margin-top: 4px; }
+
+        .upload-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 700px; margin: 0 auto; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 13px; font-weight: bold; color: #333; }
+        .form-group input, .form-group textarea, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; font-size: 14px; }
+        .close-btn { background: #ccc; color: #333; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .tab-row { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .tab-btn { flex: 1; background: #f4f4f4; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; color: #555; text-align: center; }
+        .tab-btn.active { background: #cc0000; color: white; }
+
+        @media (max-width: 900px) {
+            header { padding: 10px 15px; }
+            .logo-subtitle { display: none; }
+            .search-container { margin: 0 10px; }
+            .sidebar { display: none !important; }
+            .main-container, .tags-bar { margin-right: 0 !important; padding: 15px; }
+            .mobile-bars-container { display: flex; }
+            .watch-layout { grid-template-columns: 1fr; }
+            .video-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        body {
-            background-color: #f8fafc;
-            color: #1e293b;
-            direction: rtl;
-        }
-
-        /* Header Styling */
-        header {
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .logo-box {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.2;
-        }
-
-        .brand-subtitle {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-        }
-
-        .btn-primary {
-            background-color: #dc2626;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #b91c1c;
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid #cbd5e1;
-            color: #334155;
-        }
-
-        .btn-outline:hover {
-            background-color: #f1f5f9;
-        }
-
-        /* Search Section */
-        .search-section {
-            background: #ffffff;
-            padding: 20px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .search-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .search-input-wrapper input {
-            width: 100%;
-            padding: 12px 45px 12px 15px;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .search-input-wrapper input:focus {
-            border-color: #dc2626;
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-        }
-
-        /* Tag List */
-        .tags-container {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-            scrollbar-width: none;
-        }
-
-        .tags-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tag-btn {
-            padding: 6px 14px;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: #475569;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .tag-btn:hover, .tag-btn.active {
-            background: #dc2626;
-            color: #ffffff;
-            border-color: #dc2626;
-        }
-
-        /* Main Layout */
-        .main-layout {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 30px;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .sidebar-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 18px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .sidebar-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .sidebar-list li a {
-            text-decoration: none;
-            color: #475569;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-            display: block;
-        }
-
-        .sidebar-list li a:hover {
-            color: #dc2626;
-        }
-
-        /* Content Area */
-        .content-area {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        /* Projects Grid */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .project-card {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .project-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        }
-
-        .project-media {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            background-color: #e2e8f0;
-        }
-
-        .project-body {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            flex-grow: 1;
-        }
-
-        .project-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.4;
-        }
-
-        .charity-name {
-            font-size: 0.85rem;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .charity-name:hover {
-            text-decoration: underline;
-        }
-
-        .project-desc {
-            font-size: 0.85rem;
-            color: #64748b;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .project-footer {
-            margin-top: auto;
-            padding-top: 12px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            color: #94a3b8;
-        }
-
-        .project-metrics {
-            display: flex;
-            gap: 12px;
-        }
-
-        .metric-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-        }
-
-        .metric-item.liked {
-            color: #dc2626;
-        }
-
-        /* Comments Section */
-        .comments-section {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #e2e8f0;
-            margin-top: 20px;
-        }
-
-        .comments-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 15px;
-        }
-
-        @media (max-width: 768px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 600px) {
+            .video-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <header>
-        <div class="header-container">
-            <a href="/" class="brand-logo">
-                <div class="logo-box">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </div>
-                <div class="brand-text">
-                    <span class="brand-name">مهرنما</span>
-                    <span class="brand-subtitle">تصویر شفاف مهربانی</span>
-                </div>
-            </a>
-            <div class="auth-buttons" id="authContainer">
-                <button class="btn btn-outline" onclick="openLoginModal()">ورود</button>
-                <button class="btn btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
+        <a class="logo-box" href="/">
+            <div class="logo-icon-wrapper">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
             </div>
+            <div class="logo-text-group">
+                <div class="logo-title">مهرنما</div>
+                <div class="logo-subtitle">تصویر شفاف مهربانی</div>
+            </div>
+        </a>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="جستجوی کارهای نیک، مشکلات، منطقه‌ها...">
+            <button class="search-btn" onclick="performSearch()">🔍</button>
+        </div>
+        <div class="header-actions" id="headerActions">
+            <button class="btn-outline" onclick="openLoginModal()">ورود</button>
+            <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
         </div>
     </header>
 
-    <!-- Search & Filter Section -->
-    <section class="search-section">
-        <div class="search-container">
-            <div class="search-input-wrapper">
-                <svg class="search-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                <input type="text" id="searchInput" placeholder="جستجوی کارهای نیک، مشکلات، منطقه‌ها..." onkeyup="filterProjects()">
-            </div>
-            
-            <div class="tags-container">
-                <button class="tag-btn active" onclick="filterByTag('all')">همه</button>
-                <button class="tag-btn" onclick="filterByTag('مدرسه')">مدرسه</button>
-                <button class="tag-btn" onclick="filterByTag('بیماری')">بیماری</button>
-                <button class="tag-btn" onclick="filterByTag('جهیزیه')">جهیزیه</button>
-                <button class="tag-btn" onclick="filterByTag('کودکان')">کودکان</button>
-                <button class="tag-btn" onclick="filterByTag('نیازمندان')">نیازمندان</button>
-                <button class="tag-btn" onclick="filterByTag('خانه')">خانه</button>
-                <button class="tag-btn" onclick="filterByTag('خانواده')">خانواده</button>
-                <button class="tag-btn" onclick="filterByTag('درمانگاه')">درمانگاه</button>
-                <button class="tag-btn" onclick="filterByTag('بیمارستان')">بیمارستان</button>
-                <button class="tag-btn" onclick="filterByTag('زندانی')">زندانی</button>
-            </div>
+    <div class="tags-bar" id="tagsBar">
+        <button class="tag-chip" data-tag="همه" onclick="filterByTag('همه')">همه</button>
+        <button class="tag-chip" data-tag="مدرسه" onclick="filterByTag('مدرسه')">مدرسه</button>
+        <button class="tag-chip" data-tag="بیماری" onclick="filterByTag('بیماری')">بیماری</button>
+        <button class="tag-chip" data-tag="جهیزیه" onclick="filterByTag('جهیزیه')">جهیزیه</button>
+        <button class="tag-chip" data-tag="کودکان" onclick="filterByTag('کودکان')">کودکان</button>
+        <button class="tag-chip" data-tag="نیازمندان" onclick="filterByTag('نیازمندان')">نیازمندان</button>
+        <button class="tag-chip" data-tag="خانه" onclick="filterByTag('خانه')">خانه</button>
+        <button class="tag-chip" data-tag="خانواده" onclick="filterByTag('خانواده')">خانواده</button>
+        <button class="tag-chip" data-tag="درمانگاه" onclick="filterByTag('درمانگاه')">درمانگاه</button>
+        <button class="tag-chip" data-tag="بیمارستان" onclick="filterByTag('بیمارستان')">بیمارستان</button>
+        <button class="tag-chip" data-tag="زندانی" onclick="filterByTag('زندانی')">زندانی</button>
+    </div>
+
+    <div class="mobile-bars-container" id="mobileBarsContainer">
+        <div class="mobile-bar-row" id="mobileSubsRow">
+            <span class="mobile-bar-label">اشتراک‌ها:</span>
         </div>
-    </section>
+        <div class="mobile-bar-row" id="mobileProvincesRow">
+            <span class="mobile-bar-label">استان‌ها:</span>
+        </div>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-card">
-                <h3 class="sidebar-title">اشتراک‌های شما</h3>
-                <ul class="sidebar-list" id="subscriptionList">
-                    <li style="color: #94a3b8; font-size: 0.85rem;">هنوز کانالی را دنبال نکرده‌اید.</li>
-                </ul>
-            </div>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebarNav">
+            <div class="sidebar-item" onclick="window.location.href='/'">🏠 <span>خانه</span></div>
+            <div id="sidebarUploadSection"></div>
+            
+            <div class="sidebar-section-title">اشتراک‌های شما</div>
+            <div id="sidebarSubscriptions"></div>
 
-            <div class="sidebar-card">
-                <h3 class="sidebar-title">استان‌های کشور</h3>
-                <ul class="sidebar-list">
-                    <li><a href="#" onclick="filterByProvince('تهران')">استان تهران</a></li>
-                    <li><a href="#" onclick="filterByProvince('اصفهان')">استان اصفهان</a></li>
-                    <li><a href="#" onclick="filterByProvince('خراسان رضوی')">استان خراسان رضوی</a></li>
-                    <li><a href="#" onclick="filterByProvince('فارس')">استان فارس</a></li>
-                    <li><a href="#" onclick="filterByProvince('سیستان و بلوچستان')">استان سیستان و بلوچستان</a></li>
-                </ul>
-            </div>
+            <div class="sidebar-section-title">استان‌های کشور</div>
+            <div id="sidebarProvinces"></div>
         </aside>
 
-        <!-- Projects Grid Section -->
-        <section class="content-area">
-            <div class="section-header">
-                <h2 class="section-title">آخرین کارهای نیک</h2>
+        <main class="main-container" id="main-content">
+            <p>در حال بارگذاری...</p>
+        </main>
+    </div>
+
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">ورود به سامانه</h3>
+            <div class="tab-row">
+                <button class="tab-btn active" id="loginTabReal" onclick="switchLoginType('real')">کاربر حقیقی</button>
+                <button class="tab-btn" id="loginTabLegal" onclick="switchLoginType('legal')">کاربر حقوقی (خیریه)</button>
+            </div>
+            <div class="form-group"><label id="loginIdLabel">شماره همراه</label><input type="text" id="loginPhoneOrId" placeholder="شماره تماس یا شناسه..."></div>
+            <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPass" placeholder="******"></div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
+                <button class="btn-primary" onclick="handleLogin()">تایید ورود</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">ثبت‌نام در مهرنما</h3>
+            <div class="tab-row">
+                <button class="tab-btn active" id="regTabReal" onclick="switchRegType('real')">کاربر حقیقی</button>
+                <button class="tab-btn" id="regTabLegal" onclick="switchRegType('legal')">کاربر حقوقی (خیریه)</button>
+            </div>
+            
+            <div id="regRealFields">
+                <div class="form-group"><label>نام کامل</label><input type="text" id="regRealName" placeholder="نام و نام خانوادگی..."></div>
+                <div class="form-group"><label>شماره تلفن همراه</label><input type="text" id="regRealPhone" placeholder="09123456789"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="regRealPass" placeholder="******"></div>
             </div>
 
-            <div class="projects-grid" id="projectsContainer">
-                <!-- پروژه نمادین بارگذاری شده -->
-                <div class="project-card">
-                    <img src="https://picsum.photos/600/400" alt="پروژه" class="project-media">
-                    <div class="project-body">
-                        <h3 class="project-title">ساخت دبستان سه کلاسه روستایی در مناطق محروم</h3>
-                        <a href="#" class="charity-name">موسسه خیریه و نیکوکاری باران مهر</a>
-                        <p class="project-desc">پروژه احداث و تجهیز یک دبستان استاندارد و ایمن برای دانش‌آموزان عزیز روستاهای دورافتاده سیستان و بلوچستان.</p>
-                        <div class="project-footer">
-                            <span>سیستان و بلوچستان</span>
-                            <div class="project-metrics">
-                                <span class="metric-item">👁️ <span id="views-1">0</span></span>
-                                <span class="metric-item" onclick="toggleLike(1)">👍 <span id="likes-1">0</span></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="regLegalFields" style="display: none;">
+                <div class="form-group"><label>نام موسسه / خیریه</label><input type="text" id="regLegalName" placeholder="نام موسسه..."></div>
+                <div class="form-group"><label>شماره ثبت</label><input type="text" id="regLegalRegNo" placeholder="شماره ثبت موسسه..."></div>
+                <div class="form-group"><label>استان فعالیت</label><input type="text" id="regLegalProvince" placeholder="مثلا تهران"></div>
+                <div class="form-group"><label>شهر فعالیت</label><input type="text" id="regLegalCity" placeholder="مثلا تهران"></div>
+                <div class="form-group"><label>محله یا منطقه فعالیت</label><input type="text" id="regLegalDistrict" placeholder="مثلا تجریش"></div>
+                <div class="form-group"><label>شماره تلفن تماس</label><input type="text" id="regLegalPhone" placeholder="02112345678"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="regLegalPass" placeholder="******"></div>
             </div>
 
-            <!-- بخش دیدگاه‌ها -->
-            <div class="comments-section">
-                <h3 class="comments-title">نظر شما</h3>
-                <div id="commentsContainer">
-                    <p style="color: #94a3b8; font-size: 0.9rem;">اولین نفری باشید که نظر خود را ثبت می‌کنید.</p>
-                </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
+                <button class="btn-primary" onclick="handleRegister()">تایید و ثبت‌نام</button>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 
     <script>
-        let currentUser = JSON.parse(localStorage.getItem('user')) || null;
+        let currentLoginType = 'real';
+        let currentRegType = 'real';
 
-        async function fetchProjects() {
-            try {
-                const res = await fetch('/api/projects');
-                const projects = await res.json();
-                if (projects.length > 0) {
-                    renderProjects(projects);
-                }
-            } catch (err) {
-                console.error('Error fetching projects:', err);
+        function getLoggedInUser() {
+            let user = localStorage.getItem('mehrnama_user');
+            return user ? JSON.parse(user) : null;
+        }
+
+        function updateHeaderUser() {
+            let user = getLoggedInUser();
+            let headerActions = document.getElementById('headerActions');
+            if (user) {
+                headerActions.innerHTML = `
+                    <span style="font-size: 14px; font-weight: bold; color: #333;">👤 ${user.name}</span>
+                    <button class="btn-outline" onclick="handleLogout()" style="padding: 6px 12px; font-size: 12px;">خروج</button>
+                `;
+            } else {
+                headerActions.innerHTML = `
+                    <button class="btn-outline" onclick="openLoginModal()">ورود</button>
+                    <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
+                `;
             }
         }
 
-        function renderProjects(projects) {
-            const container = document.getElementById('projectsContainer');
-            container.innerHTML = '';
-            projects.forEach(p => {
-                const isVideo = p.file_path.endsWith('.mp4') || p.file_path.endsWith('.mkv');
-                const mediaHtml = isVideo 
-                    ? `<video src="${p.file_path}" class="project-media" controls></video>`
-                    : `<img src="${p.file_path}" alt="${p.title}" class="project-media">`;
+        async function handleLogin() {
+            let identifier = document.getElementById('loginPhoneOrId').value.trim();
+            let password = document.getElementById('loginPass').value.trim();
 
-                container.innerHTML += `
-                    <div class="project-card">
-                        ${mediaHtml}
-                        <div class="project-body">
-                            <h3 class="project-title">${p.title}</h3>
-                            <a href="#" class="charity-name" onclick="event.preventDefault();">${p.charity_name}</a>
-                            <p class="project-desc">${p.description || ''}</p>
-                            <div class="project-footer">
-                                <span>${p.province || ''}</span>
-                                <div class="project-metrics">
-                                    <span class="metric-item">👁️ ${p.views || 0}</span>
-                                    <span class="metric-item" onclick="toggleLike(${p.id})">👍 <span id="likes-${p.id}">${p.likes || 0}</span></span>
-                                </div>
-                            </div>
-                        </div>
+            if (!identifier || !password) {
+                alert('لطفاً اطلاعات ورود و رمز عبور را کامل وارد کنید.');
+                return;
+            }
+
+            try {
+                let res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone_or_id: identifier,
+                        password: password,
+                        user_type: currentLoginType
+                    })
+                });
+                let data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('mehrnama_user', JSON.stringify(data.user));
+                    closeLoginModal();
+                    updateHeaderUser();
+                    alert('ورود با موفقیت انجام شد!');
+                    location.reload();
+                } else {
+                    alert(data.error || 'خطا در ورود به سامانه.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function handleRegister() {
+            let isReal = currentRegType === 'real';
+            let name = isReal ? document.getElementById('regRealName').value.trim() : document.getElementById('regLegalName').value.trim();
+            let phone_or_id = isReal ? document.getElementById('regRealPhone').value.trim() : document.getElementById('regLegalRegNo').value.trim();
+            let password = isReal ? document.getElementById('regRealPass').value.trim() : document.getElementById('regLegalPass').value.trim();
+
+            if (!name || !phone_or_id || !password) {
+                alert('لطفاً تمامی فیلدهای الزامی را پر کنید.');
+                return;
+            }
+
+            let payload = {
+                name: name,
+                user_type: currentRegType,
+                phone_or_id: phone_or_id,
+                password: password,
+                province: !isReal ? document.getElementById('regLegalProvince').value.trim() : null,
+                city: !isReal ? document.getElementById('regLegalCity').value.trim() : null,
+                district: !isReal ? document.getElementById('regLegalDistrict').value.trim() : null
+            };
+
+            try {
+                let res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                let data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('mehrnama_user', JSON.stringify({
+                        id: data.user.id,
+                        name: data.user.name,
+                        type: data.user.user_type
+                    }));
+                    closeRegisterModal();
+                    updateHeaderUser();
+                    alert('ثبت‌نام و ورود با موفقیت در دیتابیس انجام شد!');
+                    location.reload();
+                } else {
+                    alert(data.error || 'خطا در ثبت‌نام.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('mehrnama_user');
+            updateHeaderUser();
+            alert('از حساب کاربری خارج شدید');
+            location.reload();
+        }
+
+        function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
+        function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+        function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
+        function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
+
+        function switchLoginType(type) {
+            currentLoginType = type;
+            document.getElementById('loginTabReal').className = type === 'real' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('loginTabLegal').className = type === 'legal' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('loginIdLabel').innerText = type === 'real' ? 'شماره همراه' : 'شماره ثبت یا شناسه موسسه';
+        }
+
+        function switchRegType(type) {
+            currentRegType = type;
+            document.getElementById('regTabReal').className = type === 'real' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('regTabLegal').className = type === 'legal' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('regRealFields').style.display = type === 'real' ? 'block' : 'none';
+            document.getElementById('regLegalFields').style.display = type === 'legal' ? 'block' : 'none';
+        }
+
+        const provincesList = [
+            'تهران', 'اصفهان', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی',
+            'خوزستان', 'مازندران', 'گیلان', 'کرمان', 'البرز',
+            'قم', 'کرمانشاه', 'سیستان و بلوچستان', 'هرمزگان', 'یزد'
+        ];
+
+        async function getSubscriptions() {
+            let user = getLoggedInUser();
+            if (!user) return [];
+            try {
+                let res = await fetch(`/api/subscriptions/${user.id}`);
+                let data = await res.json();
+                return Array.isArray(data) ? data : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function toggleSubscribe(charityId, charityName) {
+            let user = getLoggedInUser();
+            if (!user) {
+                alert('لطفاً برای عضویت و دنبال کردن کانال‌ها، ابتدا وارد سامانه شوید.');
+                openLoginModal();
+                return;
+            }
+
+            try {
+                let res = await fetch('/api/subscriptions/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user.id, charity_id: charityId, charity_name: charityName })
+                });
+                let data = await res.json();
+                if (data.success) {
+                    renderSidebar();
+                    
+                    let subBtn = document.getElementById('subscribeBtn');
+                    if (subBtn) {
+                        subBtn.className = data.subscribed ? 'btn-subscribed' : 'btn-subscribe';
+                        subBtn.innerText = data.subscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+                    }
+                    let channelSubBtn = document.getElementById('channelSubBtn');
+                    if (channelSubBtn) {
+                        channelSubBtn.className = data.subscribed ? 'btn-subscribed' : 'btn-subscribe';
+                        channelSubBtn.innerText = data.subscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)';
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function renderSidebar(activeProvince = null) {
+            let subs = await getSubscriptions();
+            
+            let mobileSubsRow = document.getElementById('mobileSubsRow');
+            if (mobileSubsRow) {
+                mobileSubsRow.innerHTML = '<span class="mobile-bar-label">اشتراک‌ها:</span>';
+                if (subs.length > 0) {
+                    subs.forEach(s => {
+                        let item = document.createElement('div');
+                        item.className = 'mobile-item-chip';
+                        item.innerHTML = `❤️ ${s.name}`;
+                        item.onclick = () => window.location.href = `/?charity_id=${s.id}`;
+                        mobileSubsRow.appendChild(item);
+                    });
+                } else {
+                    mobileSubsRow.innerHTML += '<span style="font-size:11px; color:#888;">ندارد</span>';
+                }
+            }
+
+            let mobileProvincesRow = document.getElementById('mobileProvincesRow');
+            if (mobileProvincesRow) {
+                mobileProvincesRow.innerHTML = '<span class="mobile-bar-label">استان‌ها:</span>';
+                provincesList.forEach(prov => {
+                    let item = document.createElement('div');
+                    item.className = 'mobile-item-chip' + (activeProvince === prov ? ' active' : '');
+                    item.innerHTML = `📍 ${prov}`;
+                    item.onclick = () => window.location.href = `/?province=${encodeURIComponent(prov)}`;
+                    mobileProvincesRow.appendChild(item);
+                });
+            }
+
+            let user = getLoggedInUser();
+            let uploadSection = document.getElementById('sidebarUploadSection');
+            if (uploadSection) {
+                if (user && user.type === 'legal') {
+                    uploadSection.innerHTML = `<div class="sidebar-item" onclick="window.location.href='/?upload=true'">➕ <span>بارگذاری کار نیک</span></div>`;
+                } else {
+                    uploadSection.innerHTML = '';
+                }
+            }
+
+            let provContainer = document.getElementById('sidebarProvinces');
+            if (provContainer) {
+                provContainer.innerHTML = '';
+                provincesList.forEach(prov => {
+                    let item = document.createElement('div');
+                    item.className = 'sidebar-item' + (activeProvince === prov ? ' active' : '');
+                    item.innerHTML = `📍 <span>استان ${prov}</span>`;
+                    item.onclick = () => window.location.href = `/?province=${encodeURIComponent(prov)}`;
+                    provContainer.appendChild(item);
+                });
+            }
+
+            let subsContainer = document.getElementById('sidebarSubscriptions');
+            if (subsContainer) {
+                subsContainer.innerHTML = '';
+                if (subs.length === 0) {
+                    subsContainer.innerHTML = '<div style="font-size: 12px; color: #888; padding: 5px 12px;">هنوز کانالی را دنبال نکرده‌اید</div>';
+                } else {
+                    subs.forEach(s => {
+                        let item = document.createElement('div');
+                        item.className = 'sidebar-item';
+                        item.innerHTML = `❤️ <span>${s.name}</span>`;
+                        item.onclick = () => window.location.href = `/?charity_id=${s.id}`;
+                        subsContainer.appendChild(item);
+                    });
+                }
+            }
+        }
+
+        async function fetchProjectsSafe() {
+            try {
+                let res = await fetch('/api/projects');
+                let data = await res.json();
+                if (Array.isArray(data)) {
+                    return data;
+                }
+            } catch (e) {
+                console.warn('Error fetching projects');
+            }
+            return [];
+        }
+
+        function performSearch() {
+            let query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                window.location.href = `/?search=${encodeURIComponent(query)}`;
+            }
+        }
+
+        document.getElementById('searchInput')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        function filterByTag(tag) {
+            if (tag === 'همه') {
+                window.location.href = '/';
+            } else {
+                window.location.href = `/?search=${encodeURIComponent(tag)}`;
+            }
+        }
+
+        function updateActiveTag(searchQuery) {
+            document.querySelectorAll('.tag-chip').forEach(btn => {
+                if (btn.getAttribute('data-tag') === searchQuery || (searchQuery === null && btn.getAttribute('data-tag') === 'همه')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            if (searchQuery) {
+                let searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = searchQuery;
+            }
+        }
+
+        function loadUploadPage() {
+            renderSidebar();
+            let container = document.getElementById('main-content');
+            container.innerHTML = `
+                <div class="upload-container">
+                    <div class="section-title">بارگذاری کار نیک جدید</div>
+                    <div class="form-group"><label>عنوان کار نیک / پروژه</label><input type="text" id="upTitle" placeholder="عنوان مستند یا پویش..."></div>
+                    <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
+                    <div class="form-group"><label>شهر / منطقه</label><input type="text" id="upDistrict" placeholder="مثلا تجریش"></div>
+                    <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه..."></textarea></div>
+                    <div class="form-group">
+                        <label>انتخاب عکس یا ویدیو (حداکثر ۱۰ دقیقه)</label>
+                        <input type="file" id="upFile" accept="image/*,video/*">
                     </div>
-                `;
+                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در دیتابیس</button>
+                </div>
+            `;
+        }
+
+        function checkVideoDuration(file) {
+            return new Promise((resolve) => {
+                if (!file || !file.type.startsWith('video/')) {
+                    return resolve(true);
+                }
+                let video = document.createElement('video');
+                video.preload = 'metadata';
+                video.onloadedmetadata = function() {
+                    window.URL.revokeObjectURL(video.src);
+                    if (video.duration > 600) {
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                };
+                video.onerror = function() {
+                    resolve(true);
+                };
+                video.src = URL.createObjectURL(file);
             });
         }
 
-        async function toggleLike(projectId) {
-            if (!currentUser) {
-                alert('لطفاً ابتدا وارد حساب کاربری خود شوید.');
+        async function submitNewProject() {
+            let user = getLoggedInUser();
+            let title = document.getElementById('upTitle').value.trim();
+            let province = document.getElementById('upProvince').value.trim();
+            let district = document.getElementById('upDistrict').value.trim();
+            let description = document.getElementById('upDesc').value.trim();
+            let fileInput = document.getElementById('upFile').files[0];
+
+            if (!title || !province) {
+                alert('لطفاً عنوان و استان را وارد کنید.');
                 return;
             }
+
+            if (fileInput && fileInput.type.startsWith('video/')) {
+                let isValidDuration = await checkVideoDuration(fileInput);
+                if (!isValidDuration) {
+                    alert('حداکثر مدت زمان مجاز برای آپلود ویدیو ۱۰ دقیقه می‌باشد.');
+                    return;
+                }
+            }
+
+            let formData = new FormData();
+            formData.append('title', title);
+            formData.append('charity_name', user ? user.name : 'موسسه خیریه');
+            formData.append('charity_id', user ? user.id : 1);
+            formData.append('province', province);
+            formData.append('district', district || 'مرکزی');
+            formData.append('description', description);
+            if (user) {
+                formData.append('user_type', user.type || 'legal');
+            }
+            if (fileInput) {
+                formData.append('media_file', fileInput);
+            }
+
             try {
-                const res = await fetch(`/api/projects/${projectId}/like`, {
+                let res = await fetch('/api/projects', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: currentUser.id })
+                    body: formData
                 });
-                const data = await res.json();
+                let data = await res.json();
                 if (data.success) {
-                    document.getElementById(`likes-${projectId}`).innerText = data.likes;
+                    alert('کار نیک شما با موفقیت همراه با فایل آپلود شد!');
+                    window.location.href = `/?v=${data.project.id}`;
+                } else {
+                    alert(data.error || 'خطا در ثبت اطلاعات.');
                 }
             } catch (err) {
-                console.error('Like Error:', err);
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
             }
         }
 
-        function filterByTag(tag) {
-            document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            // کد فیلترسازی بر اساس برچسب انتخاب شده
+        async function loadEditPage(projectId) {
+            renderSidebar();
+            let container = document.getElementById('main-content');
+            let projects = await fetchProjectsSafe();
+            let project = projects.find(p => p.id == projectId);
+            
+            let user = getLoggedInUser();
+            if (!project || (user && project.charity_id != user.id && user.id != 99)) {
+                container.innerHTML = '<p style="padding:40px; text-align:center; color:red;">شما اجازه ویرایش این پروژه را ندارید.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="upload-container">
+                    <div class="section-title">ویرایش کار نیک (پروژه #${project.id})</div>
+                    <div class="form-group"><label>عنوان کار نیک / پروژه</label><input type="text" id="editTitle" value="${project.title || ''}"></div>
+                    <div class="form-group"><label>استان</label><input type="text" id="editProvince" value="${project.province || ''}"></div>
+                    <div class="form-group"><label>شهر / منطقه</label><input type="text" id="editDistrict" value="${project.district || ''}"></div>
+                    <div class="form-group"><label>توضیحات کامل</label><textarea id="editDesc" rows="4">${project.description || ''}</textarea></div>
+                    <div class="form-group">
+                        <label>انتخاب فایل جدید (حداکثر ۱۰ دقیقه)</label>
+                        <input type="file" id="editFile" accept="image/*,video/*">
+                    </div>
+                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitEditProject(${project.id})">ذخیره تغییرات و تعویض فایل</button>
+                </div>
+            `;
         }
 
-        window.onload = () => {
-            fetchProjects();
-        };
+        async function submitEditProject(projectId) {
+            let title = document.getElementById('editTitle').value.trim();
+            let province = document.getElementById('editProvince').value.trim();
+            let district = document.getElementById('editDistrict').value.trim();
+            let description = document.getElementById('editDesc').value.trim();
+            let fileInput = document.getElementById('editFile').files[0];
+            let user = getLoggedInUser();
+
+            if (!title || !province) {
+                alert('لطفاً عنوان و استان را وارد کنید.');
+                return;
+            }
+
+            if (fileInput && fileInput.type.startsWith('video/')) {
+                let isValidDuration = await checkVideoDuration(fileInput);
+                if (!isValidDuration) {
+                    alert('حداکثر مدت زمان مجاز برای آپلود ویدیو ۱۰ دقیقه می‌باشد.');
+                    return;
+                }
+            }
+
+            let formData = new FormData();
+            formData.append('title', title);
+            formData.append('province', province);
+            formData.append('district', district || 'مرکزی');
+            formData.append('description', description);
+            formData.append('charity_id', user ? user.id : '');
+            if (fileInput) {
+                formData.append('media_file', fileInput);
+            }
+
+            try {
+                let res = await fetch(`/api/projects/${projectId}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+                let data = await res.json();
+                if (data.success) {
+                    alert('پروژه با موفقیت ویرایش و فایل آن به‌روز شد!');
+                    window.location.href = `/?v=${projectId}`;
+                } else {
+                    alert(data.error || 'خطا در ذخیره تغییرات.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function loadHome(searchQuery = null) {
+            renderSidebar();
+            updateActiveTag(searchQuery);
+            let container = document.getElementById('main-content');
+            let titleText = searchQuery ? `نتایج جستجو برای: "${searchQuery}"` : 'آخرین کارهای نیک';
+
+            container.innerHTML = `
+                <div class="section-title">${titleText}</div>
+                <div class="video-grid" id="top-videos"><p>در حال بارگذاری...</p></div>
+            `;
+
+            let projects = await fetchProjectsSafe();
+            if (searchQuery) {
+                let q = searchQuery.toLowerCase();
+                projects = projects.filter(p => 
+                    (p.title && p.title.toLowerCase().includes(q)) || 
+                    (p.description && p.description.toLowerCase().includes(q)) || 
+                    (p.charity_name && p.charity_name.toLowerCase().includes(q)) || 
+                    (p.province && p.province.toLowerCase().includes(q)) ||
+                    (p.district && p.district.toLowerCase().includes(q))
+                );
+            }
+
+            let topVc = document.getElementById('top-videos');
+            topVc.innerHTML = '';
+
+            if (projects.length === 0) {
+                topVc.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#666; padding: 40px;">هیچ کار نیکی با این مشخصات یافت نشد.</p>';
+                return;
+            }
+
+            projects.forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => window.location.href = `/?v=${p.id}`;
+                card.innerHTML = `
+                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="video-info">
+                        <div class="video-title">${p.title}</div>
+                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name || 'خیریه مهرنما'}</div>
+                        <div class="video-meta">
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
+                            <span>📍 ${p.province}</span>
+                        </div>
+                        <div class="video-desc">${p.description}</div>
+                    </div>
+                `;
+                topVc.appendChild(card);
+            });
+        }
+
+        async function loadProvincePage(provinceName, districtName = null) {
+            renderSidebar(provinceName);
+            let container = document.getElementById('main-content');
+            let titleText = districtName ? `استان ${provinceName} - شهرستان/منطقه: ${districtName}` : `استان: ${provinceName}`;
+            
+            container.innerHTML = `
+                <div class="channel-header">
+                    <div>
+                        <h2>${titleText}</h2>
+                        <p>نمایش ویدیوها و مستندات خیرخواهانه ثبت شده</p>
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div class="section-title" style="font-size: 16px; margin-bottom: 10px;">شهرستان‌ها و مناطق استان ${provinceName}</div>
+                    <div class="district-map-box" id="districtMapBox"></div>
+                </div>
+
+                <div class="section-title">کارهای نیک این منطقه</div>
+                <div class="video-grid" id="province-videos"></div>
+            `;
+
+            let projects = await fetchProjectsSafe();
+            let provinceProjects = projects.filter(p => (p.province && p.province.includes(provinceName)) || (p.description && p.description.includes(provinceName)));
+            let filtered = districtName ? provinceProjects.filter(p => (p.district && p.district.includes(districtName)) || (p.description && p.description.includes(districtName))) : provinceProjects;
+            if (filtered.length === 0) filtered = provinceProjects;
+
+            let districts = [...new Set(provinceProjects.map(p => p.district).filter(Boolean))];
+            if (districts.length === 0) districts = ['مرکزی', 'منطقه ۱', 'منطقه ۲', 'حومه'];
+
+            let districtMapBox = document.getElementById('districtMapBox');
+            districts.forEach(dist => {
+                let regionBtn = document.createElement('button');
+                regionBtn.className = 'district-region-btn';
+                regionBtn.innerText = `📍 شهرستان/منطقه ${dist}`;
+                regionBtn.onclick = () => window.location.href = `/?province=${encodeURIComponent(provinceName)}&district=${encodeURIComponent(dist)}`;
+                districtMapBox.appendChild(regionBtn);
+            });
+
+            let vc = document.getElementById('province-videos');
+            vc.innerHTML = '';
+            filtered.forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => window.location.href = `/?v=${p.id}`;
+                card.innerHTML = `
+                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="video-info">
+                        <div class="video-title">${p.title}</div>
+                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</div>
+                        <div class="video-meta">
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
+                            <span>📍 ${p.province}</span>
+                        </div>
+                        <div class="video-desc">${p.description}</div>
+                    </div>
+                `;
+                vc.appendChild(card);
+            });
+        }
+
+        async function loadChannelPage(charityId) {
+            renderSidebar();
+            let container = document.getElementById('main-content');
+            let projects = await fetchProjectsSafe();
+            let channelProjects = projects.filter(p => p.charity_id == charityId);
+            let charityName = channelProjects.length > 0 ? channelProjects[0].charity_name : 'موسسه خیریه';
+
+            let subs = await getSubscriptions();
+            let isSubscribed = subs.some(s => s.id == charityId);
+
+            container.innerHTML = `
+                <div class="channel-header">
+                    <div>
+                        <h2>${charityName}</h2>
+                        <p>نمایش فعالیت‌ها و مستندات ثبت شده توسط این موسسه خیرخواهانه</p>
+                    </div>
+                    <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="channelSubBtn" onclick="toggleSubscribe('${charityId}', '${charityName}')">
+                        ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
+                    </button>
+                </div>
+                <div class="section-title">کارهای نیک این موسسه</div>
+                <div class="video-grid" id="channel-videos"></div>
+            `;
+
+            let filtered = channelProjects.length > 0 ? channelProjects : projects.slice(0, 3);
+            let vc = document.getElementById('channel-videos');
+            vc.innerHTML = '';
+            filtered.forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => window.location.href = `/?v=${p.id}`;
+                card.innerHTML = `
+                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="video-info">
+                        <div class="video-title">${p.title}</div>
+                        <div class="channel-link">${p.charity_name}</div>
+                        <div class="video-meta">
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
+                            <span>📍 ${p.province}</span>
+                        </div>
+                        <div class="video-desc">${p.description}</div>
+                    </div>
+                `;
+                vc.appendChild(card);
+            });
+        }
+
+        async function getComments(videoId) {
+            try {
+                let res = await fetch(`/api/comments/${videoId}`);
+                let data = await res.json();
+                return Array.isArray(data) ? data : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function addComment(videoId) {
+            let user = getLoggedInUser();
+            if (!user) {
+                alert('لطفاً ابتدا وارد سامانه شوید.');
+                openLoginModal();
+                return;
+            }
+            let inputElem = document.getElementById('commentInput');
+            let text = inputElem.value.trim();
+            if (!text) {
+                alert('لطفاً متن نظر را وارد کنید.');
+                return;
+            }
+
+            try {
+                let res = await fetch('/api/comments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ video_id: videoId, user_name: user.name, text: text })
+                });
+                let data = await res.json();
+                if (data.success) {
+                    inputElem.value = '';
+                    renderComments(videoId);
+                } else {
+                    alert('خطا در ثبت نظر.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function renderComments(videoId) {
+            let listElem = document.getElementById('commentsList');
+            if (!listElem) return;
+            let comments = await getComments(videoId);
+            listElem.innerHTML = '';
+            if (comments.length === 0) {
+                listElem.innerHTML = '<p style="font-size:13px; color:#888;">هنوز نظری ثبت نشده است.</p>';
+                return;
+            }
+            comments.forEach(c => {
+                let item = document.createElement('div');
+                item.className = 'comment-item';
+                item.innerHTML = `
+                    <div class="comment-user">👤 ${c.user}</div>
+                    <div class="comment-text">${c.text}</div>
+                `;
+                listElem.appendChild(item);
+            });
+        }
+
+        async function incrementViewCount(videoId) {
+            try {
+                let res = await fetch(`/api/projects/${videoId}/view`, { method: 'POST' });
+                let data = await res.json();
+                if (data.success) {
+                    return data.views;
+                }
+            } catch (e) {
+                console.warn('Error incrementing view count');
+            }
+            return null;
+        }
+
+        async function checkIfUserLiked(videoId) {
+            let user = getLoggedInUser();
+            if (!user) return false;
+            try {
+                let res = await fetch(`/api/projects/${videoId}/user-liked?user_id=${user.id}`);
+                let data = await res.json();
+                return data.liked;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function submitLike(videoId) {
+            let user = getLoggedInUser();
+            if (!user) {
+                alert('لطفاً برای لایک کردن ابتدا وارد سامانه شوید.');
+                openLoginModal();
+                return;
+            }
+
+            try {
+                let res = await fetch(`/api/projects/${videoId}/like`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user.id })
+                });
+                let data = await res.json();
+                if (data.success) {
+                    let likeBtn = document.getElementById('likeBtn');
+                    let likeDisplay = document.getElementById('likeCountDisplay');
+                    
+                    if (likeDisplay) {
+                        likeDisplay.innerText = `👍 ${data.likes} پسندیدم`;
+                    }
+                    if (likeBtn) {
+                        if (data.liked) {
+                            likeBtn.classList.add('liked');
+                        } else {
+                            likeBtn.classList.remove('liked');
+                        }
+                    }
+                } else {
+                    alert(data.error || 'خطا در ثبت لایک.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function loadWatchPage(id) {
+            renderSidebar();
+            let container = document.getElementById('main-content');
+            
+            let updatedViews = await incrementViewCount(id);
+            let userLiked = await checkIfUserLiked(id);
+
+            let projects = await fetchProjectsSafe();
+            let project = projects.find(p => p.id == id) || projects[0];
+            if (!project) {
+                container.innerHTML = '<p style="padding:40px; text-align:center;">پروژه مورد نظر یافت نشد.</p>';
+                return;
+            }
+
+            if (updatedViews !== null) {
+                project.views = updatedViews;
+            }
+
+            let subs = await getSubscriptions();
+            let isSubscribed = subs.some(s => s.id == project.charity_id);
+            let user = getLoggedInUser();
+            let isOwner = user && (user.id == project.charity_id || user.id == 99);
+
+            container.innerHTML = `
+                <div class="watch-layout">
+                    <div class="watch-main">
+                        <div class="watch-media"><img src="${project.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                        <div class="watch-title">${project.title}</div>
+                        <div class="watch-sub-info">
+                            <span id="viewCountDisplay">👁️ ${project.views || 0} بازدید</span> • <span>📍 استان ${project.province} (${project.district})</span>
+                        </div>
+                        
+                        <div class="watch-channel-row">
+                            <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">${project.charity_name}</div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button class="btn-like ${userLiked ? 'liked' : ''}" id="likeBtn" onclick="submitLike(${project.id})">
+                                    <span id="likeCountDisplay">👍 ${project.likes || 0} پسندیدم</span>
+                                </button>
+                                ${isOwner ? `<button class="btn-outline" onclick="loadEditPage(${project.id})">✏️ ویرایش پروژه و فایل</button>` : ''}
+                                <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
+                                    ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="watch-desc">${project.description}</div>
+
+                        <div class="comments-section">
+                            <div class="comments-title">نظر شما</div>
+                            <div class="comment-box-row">
+                                <input type="text" id="commentInput" class="comment-input" placeholder="نظر خود را بنویسید...">
+                                <button class="btn-primary" onclick="addComment(${project.id})">ثبت نظر</button>
+                            </div>
+                            <div id="commentsList"></div>
+                        </div>
+                    </div>
+                    <div class="related-sidebar">
+                        <h3>کارهای نیک مرتبط</h3>
+                        <div id="relatedList"></div>
+                    </div>
+                </div>
+            `;
+
+            renderComments(project.id);
+
+            let relatedList = document.getElementById('relatedList');
+            projects.filter(p => p.id != project.id).slice(0, 5).forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'related-card';
+                card.onclick = () => window.location.href = `/?v=${p.id}`;
+                card.innerHTML = `
+                    <div class="related-thumb"><img src="${p.file_path}" alt="تصویر"></div>
+                    <div class="related-info">
+                        <div class="related-title">${p.title}</div>
+                        <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</div>
+                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید • 👍 ${p.likes || 0} لایک</div>
+                    </div>
+                `;
+                relatedList.appendChild(card);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateHeaderUser();
+
+            let urlParams = new URLSearchParams(window.location.search);
+            let videoId = urlParams.get('v');
+            let provinceName = urlParams.get('province');
+            let districtName = urlParams.get('district');
+            let charityId = urlParams.get('charity_id');
+            let searchQuery = urlParams.get('search');
+            let uploadPage = urlParams.get('upload');
+            let editPage = urlParams.get('edit');
+
+            if (uploadPage) loadUploadPage();
+            else if (editPage) loadEditPage(editPage);
+            else if (videoId) loadWatchPage(videoId);
+            else if (charityId) loadChannelPage(charityId);
+            else if (provinceName) loadProvincePage(decodeURIComponent(provinceName), districtName ? decodeURIComponent(districtName) : null);
+            else loadHome(searchQuery ? decodeURIComponent(searchQuery) : null);
+        });
     </script>
 </body>
 </html>
