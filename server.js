@@ -79,24 +79,19 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// تنظیم دیتابیس‌ها (استفاده از دیتابیس دوم برای این سرویس آلمانی)
+// اتصال به دیتابیس دوم (آلمان)
 const dbConnectionString = process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db';
-
-const poolMehrnama = new Pool({
-    connectionString: dbConnectionString,
-    ssl: false
-});
 
 const poolEinHerz = new Pool({
     connectionString: dbConnectionString,
     ssl: false
 });
 
-// تابع هوشمند برای تشخیص دیتابیس فعال
 function getPool(req) {
     return poolEinHerz;
 }
 
+// تابع ایجاد کامل تمامی جدول‌ها به صورت کاملاً Consistent با مهرنما
 async function initDBForPool(pool, isGerman = false) {
     try {
         await pool.query(`
@@ -105,6 +100,43 @@ async function initDBForPool(pool, isGerman = false) {
                 name VARCHAR(255) NOT NULL,
                 user_type VARCHAR(50) NOT NULL,
                 phone_or_id VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                province VARCHAR(100),
+                city VARCHAR(100),
+                district VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS regular_users (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                phone VARCHAR(50) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS charities (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                code VARCHAR(100) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                province VARCHAR(100),
+                city VARCHAR(100),
+                district VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS charity_users (
+                id SERIAL PRIMARY KEY,
+                charity_id INT NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                national_id VARCHAR(50) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 province VARCHAR(100),
                 city VARCHAR(100),
@@ -133,6 +165,19 @@ async function initDBForPool(pool, isGerman = false) {
         await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS likes INT DEFAULT 0;`);
 
         await pool.query(`
+            CREATE TABLE IF NOT EXISTS charity_projects (
+                id SERIAL PRIMARY KEY,
+                charity_id INT NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                province VARCHAR(100),
+                district VARCHAR(100),
+                description TEXT,
+                file_path VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS project_likes (
                 id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
@@ -145,6 +190,16 @@ async function initDBForPool(pool, isGerman = false) {
             CREATE TABLE IF NOT EXISTS comments (
                 id SERIAL PRIMARY KEY,
                 video_id INT NOT NULL,
+                user_name VARCHAR(255) NOT NULL,
+                text TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS project_comments (
+                id SERIAL PRIMARY KEY,
+                project_id INT NOT NULL,
                 user_name VARCHAR(255) NOT NULL,
                 text TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -188,7 +243,7 @@ async function initDBForPool(pool, isGerman = false) {
 
 initDBForPool(poolEinHerz, true);
 
-// اول روت هوشمند بررسی دامنه و فایل HTML را قرار می‌دهیم تا فایل پیش‌فرض استاتیک جلوتر از آن اجرا نشود
+// سرو هوشمند فایل HTML اصلی بر اساس دامنه
 app.get('/', (req, res) => {
     const hostname = req.hostname || req.headers.host || '';
     if (hostname.includes('einherzwiekristall')) {
@@ -198,7 +253,7 @@ app.get('/', (req, res) => {
     }
 });
 
-// سپس فایل‌های استاتیک دیگر را سرو می‌کنیم
+// سرو فایل‌های استاتیک
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API ثبت‌نام
