@@ -79,9 +79,9 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// تعریف دو دیتابیس مجزا (با اتصال امن و مستقیم برای جلوگیری از خطای لوکال)
+// تعریف مستقیم و امن دو دیتابیس برای جلوگیری از خطای لوکال و ECONNREFUSED
 const poolMehrnama = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mehrnama',
+    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@database-mehrnama-service:5432/mehrnama',
     ssl: false
 });
 
