@@ -79,12 +79,13 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// تعریف مستقیم و امن دو دیتابیس برای جلوگیری از خطای لوکال و ECONNREFUSED
+// تنظیم دیتابیس اول (مهرنما) از طریق متغیر محیطی رانفلیر
 const poolMehrnama = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@database-mehrnama-service:5432/mehrnama',
+    connectionString: process.env.DATABASE_URL,
     ssl: false
 });
 
+// تنظیم مستقیم و امن دیتابیس دوم (آلمان)
 const poolEinHerz = new Pool({
     connectionString: 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db',
     ssl: false
