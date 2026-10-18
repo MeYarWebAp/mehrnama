@@ -12,18 +12,16 @@ const { body, validationResult } = require('express-validator');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Tsayar da trust proxy domin aiki tare da sabobin gajimare (Runflare)
 app.set('trust proxy', 1);
 
-// Tsarin tsaro na CORS
+// تنظیمات CORS برای هر دو دامنه
 const corsOptions = {
-    origin: ['https://mehrnama.info', 'http://localhost:3000'],
+    origin: ['https://mehrnama.info', 'https://einherzwiekristall.de', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
 
-// Kunna Helmet domin tsaron shafukan HTTP
 app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
@@ -31,9 +29,8 @@ app.use(helmet({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
 
-// Tsarin Rate Limiting domin kare API da wuraren shiga
+// Rate Limiting
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -59,7 +56,6 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Tsarin loda fayiloli cikin amincin Multer da sanya musu suna na musamman
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => {
@@ -83,12 +79,27 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-const pool = new Pool({
+// تعریف دو دیتابیس مجزا
+const poolMehrnama = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mehrnama',
     ssl: false
 });
 
-async function initDB() {
+const poolEinHerz = new Pool({
+    connectionString: process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/database2',
+    ssl: false
+});
+
+// تابع هوشمند برای تشخیص دیتابیس فعال بر اساس دامنه
+function getPool(req) {
+    const hostname = req.hostname || req.headers.host || '';
+    if (hostname.includes('einherzwiekristall.de')) {
+        return poolEinHerz;
+    }
+    return poolMehrnama;
+}
+
+async function initDBForPool(pool, isGerman = false) {
     try {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
@@ -155,32 +166,63 @@ async function initDB() {
 
         const projectCheck = await pool.query('SELECT COUNT(*) FROM projects');
         if (parseInt(projectCheck.rows[0].count) === 0) {
-            await pool.query(`
-                INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
-                VALUES (
-                    'ساخت دبستان سه کلاسه روستایی در مناطق محروم',
-                    'موسسه خیریه و نیکوکاری باران مهر',
-                    1,
-                    'سیستان و بلوچستان',
-                    'دشتیاری',
-                    'پروژه احداث و تجهیز یک دبستان استاندارد و ایمن برای دانش‌آموزان عزیز روستاهای دورافتاده سیستان و بلوچستان.',
-                    'https://picsum.photos/600/400',
-                    0,
-                    0
-                )
-            `);
+            if (isGerman) {
+                await pool.query(`
+                    INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
+                    VALUES (
+                        'Bau einer dreiklassigen Grundschule',
+                        'Hilfswerk Ein Herz wie Kristall',
+                        1,
+                        'Hessen',
+                        'Wiesbaden',
+                        'Projekt zum Bau und zur Ausstattung einer modernen Grundschule.',
+                        'https://picsum.photos/600/400',
+                        0,
+                        0
+                    )
+                `);
+            } else {
+                await pool.query(`
+                    INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
+                    VALUES (
+                        'ساخت دبستان سه کلاسه روستایی در مناطق محروم',
+                        'موسسه خیریه و نیکوکاری باران مهر',
+                        1,
+                        'سیستان و بلوچستان',
+                        'دشتیاری',
+                        'پروژه احداث و تجهیز یک دبستان استاندارد و ایمن برای دانش‌آموزان عزیز روستاهای دورافتاده سیستان و بلوچستان.',
+                        'https://picsum.photos/600/400',
+                        0,
+                        0
+                    )
+                `);
+            }
         }
-        console.log('Database tables initialized successfully.');
     } catch (err) {
         console.error('Error initializing DB:', err);
     }
 }
-initDB();
 
-// Rajistar tare da tantance bayanan shigarwa
+initDBForPool(poolMehrnama, false);
+initDBForPool(poolEinHerz, true);
+
+// سرو فایل‌های استاتیک
+app.use(express.static(path.join(__dirname, 'public')));
+
+// سرو هوشمند فایل HTML اصلی بر اساس دامنه
+app.get('/', (req, res) => {
+    const hostname = req.hostname || req.headers.host || '';
+    if (hostname.includes('einherzwiekristall.de')) {
+        res.sendFile(path.join(__dirname, 'public', 'index-de.html'));
+    } else {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    }
+});
+
+// API ثبت‌نام
 app.post('/api/register', [
-    body('name').notEmpty().withMessage('نام و نام خانوادگی الزامی است.'),
-    body('phone_or_id').notEmpty().withMessage('شناسه یا شماره تلفن الزامی است.'),
+    body('name').notEmpty().withMessage('نام / Name الزامی است.'),
+    body('phone_or_id').notEmpty().withMessage('شناسه / ID الزامی است.'),
     body('password').isLength({ min: 6 }).withMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -189,6 +231,7 @@ app.post('/api/register', [
     }
 
     try {
+        const pool = getPool(req);
         const { name, user_type, phone_or_id, password, province, city, district } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await pool.query(
@@ -202,10 +245,10 @@ app.post('/api/register', [
     }
 });
 
-// Shiga tare da tantance bayanan shigarwa
+// API ورود
 app.post('/api/login', [
-    body('phone_or_id').notEmpty().withMessage('وارد کردن شناسه یا شماره تلفن الزامی است.'),
-    body('password').notEmpty().withMessage('وارد کردن رمز عبور الزامی است.')
+    body('phone_or_id').notEmpty().withMessage('شناسه الزامی است.'),
+    body('password').notEmpty().withMessage('رمز عبور الزامی است.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -213,6 +256,7 @@ app.post('/api/login', [
     }
 
     try {
+        const pool = getPool(req);
         const { phone_or_id, password } = req.body;
         const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
         if (result.rows.length === 0) {
@@ -232,8 +276,10 @@ app.post('/api/login', [
     }
 });
 
+// API لیست پروژه‌ها
 app.get('/api/projects', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const result = await pool.query('SELECT * FROM projects ORDER BY id DESC');
         res.json(result.rows);
     } catch (err) {
@@ -241,15 +287,16 @@ app.get('/api/projects', async (req, res, next) => {
     }
 });
 
-// Sabuntawa da sanya dokar hana masu amfani na gida loda ayyuka ko bidiyo
+// API ساخت پروژه جدید
 app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const { title, charity_name, charity_id, province, district, description, user_type } = req.body;
 
-        if (user_type !== 'charity') {
+        if (user_type !== 'legal' && user_type !== 'charity') {
             return res.status(403).json({ 
                 success: false, 
-                error: 'دسترسی غیرمجاز. فقط حساب‌های کاربری خیریه اجازه بارگذاری پروژه و ویدیو را دارند.' 
+                error: 'دسترسی غیرمجاز.' 
             });
         }
 
@@ -269,8 +316,10 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
     }
 });
 
+// API ویرایش پروژه
 app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const { id } = req.params;
         const { title, province, district, description } = req.body;
         
@@ -293,8 +342,10 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
     }
 });
 
+// API تعداد بازدید
 app.post('/api/projects/:id/view', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const projectId = req.params.id;
         const result = await pool.query(
             'UPDATE projects SET views = COALESCE(views, 0) + 1 WHERE id = $1 RETURNING views',
@@ -303,15 +354,17 @@ app.post('/api/projects/:id/view', async (req, res, next) => {
         if (result.rows.length > 0) {
             res.json({ success: true, views: result.rows[0].views });
         } else {
-            res.status(404).json({ success: false, error: 'Proje yaft nashod' });
+            res.status(404).json({ success: false, error: 'Not found' });
         }
     } catch (err) {
         next(err);
     }
 });
 
+// API لایک
 app.post('/api/projects/:id/like', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const projectId = req.params.id;
         const { user_id } = req.body;
 
@@ -355,6 +408,7 @@ app.post('/api/projects/:id/like', async (req, res, next) => {
 
 app.get('/api/projects/:id/user-liked', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const projectId = req.params.id;
         const userId = req.query.user_id;
         if (!userId) return res.json({ liked: false });
@@ -369,8 +423,10 @@ app.get('/api/projects/:id/user-liked', async (req, res, next) => {
     }
 });
 
+// API کامنت‌ها
 app.get('/api/comments/:video_id', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const { video_id } = req.params;
         const result = await pool.query('SELECT user_name as user, text FROM comments WHERE video_id = $1 ORDER BY id DESC', [video_id]);
         res.json(result.rows);
@@ -381,6 +437,7 @@ app.get('/api/comments/:video_id', async (req, res, next) => {
 
 app.post('/api/comments', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const { video_id, user_name, text } = req.body;
         await pool.query('INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3)', [video_id, user_name, text]);
         res.json({ success: true });
@@ -389,8 +446,10 @@ app.post('/api/comments', async (req, res, next) => {
     }
 });
 
+// API اشتراک‌ها
 app.get('/api/subscriptions/:user_id', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const { user_id } = req.params;
         const result = await pool.query('SELECT charity_id as id, charity_name as name FROM subscriptions WHERE user_id = $1', [user_id]);
         res.json(result.rows);
@@ -401,6 +460,7 @@ app.get('/api/subscriptions/:user_id', async (req, res, next) => {
 
 app.post('/api/subscriptions/toggle', async (req, res, next) => {
     try {
+        const pool = getPool(req);
         const { user_id, charity_id, charity_name } = req.body;
         const check = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
         if (check.rows.length > 0) {
@@ -415,15 +475,14 @@ app.post('/api/subscriptions/toggle', async (req, res, next) => {
     }
 });
 
-// Middleware na musamman don sarrafa kurakurai a tsare
 app.use((err, req, res, next) => {
     console.error('Server Error Detail:', err.message);
     res.status(500).json({
         success: false,
-        error: err.message || 'خطای داخلی سرور رخ داده است. لطفاً بعداً تلاش کنید.'
+        error: err.message || 'خطای داخلی سرور'
     });
 });
 
 app.listen(port, () => {
-    console.log(`Mehrnama server is running on port ${port}`);
+    console.log(`Server running on port ${port}`);
 });
