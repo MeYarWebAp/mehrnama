@@ -756,7 +756,7 @@
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name || 'خیریه مهرنما'}</div>
                         <div class="video-meta">
-                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
                         </div>
                         <div class="video-desc">${p.description}</div>
@@ -817,7 +817,7 @@
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</div>
                         <div class="video-meta">
-                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
                         </div>
                         <div class="video-desc">${p.description}</div>
@@ -864,7 +864,7 @@
                         <div class="video-title">${p.title}</div>
                         <div class="channel-link">${p.charity_name}</div>
                         <div class="video-meta">
-                            <span>👁️ ${p.views || 0} بازدید</span> • <span>👍 ${p.likes || 0} لایک</span>
+                            <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
                         </div>
                         <div class="video-desc">${p.description}</div>
@@ -965,7 +965,7 @@
         async function submitLike(videoId) {
             let user = getLoggedInUser();
             if (!user) {
-                alert('لطفاً برای لایک کردن ابتدا وارد سامانه شوید.');
+                alert('لطفاً برای پسندیدن ابتدا وارد سامانه شوید.');
                 openLoginModal();
                 return;
             }
@@ -982,7 +982,7 @@
                     let likeDisplay = document.getElementById('likeCountDisplay');
                     
                     if (likeDisplay) {
-                        likeDisplay.innerText = `👍 ${data.likes} پسندیدم`;
+                        likeDisplay.innerText = `❤️ ${data.likes} پسندیدم`;
                     }
                     if (likeBtn) {
                         if (data.liked) {
@@ -1036,7 +1036,7 @@
                             <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">${project.charity_name}</div>
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <button class="btn-like ${userLiked ? 'liked' : ''}" id="likeBtn" onclick="submitLike(${project.id})">
-                                    <span id="likeCountDisplay">👍 ${project.likes || 0} پسندیدم</span>
+                                    <span id="likeCountDisplay">❤️ ${project.likes || 0} پسندیدم</span>
                                 </button>
                                 ${isOwner ? `<button class="btn-outline" onclick="loadEditPage(${project.id})">✏️ ویرایش پروژه و فایل</button>` : ''}
                                 <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
@@ -1075,7 +1075,7 @@
                     <div class="related-info">
                         <div class="related-title">${p.title}</div>
                         <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</div>
-                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید • 👍 ${p.likes || 0} لایک</div>
+                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید • ❤️ ${p.likes || 0} پسندیدم</div>
                     </div>
                 `;
                 relatedList.appendChild(card);
