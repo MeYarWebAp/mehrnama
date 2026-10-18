@@ -85,16 +85,16 @@ const poolMehrnama = new Pool({
     ssl: false
 });
 
-// تنظیم مستقیم و امن دیتابیس دوم (آلمان)
+// تنظیم دیتابیس دوم (آلمان)
 const poolEinHerz = new Pool({
-    connectionString: 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db',
+    connectionString: process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db',
     ssl: false
 });
 
-// تابع هوشمند برای تشخیص دیتابیس فعال بر اساس دامنه
+// تابع هوشمند برای تشخیص دیتابیس فعال (پشتیبانی از دامنه اصلی و زیردامنه تستی)
 function getPool(req) {
     const hostname = req.hostname || req.headers.host || '';
-    if (hostname.includes('einherzwiekristall.de')) {
+    if (hostname.includes('einherzwiekristall')) {
         return poolEinHerz;
     }
     return poolMehrnama;
@@ -210,10 +210,10 @@ initDBForPool(poolEinHerz, true);
 // سرو فایل‌های استاتیک
 app.use(express.static(path.join(__dirname, 'public')));
 
-// سرو هوشمند فایل HTML اصلی بر اساس دامنه
+// سرو هوشمند فایل HTML اصلی بر اساس دامنه (پشتیبانی از دامنه اصلی و زیردامنه رانفلیر)
 app.get('/', (req, res) => {
     const hostname = req.hostname || req.headers.host || '';
-    if (hostname.includes('einherzwiekristall.de')) {
+    if (hostname.includes('einherzwiekristall')) {
         res.sendFile(path.join(__dirname, 'public', 'index-de.html'));
     } else {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
