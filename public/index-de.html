@@ -6,13 +6,11 @@
     <title>Ein Herz wie Kristall</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: ltr; }
-        /* تنظیم ارتفاع هدر برای هماهنگی با لوگوی عمودی */
         header { background-color: #ffffff; padding: 6px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
         
         .logo-box { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
         .logo-icon-wrapper { background: linear-gradient(135deg, #cc0000, #ff4d4d); color: white; width: 38px; height: 38px; border-radius: 8px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2); flex-shrink: 0; }
         
-        /* استایل دقیق برای ۴ کلمه عمودی فشرده و شکیل */
         .logo-text-group { display: flex; flex-direction: column; line-height: 1.05; }
         .logo-word-small { font-size: 11px; font-weight: 500; color: #555; text-transform: lowercase; }
         .logo-word-big { font-size: 16px; font-weight: 800; color: #cc0000; text-transform: capitalize; letter-spacing: -0.3px; }
@@ -137,7 +135,6 @@
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </div>
-            <!-- حالت عمودی فشرده با کلمات برجسته Herz و Kristall -->
             <div class="logo-text-group">
                 <span class="logo-word-small">ein</span>
                 <span class="logo-word-big">Herz</span>
@@ -146,7 +143,7 @@
             </div>
         </a>
         <div class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="Suche nach Projekten, Probleme, Regionen...">
+            <input type="text" id="searchInput" class="search-input" placeholder="Suche nach Projekten, Problemen, Regionen...">
             <button class="search-btn" onclick="performSearch()">🔍</button>
         </div>
         <div class="header-actions" id="headerActions">
