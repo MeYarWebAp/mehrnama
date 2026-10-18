@@ -91,7 +91,7 @@ function getPool(req) {
     return poolEinHerz;
 }
 
-// تابع ایجاد کامل تمامی جدول‌ها به صورت کاملاً Consistent با مهرنما
+// تابع ایجاد کامل تمامی جدول‌ها به صورت کاملاً Consistent با مهرنما (بدون درج پروژه پیش‌فرض)
 async function initDBForPool(pool, isGerman = false) {
     try {
         await pool.query(`
@@ -216,26 +216,6 @@ async function initDBForPool(pool, isGerman = false) {
                 UNIQUE(user_id, charity_id)
             );
         `);
-
-        const projectCheck = await pool.query('SELECT COUNT(*) FROM projects');
-        if (parseInt(projectCheck.rows[0].count) === 0) {
-            if (isGerman) {
-                await pool.query(`
-                    INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
-                    VALUES (
-                        'Bau einer dreiklassigen Grundschule',
-                        'Hilfswerk Ein Herz wie Kristall',
-                        1,
-                        'Hessen',
-                        'Wiesbaden',
-                        'Projekt zum Bau und zur Ausstattung einer modernen Grundschule.',
-                        'https://picsum.photos/600/400',
-                        0,
-                        0
-                    )
-                `);
-            }
-        }
     } catch (err) {
         console.error('Error initializing DB:', err);
     }
@@ -337,7 +317,7 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
             });
         }
 
-        let filePath = 'https://picsum.photos/600/400';
+        let filePath = '';
         if (req.file) {
             filePath = '/uploads/' + req.file.filename;
         }
