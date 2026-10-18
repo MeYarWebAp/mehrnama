@@ -4,8 +4,9 @@
   "description": "Mehrnama Charity Transparency Platform",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
-  },
+  "start": "node server.js",
+  "start:de": "node server-de.js"
+},
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
