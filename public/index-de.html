@@ -6,11 +6,17 @@
     <title>Ein Herz wie Kristall</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: ltr; }
-        header { background-color: #ffffff; padding: 12px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
+        /* تنظیم ارتفاع هدر برای هماهنگی با لوگوی عمودی */
+        header { background-color: #ffffff; padding: 6px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
         
-        .logo-box { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
-        .logo-icon-wrapper { background: linear-gradient(135deg, #cc0000, #ff4d4d); color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2); flex-shrink: 0; }
+        .logo-box { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
+        .logo-icon-wrapper { background: linear-gradient(135deg, #cc0000, #ff4d4d); color: white; width: 38px; height: 38px; border-radius: 8px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2); flex-shrink: 0; }
         
+        /* استایل دقیق برای ۴ کلمه عمودی فشرده و شکیل */
+        .logo-text-group { display: flex; flex-direction: column; line-height: 1.05; }
+        .logo-word-small { font-size: 11px; font-weight: 500; color: #555; text-transform: lowercase; }
+        .logo-word-big { font-size: 16px; font-weight: 800; color: #cc0000; text-transform: capitalize; letter-spacing: -0.3px; }
+
         .search-container { display: flex; align-items: center; flex: 1; max-width: 600px; margin: 0 20px; }
         .search-input { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px 0 0 20px; font-size: 14px; outline: none; font-family: Arial, sans-serif; }
         .search-btn { background-color: #f8f8f8; border: 1px solid #ccc; border-left: none; padding: 10px 20px; border-radius: 0 20px 20px 0; cursor: pointer; font-size: 14px; }
@@ -108,7 +114,7 @@
         .tab-btn.active { background: #cc0000; color: white; }
 
         @media (max-width: 900px) {
-            header { padding: 10px 15px; }
+            header { padding: 8px 15px; }
             .search-container { margin: 0 10px; }
             .sidebar { display: none !important; }
             .main-container, .tags-bar { margin-left: 0 !important; padding: 15px; }
@@ -127,15 +133,16 @@
     <header>
         <a class="logo-box" href="/">
             <div class="logo-icon-wrapper">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 4px; font-family: Arial, sans-serif;">
-                <span style="font-size: 13px; font-weight: 500; color: #555;">ein</span>
-                <span style="font-size: 20px; font-weight: 800; color: #cc0000;">Herz</span>
-                <span style="font-size: 13px; font-weight: 500; color: #555;">wie</span>
-                <span style="font-size: 20px; font-weight: 800; color: #cc0000;">Kristall</span>
+            <!-- حالت عمودی فشرده با کلمات برجسته Herz و Kristall -->
+            <div class="logo-text-group">
+                <span class="logo-word-small">ein</span>
+                <span class="logo-word-big">Herz</span>
+                <span class="logo-word-small">wie</span>
+                <span class="logo-word-big">Kristall</span>
             </div>
         </a>
         <div class="search-container">
