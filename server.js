@@ -79,25 +79,22 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// تنظیم دیتابیس اول (مهرنما) از طریق متغیر محیطی رانفلیر
+// تنظیم دیتابیس‌ها (استفاده از دیتابیس دوم برای این سرویس آلمانی)
+const dbConnectionString = process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db';
+
 const poolMehrnama = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: dbConnectionString,
     ssl: false
 });
 
-// تنظیم دیتابیس دوم (آلمان)
 const poolEinHerz = new Pool({
-    connectionString: process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db',
+    connectionString: dbConnectionString,
     ssl: false
 });
 
-// تابع هوشمند برای تشخیص دیتابیس فعال (پشتیبانی از دامنه اصلی و زیردامنه تستی)
+// تابع هوشمند برای تشخیص دیتابیس فعال
 function getPool(req) {
-    const hostname = req.hostname || req.headers.host || '';
-    if (hostname.includes('einherzwiekristall')) {
-        return poolEinHerz;
-    }
-    return poolMehrnama;
+    return poolEinHerz;
 }
 
 async function initDBForPool(pool, isGerman = false) {
@@ -182,21 +179,6 @@ async function initDBForPool(pool, isGerman = false) {
                         0
                     )
                 `);
-            } else {
-                await pool.query(`
-                    INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
-                    VALUES (
-                        'ساخت دبستان سه کلاسه روستایی در مناطق محروم',
-                        'موسسه خیریه و نیکوکاری باران مهر',
-                        1,
-                        'سیستان و بلوچستان',
-                        'دشتیاری',
-                        'پروژه احداث و تجهیز یک دبستان استاندارد و ایمن برای دانش‌آموزان عزیز روستاهای دورافتاده سیستان و بلوچستان.',
-                        'https://picsum.photos/600/400',
-                        0,
-                        0
-                    )
-                `);
             }
         }
     } catch (err) {
@@ -204,13 +186,9 @@ async function initDBForPool(pool, isGerman = false) {
     }
 }
 
-initDBForPool(poolMehrnama, false);
 initDBForPool(poolEinHerz, true);
 
-// سرو فایل‌های استاتیک
-app.use(express.static(path.join(__dirname, 'public')));
-
-// سرو هوشمند فایل HTML اصلی بر اساس دامنه (پشتیبانی از دامنه اصلی و زیردامنه رانفلیر)
+// اول روت هوشمند بررسی دامنه و فایل HTML را قرار می‌دهیم تا فایل پیش‌فرض استاتیک جلوتر از آن اجرا نشود
 app.get('/', (req, res) => {
     const hostname = req.hostname || req.headers.host || '';
     if (hostname.includes('einherzwiekristall')) {
@@ -219,6 +197,9 @@ app.get('/', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     }
 });
+
+// سپس فایل‌های استاتیک دیگر را سرو می‌کنیم
+app.use(express.static(path.join(__dirname, 'public')));
 
 // API ثبت‌نام
 app.post('/api/register', [
