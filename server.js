@@ -79,14 +79,14 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// تعریف دو دیتابیس مجزا
+// تعریف دو دیتابیس مجزا (با اتصال امن و مستقیم برای جلوگیری از خطای لوکال)
 const poolMehrnama = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mehrnama',
     ssl: false
 });
 
 const poolEinHerz = new Pool({
-    connectionString: process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/database2',
+    connectionString: 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db',
     ssl: false
 });
 
