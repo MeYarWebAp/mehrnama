@@ -72,7 +72,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: fileFilter
@@ -168,8 +168,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API ثبت‌نام با پیام‌های آلمانی
 app.post('/api/register', [
-    body('name').notEmpty().withMessage('Name ist erforderlich.'),
-    body('phone_or_id').notEmpty().withMessage('ID / Kontakt ist erforderlich.'),
+    body('name').trim().notEmpty().withMessage('Name ist erforderlich.'),
+    body('phone_or_id').trim().notEmpty().withMessage('ID / Kontakt ist erforderlich.'),
     body('password').isLength({ min: 6 }).withMessage('Das Passwort muss mindestens 6 Zeichen lang sein.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -184,7 +184,7 @@ app.post('/api/register', [
         const result = await pool.query(
             `INSERT INTO users (name, user_type, phone_or_id, password, province, city, district)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, user_type`,
-            [name, user_type, phone_or_id, hashedPassword, province, city, district]
+            [name, user_type || 'real', phone_or_id, hashedPassword, province || null, city || null, district || null]
         );
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
@@ -194,7 +194,7 @@ app.post('/api/register', [
 
 // API ورود با پیام‌های آلمانی
 app.post('/api/login', [
-    body('phone_or_id').notEmpty().withMessage('Kennung ist erforderlich.'),
+    body('phone_or_id').trim().notEmpty().withMessage('Kennung ist erforderlich.'),
     body('password').notEmpty().withMessage('Passwort ist erforderlich.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -233,7 +233,15 @@ app.get('/api/projects', async (req, res, next) => {
     }
 });
 
-app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
+app.post('/api/projects', upload.single('media_file'), [
+    body('title').trim().notEmpty().withMessage('Titel ist erforderlich.'),
+    body('charity_name').trim().notEmpty().withMessage('Name der Organisation ist erforderlich.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { title, charity_name, charity_id, province, district, description, user_type } = req.body;
@@ -250,7 +258,7 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
         const result = await pool.query(
             `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0) RETURNING *`,
-            [title, charity_name, charity_id || 1, province, district || 'Zentrum', description, filePath]
+            [title, charity_name, charity_id || 1, province || null, district || 'Zentrum', description || '', filePath]
         );
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
@@ -258,14 +266,21 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
     }
 });
 
-app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next) => {
+app.put('/api/projects/:id', upload.single('media_file'), [
+    body('title').trim().notEmpty().withMessage('Titel ist erforderlich.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { id } = req.params;
         const { title, province, district, description } = req.body;
-        
+
         let query = `UPDATE projects SET title = $1, province = $2, district = $3, description = $4`;
-        let params = [title, province, district, description];
+        let params = [title, province || null, district || null, description || ''];
 
         if (req.file) {
             const filePath = '/uploads/' + req.file.filename;
@@ -373,7 +388,16 @@ app.get('/api/comments/:video_id', async (req, res, next) => {
     }
 });
 
-app.post('/api/comments', async (req, res, next) => {
+app.post('/api/comments', [
+    body('video_id').notEmpty().withMessage('Video-ID ist erforderlich.'),
+    body('user_name').trim().notEmpty().withMessage('Benutzername ist erforderlich.'),
+    body('text').trim().notEmpty().withMessage('Kommentartext ist erforderlich.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { video_id, user_name, text } = req.body;
@@ -395,7 +419,16 @@ app.get('/api/subscriptions/:user_id', async (req, res, next) => {
     }
 });
 
-app.post('/api/subscriptions/toggle', async (req, res, next) => {
+app.post('/api/subscriptions/toggle', [
+    body('user_id').notEmpty().withMessage('Benutzer-ID ist erforderlich.'),
+    body('charity_id').notEmpty().withMessage('Organisations-ID ist erforderlich.'),
+    body('charity_name').trim().notEmpty().withMessage('Name der Organisation ist erforderlich.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { user_id, charity_id, charity_name } = req.body;
