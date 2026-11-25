@@ -121,9 +121,17 @@ async function initDBForPool(pool, isGerman = false) {
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
+                first_name VARCHAR(150),
+                last_name VARCHAR(150),
+                national_id VARCHAR(50),
+                phone VARCHAR(50),
+                manager_first_name VARCHAR(150),
+                manager_last_name VARCHAR(150),
+                manager_national_id VARCHAR(50),
+                manager_phone VARCHAR(50),
                 user_type VARCHAR(50) NOT NULL,
                 phone_or_id VARCHAR(255) UNIQUE NOT NULL,
-                email VARCHAR(255),
+                email VARCHAR(255) UNIQUE,
                 password VARCHAR(255) NOT NULL,
                 province VARCHAR(100),
                 city VARCHAR(100),
@@ -132,6 +140,14 @@ async function initDBForPool(pool, isGerman = false) {
             );
         `);
 
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(150);`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(150);`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS national_id VARCHAR(50);`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS manager_first_name VARCHAR(150);`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS manager_last_name VARCHAR(150);`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS manager_national_id VARCHAR(50);`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS manager_phone VARCHAR(50);`);
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);`);
 
         await pool.query(`
@@ -419,10 +435,8 @@ app.post('/api/forgot-password/reset', [
     }
 });
 
-// API ثبت‌نام با بررسی کد تایید ایمیل
+// API ثبت‌نام با بررسی کد تایید ایمیل و اطلاعات هویتی
 app.post('/api/register', [
-    body('name').trim().notEmpty().withMessage('نام / Name الزامی است.'),
-    body('phone_or_id').trim().notEmpty().withMessage('شناسه / ID الزامی است.'),
     body('email').isEmail().withMessage('ایمیل معتبر الزامی است.'),
     body('verification_code').trim().notEmpty().withMessage('کد تایید ایمیل الزامی است.'),
     body('password').isLength({ min: 6 }).withMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.')
@@ -452,13 +466,79 @@ app.post('/api/register', [
             });
         }
 
+        const userType = req.body.user_type === 'legal' ? 'legal' : 'real';
+
+        let firstName = String(req.body.first_name || '').trim();
+        let lastName = String(req.body.last_name || '').trim();
+        let nationalId = String(req.body.national_id || '').trim();
+        let phone = String(req.body.phone || '').trim();
+
+        let orgName = String(req.body.name || '').trim();
+        let regNo = String(req.body.reg_no || req.body.phone_or_id || '').trim();
+        let managerFirstName = String(req.body.manager_first_name || '').trim();
+        let managerLastName = String(req.body.manager_last_name || '').trim();
+        let managerNationalId = String(req.body.manager_national_id || '').trim();
+        let managerPhone = String(req.body.manager_phone || '').trim();
+
+        let displayName = '';
+        let uniqueIdentifier = '';
+
+        if (userType === 'real') {
+            if (!firstName || !lastName || !nationalId || !phone) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'لطفاً نام، نام خانوادگی، کد ملی و شماره همراه منطبق با کد ملی را کامل وارد کنید.'
+                });
+            }
+            displayName = `${firstName} ${lastName}`.trim();
+            uniqueIdentifier = email;
+        } else {
+            if (!orgName || !regNo || !managerFirstName || !managerLastName || !managerNationalId || !managerPhone) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'لطفاً نام موسسه، شماره ثبت و مشخصات کامل مدیر موسسه (نام، نام خانوادگی، کد ملی و شماره همراه) را وارد کنید.'
+                });
+            }
+            displayName = orgName;
+            uniqueIdentifier = email;
+        }
+
         const pool = getPool(req);
-        const { name, user_type, phone_or_id, password, province, city, district } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const existingEmail = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
+        if (existingEmail.rows.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'این ایمیل قبلاً در سامانه ثبت شده است.'
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const result = await pool.query(
-            `INSERT INTO users (name, user_type, phone_or_id, email, password, province, city, district)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, user_type, email`,
-            [name, user_type, phone_or_id, email, hashedPassword, province, city, district]
+            `INSERT INTO users (
+                name, first_name, last_name, national_id, phone,
+                manager_first_name, manager_last_name, manager_national_id, manager_phone,
+                user_type, phone_or_id, email, password, province, city, district
+            )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+             RETUR id, name, user_type, email`,
+            [
+                displayName,
+                userType === 'real' ? firstName : null,
+                userType === 'real' ? lastName : null,
+                userType === 'real' ? nationalId : null,
+                userType === 'real' ? phone : null,
+                userType === 'legal' ? managerFirstName : null,
+                userType === 'legal' ? managerLastName : null,
+                userType === 'legal' ? managerNationalId : null,
+                userType === 'legal' ? managerPhone : null,
+                userType,
+                uniqueIdentifier,
+                email,
+                hashedPassword,
+                req.body.province || null,
+                req.body.city || null,
+                req.body.district || null
+            ]
         );
 
         verificationCodes.delete(email);
@@ -468,9 +548,9 @@ app.post('/api/register', [
     }
 });
 
-// API ورود
+// API ورود با ایمیل و رمز عبور
 app.post('/api/login', [
-    body('phone_or_id').notEmpty().withMessage('شناسه الزامی است.'),
+    body('email').isEmail().withMessage('لطفاً ایمیل معتبر وارد کنید.'),
     body('password').notEmpty().withMessage('رمز عبور الزامی است.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -480,19 +560,23 @@ app.post('/api/login', [
 
     try {
         const pool = getPool(req);
-        const { phone_or_id, password } = req.body;
-        const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
+        const email = normalizeEmail(req.body.email);
+        const { password } = req.body;
+
+        const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
         if (result.rows.length === 0) {
-            return res.status(400).json({ success: false, error: 'کاربری با این مشخصات یافت نشد.' });
+            return res.status(400).json({ success: false, error: 'کاربری با این ایمیل یافت نشد.' });
         }
+
         const user = result.rows[0];
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ success: false, error: 'رمز عبور اشتباه است.' });
         }
+
         res.json({
             success: true,
-            user: { id: user.id, name: user.name, type: user.user_type }
+            user: { id: user.id, name: user.name, type: user.user_type, email: user.email }
         });
     } catch (err) {
         next(err);
