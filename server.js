@@ -7,6 +7,7 @@ const fs = require('fs');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 const { body, validationResult } = require('express-validator');
 
 const app = express();
@@ -50,6 +51,26 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/login', authLimiter);
 app.use('/api/register', authLimiter);
+app.use('/api/send-verification-code', authLimiter);
+
+// تنظیمات ارسال ایمیل از طریق Gmail
+const gmailUser = process.env.GMAIL_USER || 'mehrnama.info@gmail.com';
+const gmailAppPassword = process.env.GMAIL_APP_PASSWORD || '';
+
+const mailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: gmailUser,
+        pass: gmailAppPassword
+    }
+});
+
+// نگهداری موقت کدهای تایید به ازای هر ایمیل (معتبر برای ۱۰ دقیقه)
+const verificationCodes = new Map();
+
+function normalizeEmail(email) {
+    return String(email || '').trim().toLowerCase();
+}
 
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -73,7 +94,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: fileFilter
@@ -91,7 +112,7 @@ function getPool(req) {
     return poolEinHerz;
 }
 
-// تابع ایجاد کامل تمامی جدول‌ها به صورت کاملاً Consistent با مهرنما (بدون درج پروژه پیش‌فرض)
+// تابع ایجاد کامل تمامی جدول‌ها به صورت کاملاً Consistent با مهرنما
 async function initDBForPool(pool, isGerman = false) {
     try {
         await pool.query(`
@@ -100,6 +121,7 @@ async function initDBForPool(pool, isGerman = false) {
                 name VARCHAR(255) NOT NULL,
                 user_type VARCHAR(50) NOT NULL,
                 phone_or_id VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255),
                 password VARCHAR(255) NOT NULL,
                 province VARCHAR(100),
                 city VARCHAR(100),
@@ -107,6 +129,8 @@ async function initDBForPool(pool, isGerman = false) {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
+
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);`);
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS regular_users (
@@ -236,10 +260,58 @@ app.get('/', (req, res) => {
 // سرو فایل‌های استاتیک
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API ثبت‌نام
+// API ارسال کد تایید ایمیل برای ثبت‌نام
+app.post('/api/send-verification-code', [
+    body('email').isEmail().withMessage('لطفاً یک آدرس ایمیل معتبر وارد کنید.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
+    if (!gmailAppPassword) {
+        return res.status(500).json({
+            success: false,
+            error: 'رمز برنامه‌ای GMAIL_APP_PASSWORD روی سرور تنظیم نشده است.'
+        });
+    }
+
+    try {
+        const email = normalizeEmail(req.body.email);
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        const expiresAt = Date.now() + 10 * 60 * 1000;
+
+        verificationCodes.set(email, { code, expiresAt });
+
+        await mailTransporter.sendMail({
+            from: `"مهرنما" <${gmailUser}>`,
+            to: email,
+            subject: 'کد تایید ثبت‌نام در مهرنما',
+            text: `کد تایید ثبت‌نام شما در سامانه مهرنما: ${code}\nاین کد تا ۱۰ دقیقه معتبر است.`,
+            html: `
+                <div dir="rtl" style="font-family: Tahoma, sans-serif; line-height: 1.8; color: #222;">
+                    <h2 style="color: #cc0000;">تایید ایمیل در مهرنما</h2>
+                    <p>کاربر گرامی، کد تایید ثبت‌نام شما در سامانه مهرنما عبارت است از:</p>
+                    <div style="font-size: 24px; font-weight: bold; letter-spacing: 4px; background: #f3f4f6; padding: 12px 20px; border-radius: 8px; display: inline-block; margin: 10px 0;">
+                        ${code}
+                    </div>
+                    <p style="font-size: 13px; color: #666;">این کد به مدت ۱۰ دقیقه معتبر است.</p>
+                </div>
+            `
+        });
+
+        res.json({ success: true, message: 'کد تایید به ایمیل شما ارسال شد.' });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// API ثبت‌نام با بررسی کد تایید ایمیل
 app.post('/api/register', [
-    body('name').notEmpty().withMessage('نام / Name الزامی است.'),
-    body('phone_or_id').notEmpty().withMessage('شناسه / ID الزامی است.'),
+    body('name').trim().notEmpty().withMessage('نام / Name الزامی است.'),
+    body('phone_or_id').trim().notEmpty().withMessage('شناسه / ID الزامی است.'),
+    body('email').isEmail().withMessage('ایمیل معتبر الزامی است.'),
+    body('verification_code').trim().notEmpty().withMessage('کد تایید ایمیل الزامی است.'),
     body('password').isLength({ min: 6 }).withMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -248,14 +320,35 @@ app.post('/api/register', [
     }
 
     try {
+        const email = normalizeEmail(req.body.email);
+        const submittedCode = String(req.body.verification_code || '').trim();
+        const savedEntry = verificationCodes.get(email);
+
+        if (!savedEntry || Date.now() > savedEntry.expiresAt) {
+            verificationCodes.delete(email);
+            return res.status(400).json({
+                success: false,
+                error: 'کد تایید منقضی شده یا ارسال نشده است. لطفاً دوباره کد درخواست کنید.'
+            });
+        }
+
+        if (savedEntry.code !== submittedCode) {
+            return res.status(400).json({
+                success: false,
+                error: 'کد تایید واردشده صحیح نیست.'
+            });
+        }
+
         const pool = getPool(req);
         const { name, user_type, phone_or_id, password, province, city, district } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await pool.query(
-            `INSERT INTO users (name, user_type, phone_or_id, password, province, city, district)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, user_type`,
-            [name, user_type, phone_or_id, hashedPassword, province, city, district]
+            `INSERT INTO users (name, user_type, phone_or_id, email, password, province, city, district)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, user_type, email`,
+            [name, user_type, phone_or_id, email, hashedPassword, province, city, district]
         );
+
+        verificationCodes.delete(email);
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         next(err);
@@ -311,9 +404,9 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
         const { title, charity_name, charity_id, province, district, description, user_type } = req.body;
 
         if (user_type !== 'legal' && user_type !== 'charity') {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'دسترسی غیرمجاز.' 
+            return res.status(403).json({
+                success: false,
+                error: 'دسترسی غیرمجاز.'
             });
         }
 
@@ -339,7 +432,7 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
         const pool = getPool(req);
         const { id } = req.params;
         const { title, province, district, description } = req.body;
-        
+
         let query = `UPDATE projects SET title = $1, province = $2, district = $3, description = $4`;
         let params = [title, province, district, description];
 
