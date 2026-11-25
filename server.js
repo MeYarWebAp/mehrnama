@@ -20,7 +20,7 @@ const mailTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.SMTP_USER || 'mehrnama.info@gmail.com',
-        pass: process.env.SMTP_PASS || 'xkxuiygnyhlumggj'
+        pass: process.env.SMTP_PASS
     }
 });
 
@@ -87,7 +87,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: fileFilter
@@ -255,16 +255,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // مرحله ۱ ثبت‌نام: اعتبارسنجی اطلاعات و ارسال کد تایید به ایمیل
 app.post('/api/register', [
-    body('name').notEmpty().withMessage('نام الزامی است.'),
+    body('name').trim().notEmpty().withMessage('نام الزامی است.'),
     body('email').isEmail().withMessage('لطفاً یک نشانی ایمیل معتبر وارد کنید.'),
     body('password').isLength({ min: 6 }).withMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.')
-], async (req, res, next) => {
+], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ success: false, error: errors.array()[0].msg });
     }
 
     try {
+        if (!process.env.SMTP_PASS) {
+            return res.status(500).json({
+                success: false,
+                error: 'تنظیمات رمز عبور SMTP روی سرور انجام نشده است.'
+            });
+        }
+
         const pool = getPool(req);
         const { name, user_type, email, phone_or_id, password, province, city, district } = req.body;
         const normalizedEmail = email.trim().toLowerCase();
@@ -285,7 +292,7 @@ app.post('/api/register', [
             expiresAt: Date.now() + 10 * 60 * 1000,
             userData: {
                 name: name.trim(),
-                user_type,
+                user_type: user_type || 'regular',
                 email: normalizedEmail,
                 phone_or_id: normalizedEmail,
                 phone: phone_or_id ? phone_or_id.trim() : null,
@@ -297,7 +304,7 @@ app.post('/api/register', [
         });
 
         await mailTransporter.sendMail({
-            from: '"مهرنما - تصویر شفاف مهربانی" <mehrnama.info@gmail.com>',
+            from: `"مهرنما - تصویر شفاف مهربانی" <${process.env.SMTP_USER || 'mehrnama.info@gmail.com'}>`,
             to: normalizedEmail,
             subject: 'کد تایید ثبت‌نام در سامانه مهرنما',
             html: `
@@ -333,7 +340,7 @@ app.post('/api/register', [
 // مرحله ۲ ثبت‌نام: بررسی کد تایید ایمیل و ثبت نهایی در دیتابیس
 app.post('/api/verify-email', [
     body('email').isEmail().withMessage('ایمیل نامعتبر است.'),
-    body('code').isLength({ min: 6, max: 6 }).withMessage('کد تایید باید ۶ رقم باشد.')
+    body('code').trim().isLength({ min: 6, max: 6 }).withMessage('کد تایید باید ۶ رقم باشد.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -379,7 +386,7 @@ app.post('/api/verify-email', [
 
 // API ورود (پشتیبانی از ایمیل و شناسه‌های قبلی)
 app.post('/api/login', [
-    body('phone_or_id').notEmpty().withMessage('ایمیل یا شناسه الزامی است.'),
+    body('phone_or_id').trim().notEmpty().withMessage('ایمیل یا شناسه الزامی است.'),
     body('password').notEmpty().withMessage('رمز عبور الزامی است.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -425,15 +432,23 @@ app.get('/api/projects', async (req, res, next) => {
 });
 
 // API ساخت پروژه جدید
-app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
+app.post('/api/projects', upload.single('media_file'), [
+    body('title').trim().notEmpty().withMessage('عنوان پروژه الزامی است.'),
+    body('charity_name').trim().notEmpty().withMessage('نام خیریه الزامی است.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { title, charity_name, charity_id, province, district, description, user_type } = req.body;
 
         if (user_type !== 'legal' && user_type !== 'charity') {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'دسترسی غیرمجاز.' 
+            return res.status(403).json({
+                success: false,
+                error: 'دسترسی غیرمجاز.'
             });
         }
 
@@ -445,7 +460,7 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
         const result = await pool.query(
             `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0) RETURNING *`,
-            [title, charity_name, charity_id || 1, province, district || 'مرکزی', description, filePath]
+            [title.trim(), charity_name.trim(), charity_id || 1, province || null, district || 'مرکزی', description || '', filePath]
         );
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
@@ -454,14 +469,21 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
 });
 
 // API ویرایش پروژه
-app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next) => {
+app.put('/api/projects/:id', upload.single('media_file'), [
+    body('title').trim().notEmpty().withMessage('عنوان پروژه الزامی است.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { id } = req.params;
         const { title, province, district, description } = req.body;
-        
+
         let query = `UPDATE projects SET title = $1, province = $2, district = $3, description = $4`;
-        let params = [title, province, district, description];
+        let params = [title.trim(), province || null, district || null, description || ''];
 
         if (req.file) {
             const filePath = '/uploads/' + req.file.filename;
@@ -473,6 +495,9 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
         }
 
         const result = await pool.query(query, params);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'پروژه یافت نشد.' });
+        }
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         next(err);
@@ -572,11 +597,23 @@ app.get('/api/comments/:video_id', async (req, res, next) => {
     }
 });
 
-app.post('/api/comments', async (req, res, next) => {
+app.post('/api/comments', [
+    body('video_id').notEmpty().withMessage('شناسه محتوا الزامی است.'),
+    body('user_name').trim().notEmpty().withMessage('نام کاربر الزامی است.'),
+    body('text').trim().notEmpty().withMessage('متن دیدگاه الزامی است.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { video_id, user_name, text } = req.body;
-        await pool.query('INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3)', [video_id, user_name, text]);
+        await pool.query(
+            'INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3)',
+            [video_id, user_name.trim(), text.trim()]
+        );
         res.json({ success: true });
     } catch (err) {
         next(err);
@@ -595,7 +632,16 @@ app.get('/api/subscriptions/:user_id', async (req, res, next) => {
     }
 });
 
-app.post('/api/subscriptions/toggle', async (req, res, next) => {
+app.post('/api/subscriptions/toggle', [
+    body('user_id').notEmpty().withMessage('شناسه کاربر الزامی است.'),
+    body('charity_id').notEmpty().withMessage('شناسه خیریه الزامی است.'),
+    body('charity_name').trim().notEmpty().withMessage('نام خیریه الزامی است.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
     try {
         const pool = getPool(req);
         const { user_id, charity_id, charity_name } = req.body;
@@ -604,7 +650,10 @@ app.post('/api/subscriptions/toggle', async (req, res, next) => {
             await pool.query('DELETE FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
             res.json({ success: true, subscribed: false });
         } else {
-            await pool.query('INSERT INTO subscriptions (user_id, charity_id, charity_name) VALUES ($1, $2, $3)', [user_id, charity_id, charity_name]);
+            await pool.query(
+                'INSERT INTO subscriptions (user_id, charity_id, charity_name) VALUES ($1, $2, $3)',
+                [user_id, charity_id, charity_name.trim()]
+            );
             res.json({ success: true, subscribed: true });
         }
     } catch (err) {
