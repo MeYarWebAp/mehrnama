@@ -110,6 +110,11 @@
         .tab-btn { flex: 1; background: #f4f4f4; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; color: #555; text-align: center; }
         .tab-btn.active { background: #cc0000; color: white; }
 
+        .verify-row { display: flex; gap: 8px; align-items: center; }
+        .verify-row input { flex: 1; }
+        .btn-verify { background-color: #1f2937; color: white; border: none; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; white-space: nowrap; }
+        .btn-verify:hover { background-color: #111827; }
+
         @media (max-width: 900px) {
             header { padding: 10px 15px; }
             .logo-subtitle { display: none; }
@@ -217,12 +222,28 @@
             <div id="regRealFields">
                 <div class="form-group"><label>نام کامل</label><input type="text" id="regRealName" placeholder="نام و نام خانوادگی..."></div>
                 <div class="form-group"><label>شماره تلفن همراه</label><input type="text" id="regRealPhone" placeholder="09123456789"></div>
+                <div class="form-group"><label>ایمیل</label><input type="email" id="regRealEmail" placeholder="example@gmail.com"></div>
+                <div class="form-group">
+                    <label>کد تایید ارسال‌شده به ایمیل</label>
+                    <div class="verify-row">
+                        <input type="text" id="regRealCode" placeholder="کد ۶ رقمی...">
+                        <button type="button" class="btn-verify" onclick="sendVerificationCode('real')">ارسال کد تایید</button>
+                    </div>
+                </div>
                 <div class="form-group"><label>رمز عبور</label><input type="password" id="regRealPass" placeholder="******"></div>
             </div>
 
             <div id="regLegalFields" style="display: none;">
                 <div class="form-group"><label>نام موسسه / خیریه</label><input type="text" id="regLegalName" placeholder="نام موسسه..."></div>
                 <div class="form-group"><label>شماره ثبت</label><input type="text" id="regLegalRegNo" placeholder="شماره ثبت موسسه..."></div>
+                <div class="form-group"><label>ایمیل موسسه</label><input type="email" id="regLegalEmail" placeholder="charity@gmail.com"></div>
+                <div class="form-group">
+                    <label>کد تایید ارسال‌شده به ایمیل</label>
+                    <div class="verify-row">
+                        <input type="text" id="regLegalCode" placeholder="کد ۶ رقمی...">
+                        <button type="button" class="btn-verify" onclick="sendVerificationCode('legal')">ارسال کد تایید</button>
+                    </div>
+                </div>
                 <div class="form-group"><label>استان فعالیت</label><input type="text" id="regLegalProvince" placeholder="مثلا تهران"></div>
                 <div class="form-group"><label>شهر فعالیت</label><input type="text" id="regLegalCity" placeholder="مثلا تهران"></div>
                 <div class="form-group"><label>محله یا منطقه فعالیت</label><input type="text" id="regLegalDistrict" placeholder="مثلا تجریش"></div>
@@ -259,6 +280,34 @@
                     <button class="btn-outline" onclick="openLoginModal()">ورود</button>
                     <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
                 `;
+            }
+        }
+
+        async function sendVerificationCode(type) {
+            let emailInput = document.getElementById(type === 'real' ? 'regRealEmail' : 'regLegalEmail');
+            let email = emailInput ? emailInput.value.trim() : '';
+
+            if (!email) {
+                alert('لطفاً ابتدا ایمیل خود را وارد کنید.');
+                return;
+            }
+
+            try {
+                let res = await fetch('/api/send-verification-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                let data = await res.json();
+
+                if (data.success) {
+                    alert(data.message || 'کد تایید به ایمیل شما ارسال شد.');
+                } else {
+                    alert(data.error || 'خطا در ارسال کد تایید.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
             }
         }
 
@@ -302,10 +351,12 @@
             let isReal = currentRegType === 'real';
             let name = isReal ? document.getElementById('regRealName').value.trim() : document.getElementById('regLegalName').value.trim();
             let phone_or_id = isReal ? document.getElementById('regRealPhone').value.trim() : document.getElementById('regLegalRegNo').value.trim();
+            let email = isReal ? document.getElementById('regRealEmail').value.trim() : document.getElementById('regLegalEmail').value.trim();
+            let verification_code = isReal ? document.getElementById('regRealCode').value.trim() : document.getElementById('regLegalCode').value.trim();
             let password = isReal ? document.getElementById('regRealPass').value.trim() : document.getElementById('regLegalPass').value.trim();
 
-            if (!name || !phone_or_id || !password) {
-                alert('لطفاً تمامی فیلدهای الزامی را پر کنید.');
+            if (!name || !phone_or_id || !email || !verification_code || !password) {
+                alert('لطفاً نام، شناسه، ایمیل، کد تایید و رمز عبور را کامل وارد کنید.');
                 return;
             }
 
@@ -313,6 +364,8 @@
                 name: name,
                 user_type: currentRegType,
                 phone_or_id: phone_or_id,
+                email: email,
+                verification_code: verification_code,
                 password: password,
                 province: !isReal ? document.getElementById('regLegalProvince').value.trim() : null,
                 city: !isReal ? document.getElementById('regLegalCity').value.trim() : null,
