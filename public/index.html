@@ -115,6 +115,9 @@
         .btn-verify { background-color: #1f2937; color: white; border: none; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; white-space: nowrap; }
         .btn-verify:hover { background-color: #111827; }
 
+        .forgot-link-btn { background: none; border: none; color: #065fd4; cursor: pointer; font-family: Tahoma, sans-serif; font-size: 12px; font-weight: bold; padding: 0; text-align: right; width: fit-content; }
+        .forgot-link-btn:hover { text-decoration: underline; }
+
         @media (max-width: 900px) {
             header { padding: 10px 15px; }
             .logo-subtitle { display: none; }
@@ -203,10 +206,40 @@
                 <button class="tab-btn" id="loginTabLegal" onclick="switchLoginType('legal')">کاربر حقوقی (خیریه)</button>
             </div>
             <div class="form-group"><label id="loginIdLabel">شماره همراه</label><input type="text" id="loginPhoneOrId" placeholder="شماره تماس یا شناسه..."></div>
-            <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPass" placeholder="******"></div>
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <input type="password" id="loginPass" placeholder="******">
+                <button type="button" class="forgot-link-btn" onclick="openForgotPasswordModal()">رمز عبور را فراموش کرده‌اید؟</button>
+            </div>
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
                 <button class="btn-primary" onclick="handleLogin()">تایید ورود</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="forgotPasswordModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">بازیابی رمز عبور</h3>
+            <p style="font-size: 12px; color: #666; margin-top: -8px; margin-bottom: 15px;">ایمیل ثبت‌شده در حساب کاربری را وارد کنید تا کد بازیابی ارسال شود.</p>
+            <div class="form-group">
+                <label>ایمیل حساب کاربری</label>
+                <div class="verify-row">
+                    <input type="email" id="forgotEmail" placeholder="example@gmail.com">
+                    <button type="button" class="btn-verify" onclick="sendResetCode()">ارسال کد بازیابی</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>کد بازیابی ۶ رقمی</label>
+                <input type="text" id="forgotCode" placeholder="کد ارسال‌شده به ایمیل...">
+            </div>
+            <div class="form-group">
+                <label>رمز عبور جدید (حداقل ۶ کاراکتر)</label>
+                <input type="password" id="forgotNewPass" placeholder="******">
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <button class="close-btn" onclick="closeForgotPasswordModal()">انصراف</button>
+                <button class="btn-primary" onclick="handleResetPassword()">ثبت رمز جدید</button>
             </div>
         </div>
     </div>
@@ -304,6 +337,63 @@
                     alert(data.message || 'کد تایید به ایمیل شما ارسال شد.');
                 } else {
                     alert(data.error || 'خطا در ارسال کد تایید.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function sendResetCode() {
+            let email = document.getElementById('forgotEmail').value.trim();
+            if (!email) {
+                alert('لطفاً ایمیل خود را وارد کنید.');
+                return;
+            }
+
+            try {
+                let res = await fetch('/api/forgot-password/send-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                let data = await res.json();
+
+                if (data.success) {
+                    alert(data.message || 'کد بازیابی به ایمیل شما ارسال شد.');
+                } else {
+                    alert(data.error || 'خطا در ارسال کد بازیابی.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
+        }
+
+        async function handleResetPassword() {
+            let email = document.getElementById('forgotEmail').value.trim();
+            let code = document.getElementById('forgotCode').value.trim();
+            let new_password = document.getElementById('forgotNewPass').value.trim();
+
+            if (!email || !code || !new_password) {
+                alert('لطفاً ایمیل، کد بازیابی و رمز عبور جدید را وارد کنید.');
+                return;
+            }
+
+            try {
+                let res = await fetch('/api/forgot-password/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code, new_password })
+                });
+                let data = await res.json();
+
+                if (data.success) {
+                    alert(data.message || 'رمز عبور شما با موفقیت تغییر کرد.');
+                    closeForgotPasswordModal();
+                    openLoginModal();
+                } else {
+                    alert(data.error || 'خطا در بازیابی رمز عبور.');
                 }
             } catch (err) {
                 console.error(err);
@@ -410,6 +500,11 @@
         function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
         function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
         function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
+        function openForgotPasswordModal() {
+            closeLoginModal();
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
+        }
+        function closeForgotPasswordModal() { document.getElementById('forgotPasswordModal').style.display = 'none'; }
 
         function switchLoginType(type) {
             currentLoginType = type;
