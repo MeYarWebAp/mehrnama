@@ -21,7 +21,6 @@
 
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .btn-primary:disabled { background-color: #e5a0a0; cursor: not-allowed; }
         .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-like { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
         .btn-like:hover { background-color: #fee2e2; color: #cc0000; border-color: #fca5a5; }
@@ -198,14 +197,8 @@
                 <button class="tab-btn active" id="loginTabReal" onclick="switchLoginType('real')">کاربر حقیقی</button>
                 <button class="tab-btn" id="loginTabLegal" onclick="switchLoginType('legal')">کاربر حقوقی (خیریه)</button>
             </div>
-            <div class="form-group">
-                <label id="loginIdLabel">نشانی ایمیل</label>
-                <input type="email" id="loginPhoneOrId" placeholder="example@domain.com" dir="ltr" style="text-align: left;">
-            </div>
-            <div class="form-group">
-                <label>رمز عبور</label>
-                <input type="password" id="loginPass" placeholder="******" dir="ltr" style="text-align: left;">
-            </div>
+            <div class="form-group"><label id="loginIdLabel">شماره همراه</label><input type="text" id="loginPhoneOrId" placeholder="شماره تماس یا شناسه..."></div>
+            <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPass" placeholder="******"></div>
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <button class="close-btn" onclick="closeLoginModal()">انصراف</button>
                 <button class="btn-primary" onclick="handleLogin()">تایید ورود</button>
@@ -216,49 +209,30 @@
     <div class="modal" id="registerModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">ثبت‌نام در مهرنما</h3>
+            <div class="tab-row">
+                <button class="tab-btn active" id="regTabReal" onclick="switchRegType('real')">کاربر حقیقی</button>
+                <button class="tab-btn" id="regTabLegal" onclick="switchRegType('legal')">کاربر حقوقی (خیریه)</button>
+            </div>
             
-            <div id="regStep1">
-                <div class="tab-row">
-                    <button class="tab-btn active" id="regTabReal" onclick="switchRegType('real')">کاربر حقیقی</button>
-                    <button class="tab-btn" id="regTabLegal" onclick="switchRegType('legal')">کاربر حقوقی (خیریه)</button>
-                </div>
-                
-                <div id="regRealFields">
-                    <div class="form-group"><label>نام کامل *</label><input type="text" id="regRealName" placeholder="نام و نام خانوادگی..."></div>
-                    <div class="form-group"><label>نشانی ایمیل *</label><input type="email" id="regRealEmail" placeholder="example@gmail.com" dir="ltr" style="text-align: left;"></div>
-                    <div class="form-group"><label>شماره تلفن همراه (اختیاری - جهت مراحل بعدی)</label><input type="text" id="regRealPhone" placeholder="09123456789" dir="ltr" style="text-align: left;"></div>
-                    <div class="form-group"><label>رمز عبور (حداقل ۶ کاراکتر) *</label><input type="password" id="regRealPass" placeholder="******" dir="ltr" style="text-align: left;"></div>
-                </div>
-
-                <div id="regLegalFields" style="display: none;">
-                    <div class="form-group"><label>نام موسسه / خیریه *</label><input type="text" id="regLegalName" placeholder="نام موسسه..."></div>
-                    <div class="form-group"><label>نشانی ایمیل موسسه *</label><input type="email" id="regLegalEmail" placeholder="charity@domain.com" dir="ltr" style="text-align: left;"></div>
-                    <div class="form-group"><label>شماره ثبت (اختیاری)</label><input type="text" id="regLegalRegNo" placeholder="شماره ثبت موسسه..."></div>
-                    <div class="form-group"><label>استان فعالیت</label><input type="text" id="regLegalProvince" placeholder="مثلا تهران"></div>
-                    <div class="form-group"><label>شهر فعالیت</label><input type="text" id="regLegalCity" placeholder="مثلا تهران"></div>
-                    <div class="form-group"><label>محله یا منطقه فعالیت</label><input type="text" id="regLegalDistrict" placeholder="مثلا تجریش"></div>
-                    <div class="form-group"><label>شماره تلفن تماس (اختیاری)</label><input type="text" id="regLegalPhone" placeholder="02112345678" dir="ltr" style="text-align: left;"></div>
-                    <div class="form-group"><label>رمز عبور (حداقل ۶ کاراکتر) *</label><input type="password" id="regLegalPass" placeholder="******" dir="ltr" style="text-align: left;"></div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; margin-top: 15px;">
-                    <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
-                    <button class="btn-primary" id="btnSendOtp" onclick="handleRegister()">ارسال کد تایید به ایمیل</button>
-                </div>
+            <div id="regRealFields">
+                <div class="form-group"><label>نام کامل</label><input type="text" id="regRealName" placeholder="نام و نام خانوادگی..."></div>
+                <div class="form-group"><label>شماره تلفن همراه</label><input type="text" id="regRealPhone" placeholder="09123456789"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="regRealPass" placeholder="******"></div>
             </div>
 
-            <div id="regStep2" style="display: none;">
-                <p style="font-size: 13px; color: #333; line-height: 1.6; background: #f8f9fa; padding: 12px; border-radius: 8px; border-right: 4px solid #cc0000;">
-                    یک کد تایید ۶ رقمی به ایمیل <strong id="verifyEmailDisplay" dir="ltr"></strong> ارسال شد. لطفاً پوشه Inbox یا Spam خود را بررسی کرده و کد را وارد کنید:
-                </p>
-                <div class="form-group">
-                    <label>کد تایید ۶ رقمی</label>
-                    <input type="text" id="regOtpCode" maxlength="6" placeholder="------" dir="ltr" style="text-align: center; font-size: 20px; letter-spacing: 6px; font-weight: bold;">
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 15px; gap: 10px;">
-                    <button class="close-btn" onclick="backToRegStep1()">بازگشت و اصلاح ایمیل</button>
-                    <button class="btn-primary" id="btnVerifyOtp" onclick="handleVerifyEmail()">تایید نهایی و ورود</button>
-                </div>
+            <div id="regLegalFields" style="display: none;">
+                <div class="form-group"><label>نام موسسه / خیریه</label><input type="text" id="regLegalName" placeholder="نام موسسه..."></div>
+                <div class="form-group"><label>شماره ثبت</label><input type="text" id="regLegalRegNo" placeholder="شماره ثبت موسسه..."></div>
+                <div class="form-group"><label>استان فعالیت</label><input type="text" id="regLegalProvince" placeholder="مثلا تهران"></div>
+                <div class="form-group"><label>شهر فعالیت</label><input type="text" id="regLegalCity" placeholder="مثلا تهران"></div>
+                <div class="form-group"><label>محله یا منطقه فعالیت</label><input type="text" id="regLegalDistrict" placeholder="مثلا تجریش"></div>
+                <div class="form-group"><label>شماره تلفن تماس</label><input type="text" id="regLegalPhone" placeholder="02112345678"></div>
+                <div class="form-group"><label>رمز عبور</label><input type="password" id="regLegalPass" placeholder="******"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <button class="close-btn" onclick="closeRegisterModal()">انصراف</button>
+                <button class="btn-primary" onclick="handleRegister()">تایید و ثبت‌نام</button>
             </div>
         </div>
     </div>
@@ -266,7 +240,6 @@
     <script>
         let currentLoginType = 'real';
         let currentRegType = 'real';
-        let pendingVerifyEmail = '';
 
         function getLoggedInUser() {
             let user = localStorage.getItem('mehrnama_user');
@@ -328,24 +301,18 @@
         async function handleRegister() {
             let isReal = currentRegType === 'real';
             let name = isReal ? document.getElementById('regRealName').value.trim() : document.getElementById('regLegalName').value.trim();
-            let email = isReal ? document.getElementById('regRealEmail').value.trim() : document.getElementById('regLegalEmail').value.trim();
-            let phone = isReal ? document.getElementById('regRealPhone').value.trim() : document.getElementById('regLegalPhone').value.trim();
+            let phone_or_id = isReal ? document.getElementById('regRealPhone').value.trim() : document.getElementById('regLegalRegNo').value.trim();
             let password = isReal ? document.getElementById('regRealPass').value.trim() : document.getElementById('regLegalPass').value.trim();
 
-            if (!name || !email || !password) {
-                alert('لطفاً نام، ایمیل و رمز عبور را وارد کنید.');
+            if (!name || !phone_or_id || !password) {
+                alert('لطفاً تمامی فیلدهای الزامی را پر کنید.');
                 return;
             }
-
-            let btn = document.getElementById('btnSendOtp');
-            btn.disabled = true;
-            btn.innerText = 'در حال ارسال ایمیل...';
 
             let payload = {
                 name: name,
                 user_type: currentRegType,
-                email: email,
-                phone_or_id: phone || email,
+                phone_or_id: phone_or_id,
                 password: password,
                 province: !isReal ? document.getElementById('regLegalProvince').value.trim() : null,
                 city: !isReal ? document.getElementById('regLegalCity').value.trim() : null,
@@ -360,45 +327,6 @@
                 });
                 let data = await res.json();
 
-                if (data.success && data.requiresVerification) {
-                    pendingVerifyEmail = email;
-                    document.getElementById('verifyEmailDisplay').innerText = email;
-                    document.getElementById('regStep1').style.display = 'none';
-                    document.getElementById('regStep2').style.display = 'block';
-                } else {
-                    alert(data.error || 'خطا در ثبت‌نام.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('خطا در ارتباط با سرور.');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'ارسال کد تایید به ایمیل';
-            }
-        }
-
-        async function handleVerifyEmail() {
-            let code = document.getElementById('regOtpCode').value.trim();
-            if (!code || code.length !== 6) {
-                alert('لطفاً کد تایید ۶ رقمی ارسال‌شده به ایمیل را وارد کنید.');
-                return;
-            }
-
-            let btn = document.getElementById('btnVerifyOtp');
-            btn.disabled = true;
-            btn.innerText = 'در حال بررسی...';
-
-            try {
-                let res = await fetch('/api/verify-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: pendingVerifyEmail,
-                        code: code
-                    })
-                });
-                let data = await res.json();
-
                 if (data.success) {
                     localStorage.setItem('mehrnama_user', JSON.stringify({
                         id: data.user.id,
@@ -407,17 +335,14 @@
                     }));
                     closeRegisterModal();
                     updateHeaderUser();
-                    alert('ایمیل شما تایید شد و ثبت‌نام با موفقیت انجام گردید!');
+                    alert('ثبت‌نام و ورود با موفقیت در دیتابیس انجام شد!');
                     location.reload();
                 } else {
-                    alert(data.error || 'کد تایید اشتباه است.');
+                    alert(data.error || 'خطا در ثبت‌نام.');
                 }
             } catch (err) {
                 console.error(err);
                 alert('خطا در ارتباط با سرور.');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'تایید نهایی و ورود';
             }
         }
 
@@ -430,24 +355,14 @@
 
         function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
         function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
-        
-        function openRegisterModal() {
-            backToRegStep1();
-            document.getElementById('registerModal').style.display = 'flex';
-        }
+        function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
         function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
-
-        function backToRegStep1() {
-            document.getElementById('regStep1').style.display = 'block';
-            document.getElementById('regStep2').style.display = 'none';
-            document.getElementById('regOtpCode').value = '';
-        }
 
         function switchLoginType(type) {
             currentLoginType = type;
             document.getElementById('loginTabReal').className = type === 'real' ? 'tab-btn active' : 'tab-btn';
             document.getElementById('loginTabLegal').className = type === 'legal' ? 'tab-btn active' : 'tab-btn';
-            document.getElementById('loginIdLabel').innerText = type === 'real' ? 'نشانی ایمیل' : 'نشانی ایمیل موسسه (یا شناسه)';
+            document.getElementById('loginIdLabel').innerText = type === 'real' ? 'شماره همراه' : 'شماره ثبت یا شناسه موسسه';
         }
 
         function switchRegType(type) {
@@ -1189,3 +1104,6 @@
     </script>
 </body>
 </html>
+```[cite: 14]
+
+این فایل را در `public/index.html` قرار دهید و همراه با `Dockerfile`، `package.json`، `server.js` و `server-de.js` بیلد و اجرا کنید[cite: 9, 10, 12, 13, 14]. بعد از اجرای موفق، اگر خطایی بود یا خواستید سراغ مرحله بعد بروید، در خدمتم.
