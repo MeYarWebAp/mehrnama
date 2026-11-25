@@ -47,7 +47,23 @@
         .sidebar-item:hover { background-color: #f2f2f2; }
         .sidebar-item.active { background-color: #e5e7eb; font-weight: bold; }
 
-        .main-container { flex: 1; margin-right: 240px; padding: 30px; box-sizing: border-box; }
+        .main-container { flex: 1; margin-right: 240px; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .content-grow { flex: 1; }
+
+        .site-footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #666; }
+        .footer-links { display: flex; gap: 16px; align-items: center; }
+        .footer-link-btn { background: none; border: none; color: #065fd4; cursor: pointer; font-family: Tahoma, sans-serif; font-size: 12px; font-weight: bold; padding: 0; }
+        .footer-link-btn:hover { text-decoration: underline; }
+
+        .cookie-banner { display: none; position: fixed; bottom: 16px; left: 16px; right: 16px; max-width: 960px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-right: 5px solid #cc0000; border-radius: 12px; padding: 16px 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14); z-index: 9998; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .cookie-banner.show { display: flex; }
+        .cookie-text { flex: 1; min-width: 260px; font-size: 13px; line-height: 1.7; color: #222; }
+        .cookie-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+
+        .privacy-body { font-size: 13px; line-height: 1.85; color: #333; }
+        .privacy-body h4 { margin: 14px 0 6px 0; color: #111; font-size: 14px; }
+        .privacy-body ul { margin: 6px 0 12px 0; padding-right: 18px; }
+        .privacy-body li { margin-bottom: 5px; }
 
         .channel-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .channel-header h2 { margin: 0 0 5px 0; color: #111; }
@@ -101,6 +117,7 @@
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .modal-content.wide { width: 580px; }
         .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
         .form-group label { font-size: 13px; font-weight: bold; color: #333; }
         .form-group input, .form-group textarea, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: Tahoma, sans-serif; font-size: 14px; }
@@ -194,8 +211,52 @@
         </aside>
 
         <main class="main-container" id="main-content">
-            <p>در حال بارگذاری...</p>
+            <div class="content-grow" id="dynamicContent">
+                <p>در حال بارگذاری...</p>
+            </div>
+            <footer class="site-footer">
+                <span>مهرنما — تصویر شفاف مهربانی</span>
+                <div class="footer-links">
+                    <button type="button" class="footer-link-btn" onclick="openPrivacyModal()">سیاست حریم خصوصی و کوکی‌ها</button>
+                </div>
+            </footer>
         </main>
+    </div>
+
+    <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="اعلان کوکی و حریم خصوصی">
+        <div class="cookie-text">
+            این سامانه برای حفظ وضعیت ورود، ترجیحات کاربری و بهبود تجربه شما از کوکی‌ها و حافظه محلی مرورگر استفاده می‌کند. با ادامه استفاده از مهرنما، با استفاده از این موارد موافقت می‌کنید.
+        </div>
+        <div class="cookie-actions">
+            <button type="button" class="btn-outline" onclick="openPrivacyModal()">حریم خصوصی</button>
+            <button type="button" class="btn-primary" onclick="acceptCookies()">تایید و ادامه</button>
+        </div>
+    </div>
+
+    <div class="modal" id="privacyModal">
+        <div class="modal-content wide">
+            <h3 style="margin-top:0;">سیاست حریم خصوصی و کوکی‌ها</h3>
+            <div class="privacy-body">
+                <h4>۱. اطلاعاتی که جمع‌آوری می‌شوند</h4>
+                <ul>
+                    <li>در زمان ثبت‌نام کاربران حقیقی: نام، نام خانوادگی، کد ملی، شماره همراه منطبق با کد ملی و ایمیل (همراه با کد تایید ایمیل).</li>
+                    <li>در زمان ثبت‌نام موسسات / خیریه‌ها: نام موسسه، شماره ثبت، نام و نام خانوادگی مدیر موسسه، کد ملی مدیر، شماره همراه مدیر، ایمیل، موقعیت فعالیت و رمز عبور.</li>
+                    <li>در زمان فعالیت در سایت: پروژه‌ها و رسانه‌های بارگذاری‌شده توسط خیریه‌ها، نظرات، پسندیدن‌ها و اشتراک‌ها.</li>
+                </ul>
+
+                <h4>۲. کوکی‌ها و حافظه محلی (Cookies & Local Storage)</h4>
+                <p>ما از حافظه محلی مرورگر (مانند ذخیره اطلاعات جلسه ورود کاربر و وضعیت تایید کوکی‌ها) و کوکی‌های ضروری فنی استفاده می‌کنیم تا حساب شما فعال بماند و بخش‌های کاربری به درستی کار کنند. در حال حاضر از کوکی‌های تبلیغاتی شخص ثالث استفاده نمی‌شود.</p>
+
+                <h4>۳. نگهداری و امنیت اطلاعات</h4>
+                <p>رمزهای عبور به‌صورت هش‌شده ذخیره می‌شوند و اطلاعات حساب کاربری صرفاً برای ارائه خدمات سامانه، احراز هویت و شفافیت فعالیت‌های خیرخواهانه به کار می‌رود و بدون مجوز در اختیار اشخاص ثالث غیرمرتبط قرار نمی‌گیرد.</p>
+
+                <h4>۴. ارتباط با ما</h4>
+                <p>برای پرسش درباره حریم خصوصی یا درخواست بررسی حساب خود می‌توانید از طریق ایمیل <strong>mehrnama.info@gmail.com</strong> با ما در ارتباط باشید.</p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+                <button class="btn-primary" onclick="closePrivacyModal()">بستن</button>
+            </div>
+        </div>
     </div>
 
     <div class="modal" id="loginModal">
@@ -348,6 +409,35 @@
 
     <script>
         let currentRegType = 'real';
+
+        function getMainContentContainer() {
+            return document.getElementById('dynamicContent') || document.getElementById('main-content');
+        }
+
+        function initCookieConsent() {
+            const consent = localStorage.getItem('mehrnama_cookie_consent');
+            const banner = document.getElementById('cookieBanner');
+            if (!consent && banner) {
+                banner.classList.add('show');
+            }
+        }
+
+        function acceptCookies() {
+            localStorage.setItem('mehrnama_cookie_consent', 'accepted');
+            document.cookie = 'mehrnama_cookie_consent=accepted; max-age=31536000; path=/; SameSite=Lax';
+            const banner = document.getElementById('cookieBanner');
+            if (banner) {
+                banner.classList.remove('show');
+            }
+        }
+
+        function openPrivacyModal() {
+            document.getElementById('privacyModal').style.display = 'flex';
+        }
+
+        function closePrivacyModal() {
+            document.getElementById('privacyModal').style.display = 'none';
+        }
 
         function getLoggedInUser() {
             let user = localStorage.getItem('mehrnama_user');
@@ -780,7 +870,7 @@
 
         function loadUploadPage() {
             renderSidebar();
-            let container = document.getElementById('main-content');
+            let container = getMainContentContainer();
             container.innerHTML = `
                 <div class="upload-container">
                     <div class="section-title">بارگذاری کار نیک جدید</div>
@@ -874,7 +964,7 @@
 
         async function loadEditPage(projectId) {
             renderSidebar();
-            let container = document.getElementById('main-content');
+            let container = getMainContentContainer();
             let projects = await fetchProjectsSafe();
             let project = projects.find(p => p.id == projectId);
             
@@ -952,7 +1042,7 @@
         async function loadHome(searchQuery = null) {
             renderSidebar();
             updateActiveTag(searchQuery);
-            let container = document.getElementById('main-content');
+            let container = getMainContentContainer();
             let titleText = searchQuery ? `نتایج جستجو برای: "${searchQuery}"` : 'آخرین کارهای نیک';
 
             container.innerHTML = `
@@ -1002,7 +1092,7 @@
 
         async function loadProvincePage(provinceName, districtName = null) {
             renderSidebar(provinceName);
-            let container = document.getElementById('main-content');
+            let container = getMainContentContainer();
             let titleText = districtName ? `استان ${provinceName} - شهرستان/منطقه: ${districtName}` : `استان: ${provinceName}`;
             
             container.innerHTML = `
@@ -1063,7 +1153,7 @@
 
         async function loadChannelPage(charityId) {
             renderSidebar();
-            let container = document.getElementById('main-content');
+            let container = getMainContentContainer();
             let projects = await fetchProjectsSafe();
             let channelProjects = projects.filter(p => p.charity_id == charityId);
             let charityName = channelProjects.length > 0 ? channelProjects[0].charity_name : 'موسسه خیریه';
@@ -1236,7 +1326,7 @@
 
         async function loadWatchPage(id) {
             renderSidebar();
-            let container = document.getElementById('main-content');
+            let container = getMainContentContainer();
             
             let updatedViews = await incrementViewCount(id);
             let userLiked = await checkIfUserLiked(id);
@@ -1318,6 +1408,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             updateHeaderUser();
+            initCookieConsent();
 
             let urlParams = new URLSearchParams(window.location.search);
             let videoId = urlParams.get('v');
