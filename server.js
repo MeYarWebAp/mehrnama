@@ -270,6 +270,17 @@ app.get('/', (req, res) => {
     }
 });
 
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads'), {
+    acceptRanges: true,
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.mp4')) {
+            res.setHeader('Content-Type', 'video/mp4');
+        } else if (filePath.endsWith('.mov')) {
+            res.setHeader('Content-Type', 'video/quicktime');
+        }
+    }
+}));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-verification-code', [
