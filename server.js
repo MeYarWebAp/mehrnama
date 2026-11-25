@@ -8,24 +8,11 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
 const { body, validationResult } = require('express-validator');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
-
-// تنظیمات ارسال ایمیل از طریق Gmail
-const mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.SMTP_USER || 'mehrnama.info@gmail.com',
-        pass: process.env.SMTP_PASS
-    }
-});
-
-// حافظه موقت برای نگهداری کدهای تایید (ایمیل -> { code, expiresAt, userData })
-const verificationCodes = new Map();
 
 // تنظیمات CORS برای هر دو دامنه
 const corsOptions = {
@@ -54,7 +41,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 15,
+    max: 10,
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, error: 'تلاش‌های ناموفق بیش از حد مجاز. لطفاً ۱۵ دقیقه دیگر تلاش کنید.' }
@@ -63,7 +50,6 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/login', authLimiter);
 app.use('/api/register', authLimiter);
-app.use('/api/verify-email', authLimiter);
 
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -93,6 +79,7 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
+// اتصال به دیتابیس
 const dbConnectionString = process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db';
 
 const poolEinHerz = new Pool({
@@ -104,6 +91,7 @@ function getPool(req) {
     return poolEinHerz;
 }
 
+// تابع ایجاد کامل تمامی جدول‌ها
 async function initDBForPool(pool, isGerman = false) {
     try {
         await pool.query(`
@@ -112,9 +100,6 @@ async function initDBForPool(pool, isGerman = false) {
                 name VARCHAR(255) NOT NULL,
                 user_type VARCHAR(50) NOT NULL,
                 phone_or_id VARCHAR(255) UNIQUE NOT NULL,
-                email VARCHAR(255),
-                phone VARCHAR(50),
-                is_verified BOOLEAN DEFAULT FALSE,
                 password VARCHAR(255) NOT NULL,
                 province VARCHAR(100),
                 city VARCHAR(100),
@@ -122,10 +107,6 @@ async function initDBForPool(pool, isGerman = false) {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-
-        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);`);
-        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);`);
-        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE;`);
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS regular_users (
@@ -242,6 +223,7 @@ async function initDBForPool(pool, isGerman = false) {
 
 initDBForPool(poolEinHerz, true);
 
+// سرو هوشمند فایل HTML اصلی بر اساس دامنه
 app.get('/', (req, res) => {
     const hostname = req.hostname || req.headers.host || '';
     if (hostname.includes('einherzwiekristall')) {
@@ -251,96 +233,14 @@ app.get('/', (req, res) => {
     }
 });
 
+// سرو فایل‌های استاتیک
 app.use(express.static(path.join(__dirname, 'public')));
 
-// مرحله ۱ ثبت‌نام: اعتبارسنجی اطلاعات و ارسال کد تایید به ایمیل
+// API ثبت‌نام
 app.post('/api/register', [
-    body('name').trim().notEmpty().withMessage('نام الزامی است.'),
-    body('email').isEmail().withMessage('لطفاً یک نشانی ایمیل معتبر وارد کنید.'),
+    body('name').trim().notEmpty().withMessage('نام / Name الزامی است.'),
+    body('phone_or_id').trim().notEmpty().withMessage('شناسه / ID الزامی است.'),
     body('password').isLength({ min: 6 }).withMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.')
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
-    }
-
-    try {
-        if (!process.env.SMTP_PASS) {
-            return res.status(500).json({
-                success: false,
-                error: 'تنظیمات رمز عبور SMTP روی سرور انجام نشده است.'
-            });
-        }
-
-        const pool = getPool(req);
-        const { name, user_type, email, phone_or_id, password, province, city, district } = req.body;
-        const normalizedEmail = email.trim().toLowerCase();
-
-        const existingUser = await pool.query(
-            'SELECT id FROM users WHERE LOWER(email) = $1 OR LOWER(phone_or_id) = $1',
-            [normalizedEmail]
-        );
-        if (existingUser.rows.length > 0) {
-            return res.status(400).json({ success: false, error: 'این ایمیل قبلاً در سامانه ثبت شده است.' });
-        }
-
-        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        verificationCodes.set(normalizedEmail, {
-            code: otpCode,
-            expiresAt: Date.now() + 10 * 60 * 1000,
-            userData: {
-                name: name.trim(),
-                user_type: user_type || 'regular',
-                email: normalizedEmail,
-                phone_or_id: normalizedEmail,
-                phone: phone_or_id ? phone_or_id.trim() : null,
-                password: hashedPassword,
-                province: province || null,
-                city: city || null,
-                district: district || null
-            }
-        });
-
-        await mailTransporter.sendMail({
-            from: `"مهرنما - تصویر شفاف مهربانی" <${process.env.SMTP_USER || 'mehrnama.info@gmail.com'}>`,
-            to: normalizedEmail,
-            subject: 'کد تایید ثبت‌نام در سامانه مهرنما',
-            html: `
-                <div dir="rtl" style="font-family: Tahoma, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; background-color: #ffffff;">
-                    <h2 style="color: #cc0000; margin-top: 0;">خوش آمدید، ${name.trim()} عزیز!</h2>
-                    <p style="color: #333; font-size: 14px; line-height: 1.7;">
-                        برای تکمیل ثبت‌نام در سامانه <strong>مهرنما</strong>، لطفاً کد تایید زیر را در صفحه ثبت‌نام وارد نمایید:
-                    </p>
-                    <div style="background-color: #f8f9fa; border: 2px dashed #cc0000; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
-                        <span style="font-size: 26px; font-weight: bold; letter-spacing: 6px; color: #111;">${otpCode}</span>
-                    </div>
-                    <p style="color: #777; font-size: 12px;">
-                        این کد تا ۱۰ دقیقه معتبر است. اگر شما درخواست ثبت‌نام نداده‌اید، این ایمیل را نادیده بگیرید.
-                    </p>
-                </div>
-            `
-        });
-
-        res.json({
-            success: true,
-            requiresVerification: true,
-            message: 'کد تایید ۶ رقمی به ایمیل شما ارسال شد.'
-        });
-    } catch (err) {
-        console.error('Register / Mail Error:', err);
-        res.status(500).json({
-            success: false,
-            error: 'خطا در ارسال ایمیل تایید. لطفاً از صحت ایمیل یا تنظیمات SMTP سرور اطمینان حاصل کنید.'
-        });
-    }
-});
-
-// مرحله ۲ ثبت‌نام: بررسی کد تایید ایمیل و ثبت نهایی در دیتابیس
-app.post('/api/verify-email', [
-    body('email').isEmail().withMessage('ایمیل نامعتبر است.'),
-    body('code').trim().isLength({ min: 6, max: 6 }).withMessage('کد تایید باید ۶ رقم باشد.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -349,44 +249,22 @@ app.post('/api/verify-email', [
 
     try {
         const pool = getPool(req);
-        const normalizedEmail = req.body.email.trim().toLowerCase();
-        const code = req.body.code.trim();
-
-        const record = verificationCodes.get(normalizedEmail);
-        if (!record) {
-            return res.status(400).json({ success: false, error: 'درخواست تاییدی برای این ایمیل یافت نشد. لطفاً دوباره ثبت‌نام کنید.' });
-        }
-
-        if (Date.now() > record.expiresAt) {
-            verificationCodes.delete(normalizedEmail);
-            return res.status(400).json({ success: false, error: 'کد تایید منقضی شده است. لطفاً مجدداً درخواست دهید.' });
-        }
-
-        if (record.code !== code) {
-            return res.status(400).json({ success: false, error: 'کد تایید وارد شده صحیح نیست.' });
-        }
-
-        const u = record.userData;
+        const { name, user_type, phone_or_id, password, province, city, district } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
         const result = await pool.query(
-            `INSERT INTO users (name, user_type, phone_or_id, email, phone, is_verified, password, province, city, district)
-             VALUES ($1, $2, $3, $4, $5, TRUE, $6, $7, $8, $9) RETURNING id, name, user_type, email`,
-            [u.name, u.user_type, u.phone_or_id, u.email, u.phone, u.password, u.province, u.city, u.district]
+            `INSERT INTO users (name, user_type, phone_or_id, password, province, city, district)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, user_type`,
+            [name, user_type || 'real', phone_or_id, hashedPassword, province || null, city || null, district || null]
         );
-
-        verificationCodes.delete(normalizedEmail);
-
-        res.json({
-            success: true,
-            user: result.rows[0]
-        });
+        res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         next(err);
     }
 });
 
-// API ورود (پشتیبانی از ایمیل و شناسه‌های قبلی)
+// API ورود
 app.post('/api/login', [
-    body('phone_or_id').trim().notEmpty().withMessage('ایمیل یا شناسه الزامی است.'),
+    body('phone_or_id').trim().notEmpty().withMessage('شناسه الزامی است.'),
     body('password').notEmpty().withMessage('رمز عبور الزامی است.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -396,15 +274,10 @@ app.post('/api/login', [
 
     try {
         const pool = getPool(req);
-        const identifier = req.body.phone_or_id.trim().toLowerCase();
-        const { password } = req.body;
-
-        const result = await pool.query(
-            'SELECT * FROM users WHERE LOWER(email) = $1 OR LOWER(phone_or_id) = $1',
-            [identifier]
-        );
+        const { phone_or_id, password } = req.body;
+        const result = await pool.query('SELECT * FROM users WHERE phone_or_id = $1', [phone_or_id]);
         if (result.rows.length === 0) {
-            return res.status(400).json({ success: false, error: 'کاربری با این ایمیل یا مشخصات یافت نشد.' });
+            return res.status(400).json({ success: false, error: 'کاربری با این مشخصات یافت نشد.' });
         }
         const user = result.rows[0];
         const isMatch = await bcrypt.compare(password, user.password);
@@ -460,7 +333,7 @@ app.post('/api/projects', upload.single('media_file'), [
         const result = await pool.query(
             `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0) RETURNING *`,
-            [title.trim(), charity_name.trim(), charity_id || 1, province || null, district || 'مرکزی', description || '', filePath]
+            [title, charity_name, charity_id || 1, province || null, district || 'مرکزی', description || '', filePath]
         );
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
@@ -483,7 +356,7 @@ app.put('/api/projects/:id', upload.single('media_file'), [
         const { title, province, district, description } = req.body;
 
         let query = `UPDATE projects SET title = $1, province = $2, district = $3, description = $4`;
-        let params = [title.trim(), province || null, district || null, description || ''];
+        let params = [title, province || null, district || null, description || ''];
 
         if (req.file) {
             const filePath = '/uploads/' + req.file.filename;
@@ -495,9 +368,6 @@ app.put('/api/projects/:id', upload.single('media_file'), [
         }
 
         const result = await pool.query(query, params);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'پروژه یافت نشد.' });
-        }
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         next(err);
@@ -610,10 +480,7 @@ app.post('/api/comments', [
     try {
         const pool = getPool(req);
         const { video_id, user_name, text } = req.body;
-        await pool.query(
-            'INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3)',
-            [video_id, user_name.trim(), text.trim()]
-        );
+        await pool.query('INSERT INTO comments (video_id, user_name, text) VALUES ($1, $2, $3)', [video_id, user_name, text]);
         res.json({ success: true });
     } catch (err) {
         next(err);
@@ -650,10 +517,7 @@ app.post('/api/subscriptions/toggle', [
             await pool.query('DELETE FROM subscriptions WHERE user_id = $1 AND charity_id = $2', [user_id, charity_id]);
             res.json({ success: true, subscribed: false });
         } else {
-            await pool.query(
-                'INSERT INTO subscriptions (user_id, charity_id, charity_name) VALUES ($1, $2, $3)',
-                [user_id, charity_id, charity_name.trim()]
-            );
+            await pool.query('INSERT INTO subscriptions (user_id, charity_id, charity_name) VALUES ($1, $2, $3)', [user_id, charity_id, charity_name]);
             res.json({ success: true, subscribed: true });
         }
     } catch (err) {
