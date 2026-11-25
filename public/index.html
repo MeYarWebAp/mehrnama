@@ -95,7 +95,7 @@
         .watch-media { width: 100%; max-height: 480px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
         .watch-media video, .watch-media img { width: 100%; max-height: 480px; object-fit: contain; }
         .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
-        .watch-sub-info { font-size: 13px; color: #606060; margin-bottom: 15px; }
+        .watch-sub-info { font-size: 13px; color: #606060; margin-bottom: 15px; display: flex; gap: 12px; flex-wrap: wrap; }
         .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; white-space: pre-line; }
         .watch-channel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
 
@@ -417,6 +417,28 @@
 
         function getMainContentContainer() {
             return document.getElementById('dynamicContent') || document.getElementById('main-content');
+        }
+
+        function formatJalaliDate(dateInput) {
+            if (!dateInput) return '';
+            const date = new Date(dateInput);
+            if (Number.isNaN(date.getTime())) return '';
+            try {
+                const datePart = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }).format(date);
+
+                const timePart = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).format(date);
+
+                return `${datePart} - ساعت ${timePart}`;
+            } catch (e) {
+                return date.toLocaleDateString('fa-IR');
+            }
         }
 
         function isVideoFile(filePath) {
@@ -1121,6 +1143,7 @@
             }
 
             projects.forEach(p => {
+                const jalaliText = formatJalaliDate(p.created_at);
                 let card = document.createElement('div');
                 card.className = 'video-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
@@ -1135,6 +1158,7 @@
                         <div class="video-meta">
                             <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
+                            ${jalaliText ? `<span>🗓️ ${jalaliText}</span>` : ''}
                         </div>
                         <div class="video-desc">${p.description}</div>
                     </div>
@@ -1185,6 +1209,7 @@
             let vc = document.getElementById('province-videos');
             vc.innerHTML = '';
             filtered.forEach(p => {
+                const jalaliText = formatJalaliDate(p.created_at);
                 let card = document.createElement('div');
                 card.className = 'video-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
@@ -1199,6 +1224,7 @@
                         <div class="video-meta">
                             <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
+                            ${jalaliText ? `<span>🗓️ ${jalaliText}</span>` : ''}
                         </div>
                         <div class="video-desc">${p.description}</div>
                     </div>
@@ -1236,6 +1262,7 @@
             let vc = document.getElementById('channel-videos');
             vc.innerHTML = '';
             filtered.forEach(p => {
+                const jalaliText = formatJalaliDate(p.created_at);
                 let card = document.createElement('div');
                 card.className = 'video-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
@@ -1250,6 +1277,7 @@
                         <div class="video-meta">
                             <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
+                            ${jalaliText ? `<span>🗓️ ${jalaliText}</span>` : ''}
                         </div>
                         <div class="video-desc">${p.description}</div>
                     </div>
@@ -1402,6 +1430,7 @@
                 project.views = updatedViews;
             }
 
+            const jalaliText = formatJalaliDate(project.created_at);
             let subs = await getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
             let user = getLoggedInUser();
@@ -1413,7 +1442,10 @@
                         <div class="watch-media">${renderMediaElement(project.file_path, project.title, true)}</div>
                         <div class="watch-title">${project.title}</div>
                         <div class="watch-sub-info">
-                            <span id="viewCountDisplay">👁️ ${project.views || 0} بازدید</span> • <span>📍 استان ${project.province} (${project.district})</span>
+                            <span id="viewCountDisplay">👁️ ${project.views || 0} بازدید</span>
+                            <span>•</span>
+                            <span>📍 استان ${project.province} (${project.district})</span>
+                            ${jalaliText ? `<span>•</span><span>🗓️ تاریخ بارگذاری: ${jalaliText}</span>` : ''}
                         </div>
                         
                         <div class="watch-channel-row">
@@ -1454,6 +1486,7 @@
 
             let relatedList = document.getElementById('relatedList');
             projects.filter(p => p.id != project.id).slice(0, 5).forEach(p => {
+                const relJalali = formatJalaliDate(p.created_at);
                 let card = document.createElement('div');
                 card.className = 'related-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
@@ -1462,7 +1495,7 @@
                     <div class="related-info">
                         <div class="related-title">${p.title}</div>
                         <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</div>
-                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید • ❤️ ${p.likes || 0} پسندیدم</div>
+                        <div style="font-size:11px; color:#666;">👁️ ${p.views || 0} بازدید • ❤️ ${p.likes || 0} پسندیدم${relJalali ? ` • ${relJalali}` : ''}</div>
                     </div>
                 `;
                 relatedList.appendChild(card);
