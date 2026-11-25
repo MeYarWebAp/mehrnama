@@ -1,17 +1,18 @@
 # Dockerfile
-FROM node:18-alpine
+FROM node:22-alpine
 
 # تنظیم پوشه کاری
 WORKDIR /app
 
-# کپی کردن فایل‌های نیازمندی
+# کپی کردن فایل‌های نیازمندی و نصب وابستگی‌های پروداکشن
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# نصب نیازمندی‌ها
-RUN npm install --production
+# کپی کردن کل کد پروژه با مالکیت کاربر node
+COPY --chown=node:node . .
 
-# کپی کردن کل کد پروژه
-COPY . .
+# استفاده از کاربر غیر-root برای افزایش امنیت
+USER node
 
 # باز کردن پورت ۳۰۰۰
 EXPOSE 3000
