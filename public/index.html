@@ -453,7 +453,7 @@
             if (isVideoFile(safeSrc)) {
                 const videoPosterSrc = safeSrc.includes('#') ? safeSrc : `${safeSrc}#t=0.1`;
                 if (isWatchPage) {
-                    return `<video id="mainWatchVideo" src="${videoPosterSrc}" controls playsinline webkit-playsinline preload="metadata" onplay="this.muted=false; this.volume=1;"></video>`;
+                    return `<video id="mainWatchVideo" src="${videoPosterSrc}" controls playsinline webkit-playsinline preload="metadata"></video>`;
                 }
                 return `
                     <video src="${videoPosterSrc}" muted playsinline webkit-playsinline preload="metadata"></video>
@@ -947,7 +947,7 @@
                     <div class="section-title">بارگذاری ویدیو یا کار نیک جدید</div>
                     <div class="helper-hint">
                         شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو یا عکس منتشر کنند.<br>
-                        نکته برای آیفون: برای پخش روان صدا و تصویر در همه گوشی‌ها، ترجیحاً ویدیو را با فرمت <strong>MP4</strong> بارگذاری کنید.
+                        ویدیوهای آپلودشده در صورت وجود ffmpeg روی سرور به‌صورت خودکار برای پخش مطمئن صدا و تصویر در آیفون بهینه می‌شوند.
                     </div>
                     <div class="form-group"><label>عنوان ویدیو / کار نیک</label><input type="text" id="upTitle" placeholder="عنوان مستند، گزارش یا پویش..."></div>
                     <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
