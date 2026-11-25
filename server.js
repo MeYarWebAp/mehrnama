@@ -73,13 +73,13 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({
+const upload = multer({ 
     storage: storage,
     limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: fileFilter
 });
 
-// اتصال به دیتابیس
+// اتصال به دیتابیس دوم (آلمان)
 const dbConnectionString = process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db';
 
 const poolEinHerz = new Pool({
@@ -91,7 +91,7 @@ function getPool(req) {
     return poolEinHerz;
 }
 
-// تابع ایجاد کامل تمامی جدول‌ها
+// تابع ایجاد کامل تمامی جدول‌ها به صورت کاملاً Consistent با مهرنما (بدون درج پروژه پیش‌فرض)
 async function initDBForPool(pool, isGerman = false) {
     try {
         await pool.query(`
@@ -238,8 +238,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API ثبت‌نام
 app.post('/api/register', [
-    body('name').trim().notEmpty().withMessage('نام / Name الزامی است.'),
-    body('phone_or_id').trim().notEmpty().withMessage('شناسه / ID الزامی است.'),
+    body('name').notEmpty().withMessage('نام / Name الزامی است.'),
+    body('phone_or_id').notEmpty().withMessage('شناسه / ID الزامی است.'),
     body('password').isLength({ min: 6 }).withMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -254,7 +254,7 @@ app.post('/api/register', [
         const result = await pool.query(
             `INSERT INTO users (name, user_type, phone_or_id, password, province, city, district)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, user_type`,
-            [name, user_type || 'real', phone_or_id, hashedPassword, province || null, city || null, district || null]
+            [name, user_type, phone_or_id, hashedPassword, province, city, district]
         );
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
@@ -264,7 +264,7 @@ app.post('/api/register', [
 
 // API ورود
 app.post('/api/login', [
-    body('phone_or_id').trim().notEmpty().withMessage('شناسه الزامی است.'),
+    body('phone_or_id').notEmpty().withMessage('شناسه الزامی است.'),
     body('password').notEmpty().withMessage('رمز عبور الزامی است.')
 ], async (req, res, next) => {
     const errors = validationResult(req);
@@ -305,23 +305,15 @@ app.get('/api/projects', async (req, res, next) => {
 });
 
 // API ساخت پروژه جدید
-app.post('/api/projects', upload.single('media_file'), [
-    body('title').trim().notEmpty().withMessage('عنوان پروژه الزامی است.'),
-    body('charity_name').trim().notEmpty().withMessage('نام خیریه الزامی است.')
-], async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
-    }
-
+app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
     try {
         const pool = getPool(req);
         const { title, charity_name, charity_id, province, district, description, user_type } = req.body;
 
         if (user_type !== 'legal' && user_type !== 'charity') {
-            return res.status(403).json({
-                success: false,
-                error: 'دسترسی غیرمجاز.'
+            return res.status(403).json({ 
+                success: false, 
+                error: 'دسترسی غیرمجاز.' 
             });
         }
 
@@ -333,7 +325,7 @@ app.post('/api/projects', upload.single('media_file'), [
         const result = await pool.query(
             `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0) RETURNING *`,
-            [title, charity_name, charity_id || 1, province || null, district || 'مرکزی', description || '', filePath]
+            [title, charity_name, charity_id || 1, province, district || 'مرکزی', description, filePath]
         );
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
@@ -342,21 +334,14 @@ app.post('/api/projects', upload.single('media_file'), [
 });
 
 // API ویرایش پروژه
-app.put('/api/projects/:id', upload.single('media_file'), [
-    body('title').trim().notEmpty().withMessage('عنوان پروژه الزامی است.')
-], async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
-    }
-
+app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next) => {
     try {
         const pool = getPool(req);
         const { id } = req.params;
         const { title, province, district, description } = req.body;
-
+        
         let query = `UPDATE projects SET title = $1, province = $2, district = $3, description = $4`;
-        let params = [title, province || null, district || null, description || ''];
+        let params = [title, province, district, description];
 
         if (req.file) {
             const filePath = '/uploads/' + req.file.filename;
@@ -467,16 +452,7 @@ app.get('/api/comments/:video_id', async (req, res, next) => {
     }
 });
 
-app.post('/api/comments', [
-    body('video_id').notEmpty().withMessage('شناسه محتوا الزامی است.'),
-    body('user_name').trim().notEmpty().withMessage('نام کاربر الزامی است.'),
-    body('text').trim().notEmpty().withMessage('متن دیدگاه الزامی است.')
-], async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
-    }
-
+app.post('/api/comments', async (req, res, next) => {
     try {
         const pool = getPool(req);
         const { video_id, user_name, text } = req.body;
@@ -499,16 +475,7 @@ app.get('/api/subscriptions/:user_id', async (req, res, next) => {
     }
 });
 
-app.post('/api/subscriptions/toggle', [
-    body('user_id').notEmpty().withMessage('شناسه کاربر الزامی است.'),
-    body('charity_id').notEmpty().withMessage('شناسه خیریه الزامی است.'),
-    body('charity_name').trim().notEmpty().withMessage('نام خیریه الزامی است.')
-], async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
-    }
-
+app.post('/api/subscriptions/toggle', async (req, res, next) => {
     try {
         const pool = getPool(req);
         const { user_id, charity_id, charity_name } = req.body;

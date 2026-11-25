@@ -1,17 +1,12 @@
 {
   "name": "mehrnama",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Mehrnama Charity Transparency Platform",
   "main": "server.js",
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
-    "start": "node server.js",
-    "start:de": "node server-de.js",
-    "dev": "node --watch server.js",
-    "dev:de": "node --watch server-de.js"
-  },
+  "start": "node server.js",
+  "start:de": "node server-de.js"
+},
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
