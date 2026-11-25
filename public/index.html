@@ -8,7 +8,7 @@
         body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
         header { background-color: #ffffff; padding: 12px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
         
-        .logo-box { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
+        .logo-box { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; flex-shrink: 0; }
         .logo-icon-wrapper { background: linear-gradient(135deg, #cc0000, #ff4d4d); color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2); flex-shrink: 0; }
         .logo-text-group { display: flex; flex-direction: column; }
         .logo-title { font-size: 21px; font-weight: 700; color: #111; letter-spacing: -0.3px; line-height: 1.2; font-family: Tahoma, sans-serif; }
@@ -19,33 +19,50 @@
         .search-btn { background-color: #f8f8f8; border: 1px solid #ccc; border-right: none; padding: 10px 20px; border-radius: 0 20px 20px 0; cursor: pointer; font-size: 14px; }
         .search-btn:hover { background-color: #f0f0f0; }
 
-        .header-actions { display: flex; align-items: center; gap: 8px; }
-        .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
         .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .btn-like { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
+        .btn-like { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; font-family: Tahoma, sans-serif; }
         .btn-like:hover { background-color: #fee2e2; color: #cc0000; border-color: #fca5a5; }
         .btn-like.liked { background-color: #fee2e2; color: #cc0000; border-color: #ef4444; }
-        .btn-subscribed { background-color: #e5e7eb; color: #374151; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .btn-subscribe { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-subscribed { background-color: #e5e7eb; color: #374151; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
+        .btn-subscribe { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
 
-        .mobile-upload-btn {
+        .mobile-upload-banner {
             display: none;
-            background-color: #cc0000;
+            background: #fff5f5;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .mobile-fab-upload {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #cc0000;
             color: #ffffff;
             border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-size: 13px;
             font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
             font-family: Tahoma, sans-serif;
+            box-shadow: 0 8px 20px rgba(204, 0, 0, 0.35);
+            z-index: 9500;
+            cursor: pointer;
+            align-items: center;
+            gap: 6px;
         }
         
         .tags-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 30px; background: #fff; border-bottom: 1px solid #eee; white-space: nowrap; scrollbar-width: none; margin-right: 240px; }
         .tags-bar::-webkit-scrollbar { display: none; }
-        .tag-chip { background-color: #f0f0f0; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; border: none; transition: background 0.2s; }
+        .tag-chip { background-color: #f0f0f0; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; border: none; transition: background 0.2s; font-family: Tahoma, sans-serif; }
         .tag-chip:hover, .tag-chip.active { background-color: #0f0f0f; color: white; }
 
         .mobile-bars-container { display: none; background: #fff; border-bottom: 1px solid #eee; flex-direction: column; }
@@ -205,12 +222,13 @@
         @media (max-width: 900px) {
             header { padding: 10px 12px; gap: 6px; }
             .logo-subtitle { display: none; }
-            .logo-title { font-size: 17px; }
-            .logo-icon-wrapper { width: 34px; height: 34px; }
-            .search-container { margin: 0 6px; max-width: 140px; }
-            .search-input { padding: 7px 10px; font-size: 12px; }
-            .search-btn { padding: 7px 10px; }
-            .mobile-upload-btn { display: inline-flex; align-items: center; gap: 4px; }
+            .logo-title { font-size: 16px; }
+            .logo-icon-wrapper { width: 32px; height: 32px; }
+            .search-container { margin: 0 4px; max-width: 110px; }
+            .search-input { padding: 6px 8px; font-size: 12px; }
+            .search-btn { padding: 6px 8px; }
+            .mobile-upload-banner.logged-in { display: flex; }
+            .mobile-fab-upload.logged-in { display: inline-flex; }
             .sidebar { display: none !important; }
             .main-container, .tags-bar { margin-right: 0 !important; padding: 15px; }
             .mobile-bars-container { display: flex; }
@@ -232,6 +250,10 @@
             <div class="upload-overlay-sub" id="uploadOverlaySub">لطفاً تا پایان آپلود و بهینه‌سازی ویدیو صبر کنید و صفحه را نبندید.</div>
         </div>
     </div>
+
+    <button type="button" class="mobile-fab-upload" id="mobileFabUpload" onclick="window.location.href='/?upload=true'">
+        ➕ بارگذاری ویدیو
+    </button>
 
     <header>
         <a class="logo-box" href="/">
@@ -292,6 +314,10 @@
         </aside>
 
         <main class="main-container" id="main-content">
+            <div class="mobile-upload-banner" id="mobileUploadBanner">
+                <span style="font-size: 12px; font-weight: bold; color: #991b1b;">🎬 بارگذاری ویدیو یا کار نیک جدید</span>
+                <button type="button" class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="window.location.href='/?upload=true'">➕ آپلود</button>
+            </div>
             <div class="content-grow" id="dynamicContent">
                 <p>در حال بارگذاری...</p>
             </div>
@@ -591,17 +617,23 @@
         function updateHeaderUser() {
             let user = getLoggedInUser();
             let headerActions = document.getElementById('headerActions');
+            let banner = document.getElementById('mobileUploadBanner');
+            let fab = document.getElementById('mobileFabUpload');
+
             if (user) {
                 headerActions.innerHTML = `
-                    <button type="button" class="mobile-upload-btn" onclick="window.location.href='/?upload=true'">➕ بارگذاری</button>
-                    <span style="font-size: 13px; font-weight: bold; color: #333; white-space: nowrap;">👤 ${user.name}</span>
+                    <span style="font-size: 12px; font-weight: bold; color: #333; max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">👤 ${user.name}</span>
                     <button class="btn-outline" onclick="handleLogout()" style="padding: 6px 10px; font-size: 12px;">خروج</button>
                 `;
+                if (banner) banner.classList.add('logged-in');
+                if (fab) fab.classList.add('logged-in');
             } else {
                 headerActions.innerHTML = `
                     <button class="btn-outline" onclick="openLoginModal()">ورود</button>
                     <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
                 `;
+                if (banner) banner.classList.remove('logged-in');
+                if (fab) fab.classList.remove('logged-in');
             }
         }
 
