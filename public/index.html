@@ -73,8 +73,9 @@
         .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
         .video-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
         .video-card:hover { transform: translateY(-4px); }
-        .media-box { width: 100%; height: 180px; background-color: #eef2f5; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .media-box img, .media-box video { width: 100%; height: 100%; object-fit: cover; }
+        .media-box { width: 100%; height: 180px; background: linear-gradient(135deg, #1f2937, #374151); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .media-box img, .media-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .video-play-badge { position: absolute; bottom: 10px; left: 10px; background: rgba(0, 0, 0, 0.72); color: #fff; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 999px; pointer-events: none; }
         .video-info { padding: 15px; }
         .video-title { font-size: 16px; font-weight: bold; color: #0f0f0f; margin-bottom: 6px; }
         .channel-row-inline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -92,8 +93,9 @@
         
         .watch-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
         .watch-main { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .watch-media { width: 100%; max-height: 480px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .watch-media { width: 100%; max-height: 480px; background: #000; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
         .watch-media video, .watch-media img { width: 100%; max-height: 480px; object-fit: contain; }
+        .ios-sound-tip { font-size: 12px; color: #555; background: #fefce8; border: 1px solid #fde047; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
         .watch-title { font-size: 20px; font-weight: bold; margin: 15px 0 10px 0; color: #111; }
         .watch-sub-info { font-size: 13px; color: #606060; margin-bottom: 15px; display: flex; gap: 12px; flex-wrap: wrap; }
         .watch-desc { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; white-space: pre-line; }
@@ -111,7 +113,7 @@
         .related-sidebar h3 { font-size: 16px; margin-top: 0; margin-bottom: 15px; color: #111; border-bottom: 2px solid #eee; padding-bottom: 8px; }
         .related-card { display: flex; gap: 10px; margin-bottom: 12px; cursor: pointer; background: #fafafa; border-radius: 8px; overflow: hidden; padding: 6px; }
         .related-card:hover { background: #f0f0f0; }
-        .related-thumb { width: 120px; height: 75px; background: #eef2f5; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+        .related-thumb { width: 120px; height: 75px; background: #1f2937; border-radius: 6px; overflow: hidden; flex-shrink: 0; position: relative; }
         .related-thumb img, .related-thumb video { width: 100%; height: 100%; object-fit: cover; }
         .related-info { display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
         .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; }
@@ -449,10 +451,14 @@
         function renderMediaElement(filePath, altText, isWatchPage = false) {
             const safeSrc = filePath || 'https://picsum.photos/600/400';
             if (isVideoFile(safeSrc)) {
+                const videoPosterSrc = safeSrc.includes('#') ? safeSrc : `${safeSrc}#t=0.1`;
                 if (isWatchPage) {
-                    return `<video src="${safeSrc}" controls playsinline preload="metadata"></video>`;
+                    return `<video id="mainWatchVideo" src="${videoPosterSrc}" controls playsinline webkit-playsinline preload="metadata" onplay="this.muted=false; this.volume=1;"></video>`;
                 }
-                return `<video src="${safeSrc}" muted playsinline preload="metadata"></video>`;
+                return `
+                    <video src="${videoPosterSrc}" muted playsinline webkit-playsinline preload="metadata"></video>
+                    <span class="video-play-badge">▶ ویدیو</span>
+                `;
             }
             return `<img src="${safeSrc}" alt="${altText || 'تصویر'}">`;
         }
@@ -940,7 +946,8 @@
                 <div class="upload-container">
                     <div class="section-title">بارگذاری ویدیو یا کار نیک جدید</div>
                     <div class="helper-hint">
-                        شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو یا عکس منتشر کنند.
+                        شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو یا عکس منتشر کنند.<br>
+                        نکته برای آیفون: برای پخش روان صدا و تصویر در همه گوشی‌ها، ترجیحاً ویدیو را با فرمت <strong>MP4</strong> بارگذاری کنید.
                     </div>
                     <div class="form-group"><label>عنوان ویدیو / کار نیک</label><input type="text" id="upTitle" placeholder="عنوان مستند، گزارش یا پویش..."></div>
                     <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
@@ -1431,6 +1438,7 @@
             }
 
             const jalaliText = formatJalaliDate(project.created_at);
+            const hasVideo = isVideoFile(project.file_path);
             let subs = await getSubscriptions();
             let isSubscribed = subs.some(s => s.id == project.charity_id);
             let user = getLoggedInUser();
@@ -1440,6 +1448,7 @@
                 <div class="watch-layout">
                     <div class="watch-main">
                         <div class="watch-media">${renderMediaElement(project.file_path, project.title, true)}</div>
+                        ${hasVideo ? `<div class="ios-sound-tip">🔊 اگر در آیفون صدا پخش نمی‌شود، مطمئن شوید دکمه سایلنت (Silent) کنار گوشی خاموش است و آیکون بلندگو روی ویدیو فعال باشد.</div>` : ''}
                         <div class="watch-title">${project.title}</div>
                         <div class="watch-sub-info">
                             <span id="viewCountDisplay">👁️ ${project.views || 0} بازدید</span>
