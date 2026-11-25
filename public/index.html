@@ -77,9 +77,13 @@
         .media-box img, .media-box video { width: 100%; height: 100%; object-fit: cover; }
         .video-info { padding: 15px; }
         .video-title { font-size: 16px; font-weight: bold; color: #0f0f0f; margin-bottom: 6px; }
-        .channel-link { font-size: 14px; color: #065fd4; margin-bottom: 6px; cursor: pointer; display: inline-block; }
+        .channel-row-inline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+        .channel-link { font-size: 14px; color: #065fd4; cursor: pointer; display: inline-block; }
         .channel-link:hover { text-decoration: underline; }
-        .video-meta { font-size: 12px; color: #606060; margin-bottom: 6px; display: flex; gap: 10px; }
+        .uploader-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: bold; }
+        .uploader-badge.real { background: #e0f2fe; color: #0369a1; }
+        .uploader-badge.legal { background: #fef2f2; color: #b91c1c; }
+        .video-meta { font-size: 12px; color: #606060; margin-bottom: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
         .video-desc { font-size: 13px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         
         .district-map-box { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
@@ -108,12 +112,13 @@
         .related-card { display: flex; gap: 10px; margin-bottom: 12px; cursor: pointer; background: #fafafa; border-radius: 8px; overflow: hidden; padding: 6px; }
         .related-card:hover { background: #f0f0f0; }
         .related-thumb { width: 120px; height: 75px; background: #eef2f5; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
-        .related-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .related-thumb img, .related-thumb video { width: 100%; height: 100%; object-fit: cover; }
         .related-info { display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
         .related-title { font-size: 13px; font-weight: bold; color: #111; margin: 0; }
         .related-channel { font-size: 11px; color: #666; margin-top: 4px; }
 
         .upload-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 700px; margin: 0 auto; }
+        .helper-hint { font-size: 12px; color: #666; background: #f9fafb; padding: 10px 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 14px; line-height: 1.7; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
@@ -241,7 +246,7 @@
                 <ul>
                     <li>در زمان ثبت‌نام کاربران حقیقی: نام، نام خانوادگی، کد ملی، شماره همراه منطبق با کد ملی و ایمیل (همراه با کد تایید ایمیل).</li>
                     <li>در زمان ثبت‌نام موسسات / خیریه‌ها: نام موسسه، شماره ثبت، نام و نام خانوادگی مدیر موسسه، کد ملی مدیر، شماره همراه مدیر، ایمیل، موقعیت فعالیت و رمز عبور.</li>
-                    <li>در زمان فعالیت در سایت: پروژه‌ها و رسانه‌های بارگذاری‌شده توسط خیریه‌ها، نظرات، پسندیدن‌ها و اشتراک‌ها.</li>
+                    <li>در زمان فعالیت در سایت: ویدیوها، تصاویر و پروژه‌های بارگذاری‌شده توسط کاربران حقیقی و موسسات خیریه، نظرات، پسندیدن‌ها و اشتراک‌ها.</li>
                 </ul>
 
                 <h4>۲. کوکی‌ها و حافظه محلی (Cookies & Local Storage)</h4>
@@ -412,6 +417,29 @@
 
         function getMainContentContainer() {
             return document.getElementById('dynamicContent') || document.getElementById('main-content');
+        }
+
+        function isVideoFile(filePath) {
+            if (!filePath) return false;
+            return /\.(mp4|mkv|mov|webm|ogg)(\?.*)?$/i.test(filePath);
+        }
+
+        function renderMediaElement(filePath, altText, isWatchPage = false) {
+            const safeSrc = filePath || 'https://picsum.photos/600/400';
+            if (isVideoFile(safeSrc)) {
+                if (isWatchPage) {
+                    return `<video src="${safeSrc}" controls playsinline preload="metadata"></video>`;
+                }
+                return `<video src="${safeSrc}" muted playsinline preload="metadata"></video>`;
+            }
+            return `<img src="${safeSrc}" alt="${altText || 'تصویر'}">`;
+        }
+
+        function getUploaderBadge(uploaderType) {
+            if (uploaderType === 'real') {
+                return `<span class="uploader-badge real">کاربر حقیقی</span>`;
+            }
+            return `<span class="uploader-badge legal">موسسه خیریه</span>`;
         }
 
         function initCookieConsent() {
@@ -629,7 +657,7 @@
                 let manager_phone = document.getElementById('regLegalManagerPhone').value.trim();
 
                 if (!name || !reg_no || !manager_first_name || !manager_last_name || !manager_national_id || !manager_phone) {
-                    alert('لطفاً نام موسسه، شماره ثبت و مشخصات مدیر موسسه را کامل وارد کنید.');
+                    alert('لطفاً نام موسسه، شماره ثبت و مشخصات کامل مدیر موسسه (نام، نام خانوادگی، کد ملی و شماره همراه) را وارد کنید.');
                     return;
                 }
 
@@ -784,8 +812,8 @@
             let user = getLoggedInUser();
             let uploadSection = document.getElementById('sidebarUploadSection');
             if (uploadSection) {
-                if (user && user.type === 'legal') {
-                    uploadSection.innerHTML = `<div class="sidebar-item" onclick="window.location.href='/?upload=true'">➕ <span>بارگذاری کار نیک</span></div>`;
+                if (user) {
+                    uploadSection.innerHTML = `<div class="sidebar-item" onclick="window.location.href='/?upload=true'">➕ <span>بارگذاری ویدیو یا کار نیک</span></div>`;
                 } else {
                     uploadSection.innerHTML = '';
                 }
@@ -871,15 +899,33 @@
         function loadUploadPage() {
             renderSidebar();
             let container = getMainContentContainer();
+            let user = getLoggedInUser();
+
+            if (!user) {
+                container.innerHTML = `
+                    <div class="upload-container" style="text-align:center;">
+                        <div class="section-title">بارگذاری ویدیو یا کار نیک</div>
+                        <p style="color:#555; margin-bottom:20px;">برای بارگذاری ویدیو یا تصویر، لطفاً ابتدا وارد حساب کاربری حقیقی یا حقوقی خود شوید.</p>
+                        <button class="btn-primary" onclick="openLoginModal()">ورود به حساب کاربری</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const uploaderLabel = user.type === 'real' ? 'کاربر حقیقی' : 'موسسه خیریه';
+
             container.innerHTML = `
                 <div class="upload-container">
-                    <div class="section-title">بارگذاری کار نیک جدید</div>
-                    <div class="form-group"><label>عنوان کار نیک / پروژه</label><input type="text" id="upTitle" placeholder="عنوان مستند یا پویش..."></div>
+                    <div class="section-title">بارگذاری ویدیو یا کار نیک جدید</div>
+                    <div class="helper-hint">
+                        شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو یا عکس منتشر کنند.
+                    </div>
+                    <div class="form-group"><label>عنوان ویدیو / کار نیک</label><input type="text" id="upTitle" placeholder="عنوان مستند، گزارش یا پویش..."></div>
                     <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="upDistrict" placeholder="مثلا تجریش"></div>
-                    <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه..."></textarea></div>
+                    <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه یا گزارش ویدیویی..."></textarea></div>
                     <div class="form-group">
-                        <label>انتخاب عکس یا ویدیو (حداکثر ۱۰ دقیقه)</label>
+                        <label>انتخاب ویدیو یا عکس (حداکثر ۱۰ دقیقه)</label>
                         <input type="file" id="upFile" accept="image/*,video/*">
                     </div>
                     <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در دیتابیس</button>
@@ -911,6 +957,12 @@
 
         async function submitNewProject() {
             let user = getLoggedInUser();
+            if (!user) {
+                alert('لطفاً ابتدا وارد حساب کاربری خود شوید.');
+                openLoginModal();
+                return;
+            }
+
             let title = document.getElementById('upTitle').value.trim();
             let province = document.getElementById('upProvince').value.trim();
             let district = document.getElementById('upDistrict').value.trim();
@@ -932,14 +984,12 @@
 
             let formData = new FormData();
             formData.append('title', title);
-            formData.append('charity_name', user ? user.name : 'موسسه خیریه');
-            formData.append('charity_id', user ? user.id : 1);
+            formData.append('charity_name', user.name);
+            formData.append('charity_id', user.id);
+            formData.append('user_type', user.type || 'real');
             formData.append('province', province);
             formData.append('district', district || 'مرکزی');
             formData.append('description', description);
-            if (user) {
-                formData.append('user_type', user.type || 'legal');
-            }
             if (fileInput) {
                 formData.append('media_file', fileInput);
             }
@@ -951,7 +1001,7 @@
                 });
                 let data = await res.json();
                 if (data.success) {
-                    alert('کار نیک شما با موفقیت همراه با فایل آپلود شد!');
+                    alert('ویدیو یا کار نیک شما با موفقیت آپلود شد!');
                     window.location.href = `/?v=${data.project.id}`;
                 } else {
                     alert(data.error || 'خطا در ثبت اطلاعات.');
@@ -969,20 +1019,20 @@
             let project = projects.find(p => p.id == projectId);
             
             let user = getLoggedInUser();
-            if (!project || (user && project.charity_id != user.id && user.id != 99)) {
+            if (!project || !user || (project.charity_id != user.id && user.id != 99)) {
                 container.innerHTML = '<p style="padding:40px; text-align:center; color:red;">شما اجازه ویرایش این پروژه را ندارید.</p>';
                 return;
             }
 
             container.innerHTML = `
                 <div class="upload-container">
-                    <div class="section-title">ویرایش کار نیک (پروژه #${project.id})</div>
-                    <div class="form-group"><label>عنوان کار نیک / پروژه</label><input type="text" id="editTitle" value="${project.title || ''}"></div>
+                    <div class="section-title">ویرایش ویدیو / کار نیک (پروژه #${project.id})</div>
+                    <div class="form-group"><label>عنوان ویدیو / کار نیک</label><input type="text" id="editTitle" value="${project.title || ''}"></div>
                     <div class="form-group"><label>استان</label><input type="text" id="editProvince" value="${project.province || ''}"></div>
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="editDistrict" value="${project.district || ''}"></div>
                     <div class="form-group"><label>توضیحات کامل</label><textarea id="editDesc" rows="4">${project.description || ''}</textarea></div>
                     <div class="form-group">
-                        <label>انتخاب فایل جدید (حداکثر ۱۰ دقیقه)</label>
+                        <label>انتخاب ویدیو یا عکس جدید (حداکثر ۱۰ دقیقه)</label>
                         <input type="file" id="editFile" accept="image/*,video/*">
                     </div>
                     <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitEditProject(${project.id})">ذخیره تغییرات و تعویض فایل</button>
@@ -1043,7 +1093,7 @@
             renderSidebar();
             updateActiveTag(searchQuery);
             let container = getMainContentContainer();
-            let titleText = searchQuery ? `نتایج جستجو برای: "${searchQuery}"` : 'آخرین کارهای نیک';
+            let titleText = searchQuery ? `نتایج جستجو برای: "${searchQuery}"` : 'آخرین ویدیوها و کارهای نیک';
 
             container.innerHTML = `
                 <div class="section-title">${titleText}</div>
@@ -1066,7 +1116,7 @@
             topVc.innerHTML = '';
 
             if (projects.length === 0) {
-                topVc.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#666; padding: 40px;">هیچ کار نیکی با این مشخصات یافت نشد.</p>';
+                topVc.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#666; padding: 40px;">هیچ موردی با این مشخصات یافت نشد.</p>';
                 return;
             }
 
@@ -1075,10 +1125,13 @@
                 card.className = 'video-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
                 card.innerHTML = `
-                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="media-box">${renderMediaElement(p.file_path, p.title, false)}</div>
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
-                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name || 'خیریه مهرنما'}</div>
+                        <div class="channel-row-inline">
+                            <span class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name || 'کاربر مهرنما'}</span>
+                            ${getUploaderBadge(p.uploader_type)}
+                        </div>
                         <div class="video-meta">
                             <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
@@ -1099,7 +1152,7 @@
                 <div class="channel-header">
                     <div>
                         <h2>${titleText}</h2>
-                        <p>نمایش ویدیوها و مستندات خیرخواهانه ثبت شده</p>
+                        <p>نمایش ویدیوها و مستندات ثبت‌شده توسط کاربران و موسسات</p>
                     </div>
                 </div>
 
@@ -1108,7 +1161,7 @@
                     <div class="district-map-box" id="districtMapBox"></div>
                 </div>
 
-                <div class="section-title">کارهای نیک این منطقه</div>
+                <div class="section-title">ویدیوها و کارهای نیک این منطقه</div>
                 <div class="video-grid" id="province-videos"></div>
             `;
 
@@ -1136,10 +1189,13 @@
                 card.className = 'video-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
                 card.innerHTML = `
-                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="media-box">${renderMediaElement(p.file_path, p.title, false)}</div>
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
-                        <div class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</div>
+                        <div class="channel-row-inline">
+                            <span class="channel-link" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</span>
+                            ${getUploaderBadge(p.uploader_type)}
+                        </div>
                         <div class="video-meta">
                             <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
@@ -1156,7 +1212,8 @@
             let container = getMainContentContainer();
             let projects = await fetchProjectsSafe();
             let channelProjects = projects.filter(p => p.charity_id == charityId);
-            let charityName = channelProjects.length > 0 ? channelProjects[0].charity_name : 'موسسه خیریه';
+            let charityName = channelProjects.length > 0 ? channelProjects[0].charity_name : 'صفحه کاربر / موسسه';
+            let uploaderType = channelProjects.length > 0 ? channelProjects[0].uploader_type : 'legal';
 
             let subs = await getSubscriptions();
             let isSubscribed = subs.some(s => s.id == charityId);
@@ -1164,14 +1221,14 @@
             container.innerHTML = `
                 <div class="channel-header">
                     <div>
-                        <h2>${charityName}</h2>
-                        <p>نمایش فعالیت‌ها و مستندات ثبت شده توسط این موسسه خیرخواهانه</p>
+                        <h2>${charityName} ${getUploaderBadge(uploaderType)}</h2>
+                        <p>نمایش ویدیوها و مستندات ثبت‌شده توسط این حساب کاربری</p>
                     </div>
                     <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="channelSubBtn" onclick="toggleSubscribe('${charityId}', '${charityName}')">
                         ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
                     </button>
                 </div>
-                <div class="section-title">کارهای نیک این موسسه</div>
+                <div class="section-title">ویدیوها و کارهای نیک ثبت‌شده</div>
                 <div class="video-grid" id="channel-videos"></div>
             `;
 
@@ -1183,10 +1240,13 @@
                 card.className = 'video-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
                 card.innerHTML = `
-                    <div class="media-box"><img src="${p.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                    <div class="media-box">${renderMediaElement(p.file_path, p.title, false)}</div>
                     <div class="video-info">
                         <div class="video-title">${p.title}</div>
-                        <div class="channel-link">${p.charity_name}</div>
+                        <div class="channel-row-inline">
+                            <span class="channel-link">${p.charity_name}</span>
+                            ${getUploaderBadge(p.uploader_type)}
+                        </div>
                         <div class="video-meta">
                             <span>👁️ ${p.views || 0} بازدید</span> • <span>❤️ ${p.likes || 0} پسندیدم</span>
                             <span>📍 ${p.province}</span>
@@ -1350,15 +1410,18 @@
             container.innerHTML = `
                 <div class="watch-layout">
                     <div class="watch-main">
-                        <div class="watch-media"><img src="${project.file_path || 'https://picsum.photos/600/400'}" alt="تصویر"></div>
+                        <div class="watch-media">${renderMediaElement(project.file_path, project.title, true)}</div>
                         <div class="watch-title">${project.title}</div>
                         <div class="watch-sub-info">
                             <span id="viewCountDisplay">👁️ ${project.views || 0} بازدید</span> • <span>📍 استان ${project.province} (${project.district})</span>
                         </div>
                         
                         <div class="watch-channel-row">
-                            <div class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">${project.charity_name}</div>
-                            <div style="display: flex; gap: 10px; align-items: center;">
+                            <div class="channel-row-inline">
+                                <span class="channel-link" onclick="window.location.href='/?charity_id=${project.charity_id}'" style="font-size: 16px; font-weight: bold;">${project.charity_name}</span>
+                                ${getUploaderBadge(project.uploader_type)}
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                 <button class="btn-like ${userLiked ? 'liked' : ''}" id="likeBtn" onclick="submitLike(${project.id})">
                                     <span id="likeCountDisplay">❤️ ${project.likes || 0} پسندیدم</span>
                                 </button>
@@ -1381,7 +1444,7 @@
                         </div>
                     </div>
                     <div class="related-sidebar">
-                        <h3>کارهای نیک مرتبط</h3>
+                        <h3>ویدیوها و کارهای نیک مرتبط</h3>
                         <div id="relatedList"></div>
                     </div>
                 </div>
@@ -1395,7 +1458,7 @@
                 card.className = 'related-card';
                 card.onclick = () => window.location.href = `/?v=${p.id}`;
                 card.innerHTML = `
-                    <div class="related-thumb"><img src="${p.file_path}" alt="تصویر"></div>
+                    <div class="related-thumb">${renderMediaElement(p.file_path, p.title, false)}</div>
                     <div class="related-info">
                         <div class="related-title">${p.title}</div>
                         <div class="related-channel" onclick="event.stopPropagation(); window.location.href='/?charity_id=${p.charity_id}'">${p.charity_name}</div>
