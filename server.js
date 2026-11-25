@@ -15,7 +15,6 @@ const port = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
-// تنظیمات CORS برای هر دو دامنه
 const corsOptions = {
     origin: ['https://mehrnama.info', 'https://einherzwiekristall.de', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -31,7 +30,6 @@ app.use(helmet({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate Limiting
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -54,7 +52,6 @@ app.use('/api/register', authLimiter);
 app.use('/api/send-verification-code', authLimiter);
 app.use('/api/forgot-password', authLimiter);
 
-// تنظیمات ارسال ایمیل از طریق Gmail
 const gmailUser = process.env.GMAIL_USER || 'mehrnama.info@gmail.com';
 const gmailAppPassword = process.env.GMAIL_APP_PASSWORD || '';
 
@@ -66,7 +63,6 @@ const mailTransporter = nodemailer.createTransport({
     }
 });
 
-// نگهداری موقت کدهای تایید ثبت‌نام و بازیابی رمز (معتبر برای ۱۰ دقیقه)
 const verificationCodes = new Map();
 const resetPasswordCodes = new Map();
 
@@ -102,7 +98,6 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// اتصال به دیتابیس دوم (آلمان)
 const dbConnectionString = process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db';
 
 const poolEinHerz = new Pool({
@@ -114,7 +109,6 @@ function getPool(req) {
     return poolEinHerz;
 }
 
-// تابع ایجاد کامل تمامی جدول‌ها به صورت کاملاً Consistent با مهرنما
 async function initDBForPool(pool, isGerman = false) {
     try {
         await pool.query(`
@@ -265,7 +259,6 @@ async function initDBForPool(pool, isGerman = false) {
 
 initDBForPool(poolEinHerz, true);
 
-// سرو هوشمند فایل HTML اصلی بر اساس دامنه
 app.get('/', (req, res) => {
     const hostname = req.hostname || req.headers.host || '';
     if (hostname.includes('einherzwiekristall')) {
@@ -275,10 +268,8 @@ app.get('/', (req, res) => {
     }
 });
 
-// سرو فایل‌های استاتیک
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API ارسال کد تایید ایمیل برای ثبت‌نام
 app.post('/api/send-verification-code', [
     body('email').isEmail().withMessage('لطفاً یک آدرس ایمیل معتبر وارد کنید.')
 ], async (req, res, next) => {
@@ -324,7 +315,6 @@ app.post('/api/send-verification-code', [
     }
 });
 
-// API ارسال کد بازیابی رمز عبور به ایمیل ثبت‌شده
 app.post('/api/forgot-password/send-code', [
     body('email').isEmail().withMessage('لطفاً یک آدرس ایمیل معتبر وارد کنید.')
 ], async (req, res, next) => {
@@ -383,7 +373,6 @@ app.post('/api/forgot-password/send-code', [
     }
 });
 
-// API ثبت رمز عبور جدید پس از تایید کد بازیابی
 app.post('/api/forgot-password/reset', [
     body('email').isEmail().withMessage('ایمیل معتبر الزامی است.'),
     body('code').trim().notEmpty().withMessage('کد بازیابی الزامی است.'),
@@ -435,7 +424,6 @@ app.post('/api/forgot-password/reset', [
     }
 });
 
-// API ثبت‌نام با بررسی کد تایید ایمیل و اطلاعات هویتی
 app.post('/api/register', [
     body('email').isEmail().withMessage('ایمیل معتبر الزامی است.'),
     body('verification_code').trim().notEmpty().withMessage('کد تایید ایمیل الزامی است.'),
@@ -548,7 +536,6 @@ app.post('/api/register', [
     }
 });
 
-// API ورود با ایمیل و رمز عبور
 app.post('/api/login', [
     body('email').isEmail().withMessage('لطفاً ایمیل معتبر وارد کنید.'),
     body('password').notEmpty().withMessage('رمز عبور الزامی است.')
@@ -583,7 +570,6 @@ app.post('/api/login', [
     }
 });
 
-// API لیست پروژه‌ها
 app.get('/api/projects', async (req, res, next) => {
     try {
         const pool = getPool(req);
@@ -594,7 +580,6 @@ app.get('/api/projects', async (req, res, next) => {
     }
 });
 
-// API ساخت پروژه جدید
 app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
     try {
         const pool = getPool(req);
@@ -623,7 +608,6 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
     }
 });
 
-// API ویرایش پروژه
 app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next) => {
     try {
         const pool = getPool(req);
@@ -649,7 +633,6 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
     }
 });
 
-// API تعداد بازدید
 app.post('/api/projects/:id/view', async (req, res, next) => {
     try {
         const pool = getPool(req);
@@ -668,7 +651,6 @@ app.post('/api/projects/:id/view', async (req, res, next) => {
     }
 });
 
-// API لایک
 app.post('/api/projects/:id/like', async (req, res, next) => {
     try {
         const pool = getPool(req);
@@ -730,7 +712,6 @@ app.get('/api/projects/:id/user-liked', async (req, res, next) => {
     }
 });
 
-// API کامنت‌ها
 app.get('/api/comments/:video_id', async (req, res, next) => {
     try {
         const pool = getPool(req);
@@ -753,7 +734,6 @@ app.post('/api/comments', async (req, res, next) => {
     }
 });
 
-// API اشتراک‌ها
 app.get('/api/subscriptions/:user_id', async (req, res, next) => {
     try {
         const pool = getPool(req);
