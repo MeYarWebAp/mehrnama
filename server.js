@@ -187,6 +187,7 @@ async function initDBForPool(pool, isGerman = false) {
                 title VARCHAR(255) NOT NULL,
                 charity_name VARCHAR(255) NOT NULL,
                 charity_id INT,
+                uploader_type VARCHAR(50) DEFAULT 'legal',
                 province VARCHAR(100),
                 district VARCHAR(100),
                 description TEXT,
@@ -197,6 +198,7 @@ async function initDBForPool(pool, isGerman = false) {
             );
         `);
 
+        await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS uploader_type VARCHAR(50) DEFAULT 'legal';`);
         await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`);
         await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS likes INT DEFAULT 0;`);
 
@@ -583,12 +585,18 @@ app.get('/api/projects', async (req, res, next) => {
 app.post('/api/projects', upload.single('media_file'), async (req, res, next) => {
     try {
         const pool = getPool(req);
-        const { title, charity_name, charity_id, province, district, description, user_type } = req.body;
+        const title = String(req.body.title || '').trim();
+        const charityName = String(req.body.charity_name || '').trim();
+        const charityId = req.body.charity_id ? Number(req.body.charity_id) : null;
+        const uploaderType = req.body.user_type === 'real' ? 'real' : 'legal';
+        const province = String(req.body.province || '').trim();
+        const district = String(req.body.district || 'مرکزی').trim();
+        const description = String(req.body.description || '').trim();
 
-        if (user_type !== 'legal' && user_type !== 'charity') {
-            return res.status(403).json({
+        if (!title || !province || !charityId) {
+            return res.status(400).json({
                 success: false,
-                error: 'دسترسی غیرمجاز.'
+                error: 'لطفاً وارد حساب کاربری شوید و عنوان و استان را تکمیل کنید.'
             });
         }
 
@@ -598,9 +606,18 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
         }
 
         const result = await pool.query(
-            `INSERT INTO projects (title, charity_name, charity_id, province, district, description, file_path, views, likes)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0) RETURNING *`,
-            [title, charity_name, charity_id || 1, province, district || 'مرکزی', description, filePath]
+            `INSERT INTO projects (title, charity_name, charity_id, uploader_type, province, district, description, file_path, views, likes)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0) RETURNING *`,
+            [
+                title,
+                charityName || (uploaderType === 'real' ? 'کاربر حقیقی' : 'موسسه خیریه'),
+                charityId,
+                uploaderType,
+                province,
+                district || 'مرکزی',
+                description,
+                filePath
+            ]
         );
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
@@ -627,6 +644,9 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
         }
 
         const result = await pool.query(query, params);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'پروژه یافت نشد.' });
+        }
         res.json({ success: true, project: result.rows[0] });
     } catch (err) {
         next(err);
