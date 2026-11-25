@@ -201,11 +201,10 @@
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">ورود به سامانه</h3>
-            <div class="tab-row">
-                <button class="tab-btn active" id="loginTabReal" onclick="switchLoginType('real')">کاربر حقیقی</button>
-                <button class="tab-btn" id="loginTabLegal" onclick="switchLoginType('legal')">کاربر حقوقی (خیریه)</button>
+            <div class="form-group">
+                <label>ایمیل</label>
+                <input type="email" id="loginEmail" placeholder="example@gmail.com">
             </div>
-            <div class="form-group"><label id="loginIdLabel">شماره همراه</label><input type="text" id="loginPhoneOrId" placeholder="شماره تماس یا شناسه..."></div>
             <div class="form-group">
                 <label>رمز عبور</label>
                 <input type="password" id="loginPass" placeholder="******">
@@ -253,9 +252,26 @@
             </div>
             
             <div id="regRealFields">
-                <div class="form-group"><label>نام کامل</label><input type="text" id="regRealName" placeholder="نام و نام خانوادگی..."></div>
-                <div class="form-group"><label>شماره تلفن همراه</label><input type="text" id="regRealPhone" placeholder="09123456789"></div>
-                <div class="form-group"><label>ایمیل</label><input type="email" id="regRealEmail" placeholder="example@gmail.com"></div>
+                <div class="form-group">
+                    <label>نام منطبق با کد ملی</label>
+                    <input type="text" id="regRealFirstName" placeholder="نام منطبق با کد ملی...">
+                </div>
+                <div class="form-group">
+                    <label>نام خانوادگی منطبق با کد ملی</label>
+                    <input type="text" id="regRealLastName" placeholder="نام خانوادگی منطبق با کد ملی...">
+                </div>
+                <div class="form-group">
+                    <label>کد ملی</label>
+                    <input type="text" id="regRealNationalId" placeholder="کد ملی ۱۰ رقمی...">
+                </div>
+                <div class="form-group">
+                    <label>شماره همراه منطبق با دارنده کد ملی</label>
+                    <input type="text" id="regRealPhone" placeholder="09123456789">
+                </div>
+                <div class="form-group">
+                    <label>ایمیل</label>
+                    <input type="email" id="regRealEmail" placeholder="example@gmail.com">
+                </div>
                 <div class="form-group">
                     <label>کد تایید ارسال‌شده به ایمیل</label>
                     <div class="verify-row">
@@ -263,13 +279,41 @@
                         <button type="button" class="btn-verify" onclick="sendVerificationCode('real')">ارسال کد تایید</button>
                     </div>
                 </div>
-                <div class="form-group"><label>رمز عبور</label><input type="password" id="regRealPass" placeholder="******"></div>
+                <div class="form-group">
+                    <label>رمز عبور</label>
+                    <input type="password" id="regRealPass" placeholder="******">
+                </div>
             </div>
 
             <div id="regLegalFields" style="display: none;">
-                <div class="form-group"><label>نام موسسه / خیریه</label><input type="text" id="regLegalName" placeholder="نام موسسه..."></div>
-                <div class="form-group"><label>شماره ثبت</label><input type="text" id="regLegalRegNo" placeholder="شماره ثبت موسسه..."></div>
-                <div class="form-group"><label>ایمیل موسسه</label><input type="email" id="regLegalEmail" placeholder="charity@gmail.com"></div>
+                <div class="form-group">
+                    <label>نام موسسه / خیریه</label>
+                    <input type="text" id="regLegalName" placeholder="نام موسسه...">
+                </div>
+                <div class="form-group">
+                    <label>شماره ثبت</label>
+                    <input type="text" id="regLegalRegNo" placeholder="شماره ثبت موسسه...">
+                </div>
+                <div class="form-group">
+                    <label>نام مدیر موسسه (منطبق با کد ملی)</label>
+                    <input type="text" id="regLegalManagerFirstName" placeholder="نام مدیر موسسه...">
+                </div>
+                <div class="form-group">
+                    <label>نام خانوادگی مدیر موسسه (منطبق با کد ملی)</label>
+                    <input type="text" id="regLegalManagerLastName" placeholder="نام خانوادگی مدیر موسسه...">
+                </div>
+                <div class="form-group">
+                    <label>کد ملی مدیر موسسه</label>
+                    <input type="text" id="regLegalManagerNationalId" placeholder="کد ملی مدیر موسسه...">
+                </div>
+                <div class="form-group">
+                    <label>شماره همراه مدیر موسسه (منطبق با کد ملی مدیر)</label>
+                    <input type="text" id="regLegalManagerPhone" placeholder="09123456789">
+                </div>
+                <div class="form-group">
+                    <label>ایمیل موسسه</label>
+                    <input type="email" id="regLegalEmail" placeholder="charity@gmail.com">
+                </div>
                 <div class="form-group">
                     <label>کد تایید ارسال‌شده به ایمیل</label>
                     <div class="verify-row">
@@ -277,11 +321,22 @@
                         <button type="button" class="btn-verify" onclick="sendVerificationCode('legal')">ارسال کد تایید</button>
                     </div>
                 </div>
-                <div class="form-group"><label>استان فعالیت</label><input type="text" id="regLegalProvince" placeholder="مثلا تهران"></div>
-                <div class="form-group"><label>شهر فعالیت</label><input type="text" id="regLegalCity" placeholder="مثلا تهران"></div>
-                <div class="form-group"><label>محله یا منطقه فعالیت</label><input type="text" id="regLegalDistrict" placeholder="مثلا تجریش"></div>
-                <div class="form-group"><label>شماره تلفن تماس</label><input type="text" id="regLegalPhone" placeholder="02112345678"></div>
-                <div class="form-group"><label>رمز عبور</label><input type="password" id="regLegalPass" placeholder="******"></div>
+                <div class="form-group">
+                    <label>استان فعالیت</label>
+                    <input type="text" id="regLegalProvince" placeholder="مثلا تهران">
+                </div>
+                <div class="form-group">
+                    <label>شهر فعالیت</label>
+                    <input type="text" id="regLegalCity" placeholder="مثلا تهران">
+                </div>
+                <div class="form-group">
+                    <label>محله یا منطقه فعالیت</label>
+                    <input type="text" id="regLegalDistrict" placeholder="مثلا تجریش">
+                </div>
+                <div class="form-group">
+                    <label>رمز عبور</label>
+                    <input type="password" id="regLegalPass" placeholder="******">
+                </div>
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
@@ -292,7 +347,6 @@
     </div>
 
     <script>
-        let currentLoginType = 'real';
         let currentRegType = 'real';
 
         function getLoggedInUser() {
@@ -402,11 +456,11 @@
         }
 
         async function handleLogin() {
-            let identifier = document.getElementById('loginPhoneOrId').value.trim();
+            let email = document.getElementById('loginEmail').value.trim();
             let password = document.getElementById('loginPass').value.trim();
 
-            if (!identifier || !password) {
-                alert('لطفاً اطلاعات ورود و رمز عبور را کامل وارد کنید.');
+            if (!email || !password) {
+                alert('لطفاً ایمیل و رمز عبور را کامل وارد کنید.');
                 return;
             }
 
@@ -415,9 +469,8 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        phone_or_id: identifier,
-                        password: password,
-                        user_type: currentLoginType
+                        email: email,
+                        password: password
                     })
                 });
                 let data = await res.json();
@@ -439,28 +492,67 @@
 
         async function handleRegister() {
             let isReal = currentRegType === 'real';
-            let name = isReal ? document.getElementById('regRealName').value.trim() : document.getElementById('regLegalName').value.trim();
-            let phone_or_id = isReal ? document.getElementById('regRealPhone').value.trim() : document.getElementById('regLegalRegNo').value.trim();
-            let email = isReal ? document.getElementById('regRealEmail').value.trim() : document.getElementById('regLegalEmail').value.trim();
-            let verification_code = isReal ? document.getElementById('regRealCode').value.trim() : document.getElementById('regLegalCode').value.trim();
-            let password = isReal ? document.getElementById('regRealPass').value.trim() : document.getElementById('regLegalPass').value.trim();
 
-            if (!name || !phone_or_id || !email || !verification_code || !password) {
-                alert('لطفاً نام، شناسه، ایمیل، کد تایید و رمز عبور را کامل وارد کنید.');
+            let email = isReal
+                ? document.getElementById('regRealEmail').value.trim()
+                : document.getElementById('regLegalEmail').value.trim();
+            let verification_code = isReal
+                ? document.getElementById('regRealCode').value.trim()
+                : document.getElementById('regLegalCode').value.trim();
+            let password = isReal
+                ? document.getElementById('regRealPass').value.trim()
+                : document.getElementById('regLegalPass').value.trim();
+
+            if (!email || !verification_code || !password) {
+                alert('لطفاً ایمیل، کد تایید و رمز عبور را کامل وارد کنید.');
                 return;
             }
 
             let payload = {
-                name: name,
                 user_type: currentRegType,
-                phone_or_id: phone_or_id,
                 email: email,
                 verification_code: verification_code,
-                password: password,
-                province: !isReal ? document.getElementById('regLegalProvince').value.trim() : null,
-                city: !isReal ? document.getElementById('regLegalCity').value.trim() : null,
-                district: !isReal ? document.getElementById('regLegalDistrict').value.trim() : null
+                password: password
             };
+
+            if (isReal) {
+                let first_name = document.getElementById('regRealFirstName').value.trim();
+                let last_name = document.getElementById('regRealLastName').value.trim();
+                let national_id = document.getElementById('regRealNationalId').value.trim();
+                let phone = document.getElementById('regRealPhone').value.trim();
+
+                if (!first_name || !last_name || !national_id || !phone) {
+                    alert('لطفاً نام، نام خانوادگی، کد ملی و شماره همراه منطبق با کد ملی را کامل وارد کنید.');
+                    return;
+                }
+
+                payload.first_name = first_name;
+                payload.last_name = last_name;
+                payload.national_id = national_id;
+                payload.phone = phone;
+            } else {
+                let name = document.getElementById('regLegalName').value.trim();
+                let reg_no = document.getElementById('regLegalRegNo').value.trim();
+                let manager_first_name = document.getElementById('regLegalManagerFirstName').value.trim();
+                let manager_last_name = document.getElementById('regLegalManagerLastName').value.trim();
+                let manager_national_id = document.getElementById('regLegalManagerNationalId').value.trim();
+                let manager_phone = document.getElementById('regLegalManagerPhone').value.trim();
+
+                if (!name || !reg_no || !manager_first_name || !manager_last_name || !manager_national_id || !manager_phone) {
+                    alert('لطفاً نام موسسه، شماره ثبت و مشخصات مدیر موسسه را کامل وارد کنید.');
+                    return;
+                }
+
+                payload.name = name;
+                payload.reg_no = reg_no;
+                payload.manager_first_name = manager_first_name;
+                payload.manager_last_name = manager_last_name;
+                payload.manager_national_id = manager_national_id;
+                payload.manager_phone = manager_phone;
+                payload.province = document.getElementById('regLegalProvince').value.trim() || null;
+                payload.city = document.getElementById('regLegalCity').value.trim() || null;
+                payload.district = document.getElementById('regLegalDistrict').value.trim() || null;
+            }
 
             try {
                 let res = await fetch('/api/register', {
@@ -474,7 +566,8 @@
                     localStorage.setItem('mehrnama_user', JSON.stringify({
                         id: data.user.id,
                         name: data.user.name,
-                        type: data.user.user_type
+                        type: data.user.user_type,
+                        email: data.user.email
                     }));
                     closeRegisterModal();
                     updateHeaderUser();
@@ -505,13 +598,6 @@
             document.getElementById('forgotPasswordModal').style.display = 'flex';
         }
         function closeForgotPasswordModal() { document.getElementById('forgotPasswordModal').style.display = 'none'; }
-
-        function switchLoginType(type) {
-            currentLoginType = type;
-            document.getElementById('loginTabReal').className = type === 'real' ? 'tab-btn active' : 'tab-btn';
-            document.getElementById('loginTabLegal').className = type === 'legal' ? 'tab-btn active' : 'tab-btn';
-            document.getElementById('loginIdLabel').innerText = type === 'real' ? 'شماره همراه' : 'شماره ثبت یا شناسه موسسه';
-        }
 
         function switchRegType(type) {
             currentRegType = type;
@@ -1252,3 +1338,11 @@
     </script>
 </body>
 </html>
+```[cite: 15]
+
+---
+
+### نکته مهم درباره کاربران قدیمی در دیتابیس
+* اگر از قبل کاربری در جدول `users` ثبت شده که ستون `email` آن خالی (`NULL`) بوده، ورود با ایمیل فقط برای حساب‌هایی کار می‌کند که `email` دارند؛ برای حساب‌های جدید پس از اعمال این دو فایل و یک **Build / Deploy** جدید، ایمیل به‌صورت کامل در `users` ذخیره می‌شود و ورود با ایمیل و رمز عبور انجام خواهد شد[cite: 15].
+
+پس از جایگزینی `server.js` و `public/index.html` در گیت و دیپلوی جدید، اگر در ثبت‌نام یا ورود با ایمیل مشکلی دیدید، بفرمایید تا بررسی کنیم[cite: 15].
