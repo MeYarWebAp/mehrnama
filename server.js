@@ -52,6 +52,7 @@ app.use('/api/', apiLimiter);
 app.use('/api/login', authLimiter);
 app.use('/api/register', authLimiter);
 app.use('/api/send-verification-code', authLimiter);
+app.use('/api/forgot-password', authLimiter);
 
 // تنظیمات ارسال ایمیل از طریق Gmail
 const gmailUser = process.env.GMAIL_USER || 'mehrnama.info@gmail.com';
@@ -65,8 +66,9 @@ const mailTransporter = nodemailer.createTransport({
     }
 });
 
-// نگهداری موقت کدهای تایید به ازای هر ایمیل (معتبر برای ۱۰ دقیقه)
+// نگهداری موقت کدهای تایید ثبت‌نام و بازیابی رمز (معتبر برای ۱۰ دقیقه)
 const verificationCodes = new Map();
+const resetPasswordCodes = new Map();
 
 function normalizeEmail(email) {
     return String(email || '').trim().toLowerCase();
@@ -301,6 +303,117 @@ app.post('/api/send-verification-code', [
         });
 
         res.json({ success: true, message: 'کد تایید به ایمیل شما ارسال شد.' });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// API ارسال کد بازیابی رمز عبور به ایمیل ثبت‌شده
+app.post('/api/forgot-password/send-code', [
+    body('email').isEmail().withMessage('لطفاً یک آدرس ایمیل معتبر وارد کنید.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
+    if (!gmailAppPassword) {
+        return res.status(500).json({
+            success: false,
+            error: 'رمز برنامه‌ای GMAIL_APP_PASSWORD روی سرور تنظیم نشده است.'
+        });
+    }
+
+    try {
+        const email = normalizeEmail(req.body.email);
+        const pool = getPool(req);
+        const userCheck = await pool.query(
+            'SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1',
+            [email]
+        );
+
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'حساب کاربری با این ایمیل یافت نشد.'
+            });
+        }
+
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        const expiresAt = Date.now() + 10 * 60 * 1000;
+
+        resetPasswordCodes.set(email, { code, expiresAt });
+
+        await mailTransporter.sendMail({
+            from: `"مهرنما" <${gmailUser}>`,
+            to: email,
+            subject: 'کد بازیابی رمز عبور در مهرنما',
+            text: `کد بازیابی رمز عبور شما در سامانه مهرنما: ${code}\nاین کد تا ۱۰ دقیقه معتبر است.`,
+            html: `
+                <div dir="rtl" style="font-family: Tahoma, sans-serif; line-height: 1.8; color: #222;">
+                    <h2 style="color: #cc0000;">بازیابی رمز عبور در مهرنما</h2>
+                    <p>کاربر گرامی، کد بازیابی رمز عبور حساب شما در مهرنما عبارت است از:</p>
+                    <div style="font-size: 24px; font-weight: bold; letter-spacing: 4px; background: #f3f4f6; padding: 12px 20px; border-radius: 8px; display: inline-block; margin: 10px 0;">
+                        ${code}
+                    </div>
+                    <p style="font-size: 13px; color: #666;">این کد به مدت ۱۰ دقیقه معتبر است. اگر شما این درخواست را نداده‌اید، این ایمیل را نادیده بگیرید.</p>
+                </div>
+            `
+        });
+
+        res.json({ success: true, message: 'کد بازیابی رمز عبور به ایمیل شما ارسال شد.' });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// API ثبت رمز عبور جدید پس از تایید کد بازیابی
+app.post('/api/forgot-password/reset', [
+    body('email').isEmail().withMessage('ایمیل معتبر الزامی است.'),
+    body('code').trim().notEmpty().withMessage('کد بازیابی الزامی است.'),
+    body('new_password').isLength({ min: 6 }).withMessage('رمز عبور جدید باید حداقل ۶ کاراکتر باشد.')
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+
+    try {
+        const email = normalizeEmail(req.body.email);
+        const submittedCode = String(req.body.code || '').trim();
+        const savedEntry = resetPasswordCodes.get(email);
+
+        if (!savedEntry || Date.now() > savedEntry.expiresAt) {
+            resetPasswordCodes.delete(email);
+            return res.status(400).json({
+                success: false,
+                error: 'کد بازیابی منقضی شده یا ارسال نشده است. لطفاً دوباره کد درخواست کنید.'
+            });
+        }
+
+        if (savedEntry.code !== submittedCode) {
+            return res.status(400).json({
+                success: false,
+                error: 'کد بازیابی واردشده صحیح نیست.'
+            });
+        }
+
+        const pool = getPool(req);
+        const hashedPassword = await bcrypt.hash(req.body.new_password, 10);
+        const updateResult = await pool.query(
+            'UPDATE users SET password = $1 WHERE LOWER(email) = $2 RETURNING id',
+            [hashedPassword, email]
+        );
+
+        if (updateResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'حساب کاربری با این ایمیل یافت نشد.'
+            });
+        }
+
+        resetPasswordCodes.delete(email);
+        res.json({ success: true, message: 'رمز عبور شما با موفقیت تغییر کرد.' });
     } catch (err) {
         next(err);
     }
