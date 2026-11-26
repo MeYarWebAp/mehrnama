@@ -648,7 +648,7 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0) RETURNING *`,
             [
                 title,
-                charityName || (uploaderType === 'real' ? 'کاربر حقیقی' : 'موسسه خیریه'),
+                charityName || (uploaderType === 'real' ? 'کاربر حقیقی' : 'کاربر حقوقی'),
                 charityId,
                 uploaderType,
                 province,
