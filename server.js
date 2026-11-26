@@ -4,15 +4,11 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
-const { execFile } = require('child_process');
-const { promisify } = require('util');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const { body, validationResult } = require('express-validator');
-
-const execFileAsync = promisify(execFile);
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -101,53 +97,6 @@ const upload = multer({
     limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: fileFilter
 });
-
-function isVideoUpload(file) {
-    if (!file) return false;
-    const ext = path.extname(file.originalname || '').toLowerCase();
-    return (file.mimetype && file.mimetype.startsWith('video/')) || ['.mp4', '.mkv', '.mov'].includes(ext);
-}
-
-async function transcodeForAppleCompatibility(uploadedFile) {
-    if (!isVideoUpload(uploadedFile)) {
-        return '/uploads/' + uploadedFile.filename;
-    }
-
-    const inputPath = path.join(uploadsDir, uploadedFile.filename);
-    const parsed = path.parse(uploadedFile.filename);
-    const outputFilename = `${parsed.name}-ios.mp4`;
-    const outputPath = path.join(uploadsDir, outputFilename);
-
-    try {
-        await execFileAsync('ffmpeg', [
-            '-y',
-            '-i', inputPath,
-            '-c:v', 'libx264',
-            '-profile:v', 'high',
-            '-level', '4.0',
-            '-pix_fmt', 'yuv420p',
-            '-preset', 'fast',
-            '-crf', '23',
-            '-c:a', 'aac',
-            '-b:a', '128k',
-            '-ac', '2',
-            '-movflags', '+faststart',
-            outputPath
-        ], { timeout: 5 * 60 * 1000 });
-
-        if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
-            fs.unlink(inputPath, () => {});
-            return '/uploads/' + outputFilename;
-        }
-    } catch (err) {
-        console.warn('FFmpeg transcode skipped/failed, keeping original file:', err.message);
-        if (fs.existsSync(outputPath)) {
-            fs.unlink(outputPath, () => {});
-        }
-    }
-
-    return '/uploads/' + uploadedFile.filename;
-}
 
 const dbConnectionString = process.env.DATABASE2_URL || process.env.DATABASE_URL || 'postgresql://postgres:sdU4FbObdDnTdQ2Cdf9w@database2-gir-service:5432/databaseeqd_db';
 
@@ -662,10 +611,7 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
             });
         }
 
-        let filePath = '';
-        if (req.file) {
-            filePath = await transcodeForAppleCompatibility(req.file);
-        }
+        const filePath = req.file ? '/uploads/' + req.file.filename : '';
 
         const result = await pool.query(
             `INSERT INTO projects (title, charity_name, charity_id, uploader_type, province, district, description, file_path, views, likes)
@@ -697,7 +643,7 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
         let params = [title, province, district, description];
 
         if (req.file) {
-            const filePath = await transcodeForAppleCompatibility(req.file);
+            const filePath = '/uploads/' + req.file.filename;
             query += `, file_path = $5 WHERE id = $6 RETURNING *`;
             params.push(filePath, id);
         } else {
