@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مهرنما - تصویر شفاف مهربانی</title>
+    <title>مهرنما - تابش تصویر مهربانی به جای‌جای کره زمین</title>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; direction: rtl; }
         header { background-color: #ffffff; padding: 12px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
@@ -33,28 +33,6 @@
         .btn-subscribed { background-color: #e5e7eb; color: #374151; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
         .btn-subscribe { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
 
-        .mobile-upload-banner {
-            display: none;
-            background: #fff5f5;
-            border: 1px solid #fecaca;
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 16px;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .mobile-upload-banner-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-        .mobile-upload-banner-caption {
-            font-size: 12px;
-            color: #7f1d1d;
-            font-weight: 600;
-            line-height: 1.6;
-        }
         .mobile-fab-upload {
             display: none;
             position: fixed;
@@ -244,7 +222,6 @@
             .search-container { margin: 0 4px; max-width: 110px; }
             .search-input { padding: 6px 8px; font-size: 12px; }
             .search-btn { padding: 6px 8px; }
-            .mobile-upload-banner.logged-in { display: flex; }
             .mobile-fab-upload.logged-in { display: inline-flex; }
             .sidebar { display: none !important; }
             .main-container, .tags-bar { margin-right: 0 !important; padding: 15px; }
@@ -282,7 +259,7 @@
             </div>
             <div class="logo-text-group">
                 <div class="logo-title">مهرنما</div>
-                <div class="logo-subtitle">تصویر شفاف مهربانی</div>
+                <div class="logo-subtitle">تابش تصویر مهربانی به جای‌جای کره زمین</div>
             </div>
         </a>
         <div class="search-container">
@@ -331,18 +308,11 @@
         </aside>
 
         <main class="main-container" id="main-content">
-            <div class="mobile-upload-banner" id="mobileUploadBanner">
-                <div class="mobile-upload-banner-top">
-                    <span style="font-size: 12px; font-weight: bold; color: #991b1b;">🎬 بارگذاری ویدیو جدید</span>
-                    <button type="button" class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="window.location.href='/?upload=true'">➕ آپلود</button>
-                </div>
-                <div class="mobile-upload-banner-caption">مهربانی تو ازهمه جای دنیا دیده میشود</div>
-            </div>
             <div class="content-grow" id="dynamicContent">
                 <p>در حال بارگذاری...</p>
             </div>
             <footer class="site-footer">
-                <span>مهرنما — تصویر شفاف مهربانی</span>
+                <span>مهرنما — تابش تصویر مهربانی به جای‌جای کره زمین</span>
                 <div class="footer-links">
                     <button type="button" class="footer-link-btn" onclick="openPrivacyModal()">سیاست حریم خصوصی و کوکی‌ها</button>
                 </div>
@@ -648,7 +618,6 @@
         function updateHeaderUser() {
             let user = getLoggedInUser();
             let headerActions = document.getElementById('headerActions');
-            let banner = document.getElementById('mobileUploadBanner');
             let fab = document.getElementById('mobileFabUpload');
 
             if (user) {
@@ -656,14 +625,12 @@
                     <span style="font-size: 12px; font-weight: bold; color: #333; max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">👤 ${user.name}</span>
                     <button class="btn-outline" onclick="handleLogout()" style="padding: 6px 10px; font-size: 12px;">خروج</button>
                 `;
-                if (banner) banner.classList.add('logged-in');
                 if (fab) fab.classList.add('logged-in');
             } else {
                 headerActions.innerHTML = `
                     <button class="btn-outline" onclick="openLoginModal()">ورود</button>
                     <button class="btn-primary" onclick="openRegisterModal()">ثبت‌نام</button>
                 `;
-                if (banner) banner.classList.remove('logged-in');
                 if (fab) fab.classList.remove('logged-in');
             }
         }
