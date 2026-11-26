@@ -76,7 +76,7 @@
         .content-grow { flex: 1; }
 
         .site-footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #666; }
-        .footer-links { display: flex; gap: 16px; align-items: center; }
+        .footer-links { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
         .footer-link-btn { background: none; border: none; color: #065fd4; cursor: pointer; font-family: Tahoma, sans-serif; font-size: 12px; font-weight: bold; padding: 0; }
         .footer-link-btn:hover { text-decoration: underline; }
 
@@ -87,8 +87,9 @@
 
         .privacy-body { font-size: 13px; line-height: 1.85; color: #333; }
         .privacy-body h4 { margin: 14px 0 6px 0; color: #111; font-size: 14px; }
-        .privacy-body ul { margin: 6px 0 12px 0; padding-right: 18px; }
+        .privacy-body ul, .privacy-body ol { margin: 6px 0 12px 0; padding-right: 18px; }
         .privacy-body li { margin-bottom: 5px; }
+        .guide-quote { margin-top: 14px; padding: 12px 14px; background: #fef2f2; border-right: 4px solid #cc0000; border-radius: 8px; font-size: 13px; line-height: 1.8; color: #1f2937; }
 
         .channel-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .channel-header h2 { margin: 0 0 5px 0; color: #111; }
@@ -314,6 +315,7 @@
             <footer class="site-footer">
                 <span>مهرنما — تابش تصویر مهربانی به جای‌جای کره زمین</span>
                 <div class="footer-links">
+                    <button type="button" class="footer-link-btn" onclick="openUploadGuideModal()">راهنما و قوانین بارگذاری ویدیو</button>
                     <button type="button" class="footer-link-btn" onclick="openPrivacyModal()">سیاست حریم خصوصی و کوکی‌ها</button>
                 </div>
             </footer>
@@ -327,6 +329,57 @@
         <div class="cookie-actions">
             <button type="button" class="btn-outline" onclick="openPrivacyModal()">حریم خصوصی</button>
             <button type="button" class="btn-primary" onclick="acceptCookies()">تایید و ادامه</button>
+        </div>
+    </div>
+
+    <div class="modal" id="uploadGuideModal">
+        <div class="modal-content wide">
+            <h3 style="margin-top:0;">راهنما و قوانین بارگذاری ویدیو در مهرنما</h3>
+            <div class="privacy-body">
+                <p>مهرنما کاری می‌کند که آدم‌ها بتوانند از هر جا روایت آدم‌ها را ببینند، همراه شوند و اگر دلشان خواست دست یاری دراز کنند.</p>
+
+                <h4>قوانین و شرایط بارگذاری ویدیو</h4>
+                <ul>
+                    <li><strong>۱. کاربران حقیقی:</strong>
+                        <ul>
+                            <li><strong>شرایط انتشار:</strong> افراد حقیقی به شرط ارائه اطلاعات دقیق و صحیح و رعایت کامل قوانین جمهوری اسلامی ایران می‌توانند ویدیو بارگذاری کنند.</li>
+                            <li><strong>احراز هویت:</strong> برای اینکه اعتماد و شفافیت در فضا کاملاً برقرار بماند، حساب‌های حقیقی توسط تیم مهرنما احراز هویت می‌شوند.</li>
+                        </ul>
+                    </li>
+                    <li><strong>۲. موسسات خیریه:</strong>
+                        <ul>
+                            <li><strong>روایت با احترام و صداقت:</strong> موسسات نیکوکاری و خیریه می‌توانند ویدیوهای مربوط به افراد و طرح‌ها را با رضایت کامل خودشان و با رعایت حقوق و کرامت انسانی منتشر کنند؛ یا حتی خودشان بی‌واسطه و صادقانه جلوی دوربین بنشینند و مواردی را که نیاز به کمک دارند، مستقیم با مخاطبان در سراسر دنیا مطرح کنند.</li>
+                            <li><strong>ثبت لوکیشن دقیق:</strong> نوشتن لوکیشن و منطقه در همه ویدیوها ضروری است تا همشهری‌ها و هم‌محله‌ای‌ها—چه داخل کشور و چه هر جای دیگری از دنیا—خیلی راحت موارد نزدیک به خودشان را پیدا کنند و کمک برسانند.</li>
+                        </ul>
+                    </li>
+                    <li><strong>۳. شرکت‌ها و حامیان مسئولیت اجتماعی:</strong>
+                        <ul>
+                            <li><strong>حضور در مهرنما:</strong> شرکت‌هایی که کار مسئولیت اجتماعی انجام می‌دهند، با کمال میل می‌توانند در مهرنما حساب کاربری داشته باشند.</li>
+                            <li><strong>پیدا کردن دقیق‌ترین موارد:</strong> ما در مهرنما با الگوریتم‌های پیشرفته هوش مصنوعی که در سامانه پیاده‌سازی کرده‌ایم، به شرکت‌ها کمک می‌کنیم دقیق‌ترین افراد، پروژه‌ها و مواردی را که با اولویت و حوزه کاری‌شان هم‌خوانی دارد، پیدا کنند.</li>
+                        </ul>
+                    </li>
+                    <li><strong>۴. ضوابط فنی فایل ویدیویی:</strong>
+                        <ul>
+                            <li><strong>نوع فایل و مدت زمان:</strong> صرفاً فایل‌های ویدیویی (با حداکثر مدت زمان ۱۰ دقیقه) مجاز به بارگذاری هستند.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>مراحل بارگذاری ویدیو در سامانه</h4>
+                <ol>
+                    <li><strong>ورود به حساب کاربری:</strong> ابتدا با حساب حقیقی یا حقوقی خود وارد مهرنما شوید.</li>
+                    <li><strong>باز کردن بخش بارگذاری:</strong> از منوی کناری یا دکمه بارگذاری ویدیو وارد صفحه ارسال محتوا شوید.</li>
+                    <li><strong>تکمیل مشخصات و لوکیشن:</strong> عنوان شفاف، استان و شهر/منطقه دقیق و توضیحات کامل و صادقانه را وارد کنید.</li>
+                    <li><strong>انتخاب فایل و انتشار:</strong> فایل ویدیویی (تا ۱۰ دقیقه) را انتخاب و گزینه انتشار را بزنید تا در سامانه ثبت شود.</li>
+                </ol>
+
+                <div class="guide-quote">
+                    <strong>مهرنما</strong>؛ جایی که صداقت، شفافیت و موقعیت‌محوری دست به دست هم می‌دهند تا یاری‌رسانی به هم‌نوع، سریع‌تر و اثرگذارتر به دست اهل دل در سراسر کره زمین برسد.
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+                <button class="btn-primary" onclick="closeUploadGuideModal()">بستن</button>
+            </div>
         </div>
     </div>
 
@@ -600,6 +653,14 @@
             if (banner) {
                 banner.classList.remove('show');
             }
+        }
+
+        function openUploadGuideModal() {
+            document.getElementById('uploadGuideModal').style.display = 'flex';
+        }
+
+        function closeUploadGuideModal() {
+            document.getElementById('uploadGuideModal').style.display = 'none';
         }
 
         function openPrivacyModal() {
