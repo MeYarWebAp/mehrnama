@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -23,6 +24,10 @@
         .btn-primary { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
         .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-outline { background-color: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
+        .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-danger { background-color: #991b1b; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; font-family: Tahoma, sans-serif; }
+        .btn-danger:hover { background-color: #7f1d1d; }
+        .btn-danger:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-like { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; font-family: Tahoma, sans-serif; }
         .btn-like:hover { background-color: #fee2e2; color: #cc0000; border-color: #fca5a5; }
         .btn-like.liked { background-color: #fee2e2; color: #cc0000; border-color: #ef4444; }
@@ -153,6 +158,8 @@
 
         .upload-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 700px; margin: 0 auto; }
         .helper-hint { font-size: 12px; color: #666; background: #f9fafb; padding: 10px 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 14px; line-height: 1.7; }
+        .edit-actions-row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .edit-actions-row .btn-primary { flex: 1; min-width: 180px; padding: 10px 16px; }
 
         .upload-overlay {
             display: none;
@@ -348,7 +355,7 @@
                 <ul>
                     <li>در زمان ثبت‌نام کاربران حقیقی: نام، نام خانوادگی، کد ملی، شماره همراه منطبق با کد ملی و ایمیل (همراه با کد تایید ایمیل).</li>
                     <li>در زمان ثبت‌نام موسسات / خیریه‌ها: نام موسسه، شماره ثبت، نام و نام خانوادگی مدیر موسسه، کد ملی مدیر، شماره همراه مدیر، ایمیل، موقعیت فعالیت و رمز عبور.</li>
-                    <li>در زمان فعالیت در سایت: ویدیوها، تصاویر و پروژه‌های بارگذاری‌شده توسط کاربران حقیقی و موسسات خیریه، نظرات، پسندیدن‌ها و اشتراک‌ها.</li>
+                    <li>در زمان فعالیت در سایت: ویدیوها و پروژه‌های بارگذاری‌شده توسط کاربران حقیقی و موسسات خیریه، نظرات، پسندیدن‌ها و اشتراک‌ها.</li>
                 </ul>
 
                 <h4>۲. کوکی‌ها و حافظه محلی (Cookies & Local Storage)</h4>
@@ -574,7 +581,7 @@
         }
 
         function renderMediaElement(filePath, altText, isWatchPage = false) {
-            const safeSrc = filePath || 'https://picsum.photos/600/400';
+            const safeSrc = filePath || '';
             if (isVideoFile(safeSrc)) {
                 const videoPosterSrc = safeSrc.includes('#') ? safeSrc : `${safeSrc}#t=0.1`;
                 if (isWatchPage) {
@@ -585,7 +592,7 @@
                     <span class="video-play-badge">▶ ویدیو</span>
                 `;
             }
-            return `<img src="${safeSrc}" alt="${altText || 'تصویر'}">`;
+            return `<img src="${safeSrc || 'https://picsum.photos/600/400'}" alt="${altText || 'ویدیو'}">`;
         }
 
         function getUploaderBadge(uploaderType) {
@@ -1065,7 +1072,7 @@
                 container.innerHTML = `
                     <div class="upload-container" style="text-align:center;">
                         <div class="section-title">بارگذاری ویدیو</div>
-                        <p style="color:#555; margin-bottom:20px;">برای بارگذاری ویدیو یا تصویر، لطفاً ابتدا وارد حساب کاربری حقیقی یا حقوقی خود شوید.</p>
+                        <p style="color:#555; margin-bottom:20px;">برای بارگذاری ویدیو، لطفاً ابتدا وارد حساب کاربری حقیقی یا حقوقی خود شوید.</p>
                         <button class="btn-primary" onclick="openLoginModal()">ورود به حساب کاربری</button>
                     </div>
                 `;
@@ -1078,15 +1085,15 @@
                 <div class="upload-container">
                     <div class="section-title">بارگذاری ویدیو جدید</div>
                     <div class="helper-hint">
-                        شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو یا عکس منتشر کنند.
+                        شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو منتشر کنند (فقط فایل‌های ویدیویی، حداکثر ۱۰ دقیقه).
                     </div>
                     <div class="form-group"><label>عنوان ویدیو</label><input type="text" id="upTitle" placeholder="عنوان مستند، گزارش یا پویش..."></div>
                     <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="upDistrict" placeholder="مثلا تجریش"></div>
                     <div class="form-group"><label>توضیحات کامل</label><textarea id="upDesc" rows="4" placeholder="شرح فعالیت خیرخواهانه یا گزارش ویدیویی..."></textarea></div>
                     <div class="form-group">
-                        <label>انتخاب ویدیو یا عکس (حداکثر ۱۰ دقیقه)</label>
-                        <input type="file" id="upFile" accept="image/*,video/*">
+                        <label>انتخاب ویدیو (فقط ویدیو، حداکثر ۱۰ دقیقه)</label>
+                        <input type="file" id="upFile" accept="video/*">
                     </div>
                     <button id="submitNewProjectBtn" class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitNewProject()">انتشار و ثبت در دیتابیس</button>
                 </div>
@@ -1135,21 +1142,29 @@
                 return;
             }
 
+            if (!fileInput) {
+                alert('لطفاً یک فایل ویدیویی انتخاب کنید.');
+                return;
+            }
+
+            if (!fileInput.type.startsWith('video/')) {
+                alert('فقط آپلود فایل ویدیویی مجاز است؛ لطفاً یک ویدیو انتخاب کنید.');
+                return;
+            }
+
             if (submitBtn) submitBtn.disabled = true;
             showUploadLoading(
-                fileInput ? 'در حال آپلود فایل...' : 'در حال ثبت اطلاعات...',
+                'در حال آپلود ویدیو...',
                 'لطفاً صبر کنید؛ تا پایان بارگذاری صفحه را نبندید.'
             );
 
             try {
-                if (fileInput && fileInput.type.startsWith('video/')) {
-                    let isValidDuration = await checkVideoDuration(fileInput);
-                    if (!isValidDuration) {
-                        hideUploadLoading();
-                        if (submitBtn) submitBtn.disabled = false;
-                        alert('حداکثر مدت زمان مجاز برای آپلود ویدیو ۱۰ دقیقه می‌باشد.');
-                        return;
-                    }
+                let isValidDuration = await checkVideoDuration(fileInput);
+                if (!isValidDuration) {
+                    hideUploadLoading();
+                    if (submitBtn) submitBtn.disabled = false;
+                    alert('حداکثر مدت زمان مجاز برای آپلود ویدیو ۱۰ دقیقه می‌باشد.');
+                    return;
                 }
 
                 let formData = new FormData();
@@ -1160,9 +1175,7 @@
                 formData.append('province', province);
                 formData.append('district', district || 'مرکزی');
                 formData.append('description', description);
-                if (fileInput) {
-                    formData.append('media_file', fileInput);
-                }
+                formData.append('media_file', fileInput);
 
                 let res = await fetch('/api/projects', {
                     method: 'POST',
@@ -1201,17 +1214,70 @@
             container.innerHTML = `
                 <div class="upload-container">
                     <div class="section-title">ویرایش ویدیو (پروژه #${project.id})</div>
+                    <div class="helper-hint">
+                        ویدیوی قبلی بارگذاری‌شده ذخیره شده است و در صورت عدم انتخاب ویدیوی جدید، همان ویدیو به کار می‌رود و بدون تغییر باقی می‌ماند.
+                    </div>
                     <div class="form-group"><label>عنوان ویدیو</label><input type="text" id="editTitle" value="${project.title || ''}"></div>
                     <div class="form-group"><label>استان</label><input type="text" id="editProvince" value="${project.province || ''}"></div>
                     <div class="form-group"><label>شهر / منطقه</label><input type="text" id="editDistrict" value="${project.district || ''}"></div>
                     <div class="form-group"><label>توضیحات کامل</label><textarea id="editDesc" rows="4">${project.description || ''}</textarea></div>
                     <div class="form-group">
-                        <label>انتخاب ویدیو یا عکس جدید (حداکثر ۱۰ دقیقه)</label>
-                        <input type="file" id="editFile" accept="image/*,video/*">
+                        <label>انتخاب ویدیوی جدید در صورت نیاز به جایگزینی (فقط ویدیو، حداکثر ۱۰ دقیقه)</label>
+                        <input type="file" id="editFile" accept="video/*">
                     </div>
-                    <button id="submitEditProjectBtn" class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitEditProject(${project.id})">ذخیره تغییرات و تعویض فایل</button>
+                    <div class="edit-actions-row">
+                        <button id="submitEditProjectBtn" class="btn-primary" onclick="submitEditProject(${project.id})">ذخیره تغییرات</button>
+                        <button id="deleteProjectBtn" type="button" class="btn-danger" onclick="deleteProject(${project.id})">🗑️ حذف ویدیو</button>
+                    </div>
                 </div>
             `;
+        }
+
+        async function deleteProject(projectId) {
+            let user = getLoggedInUser();
+            if (!user) {
+                alert('لطفاً ابتدا وارد حساب کاربری خود شوید.');
+                openLoginModal();
+                return;
+            }
+
+            const confirmed = confirm('آیا از حذف کامل این ویدیو مطمئن هستید؟ این عمل قابل بازگشت نیست.');
+            if (!confirmed) return;
+
+            let deleteBtn = document.getElementById('deleteProjectBtn');
+            let saveBtn = document.getElementById('submitEditProjectBtn');
+            if (deleteBtn) deleteBtn.disabled = true;
+            if (saveBtn) saveBtn.disabled = true;
+
+            showUploadLoading(
+                'در حال حذف ویدیو...',
+                'لطفاً صبر کنید تا حذف از سامانه انجام شود.'
+            );
+
+            try {
+                let res = await fetch(`/api/projects/${projectId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ charity_id: user.id })
+                });
+                let data = await res.json();
+                hideUploadLoading();
+
+                if (data.success) {
+                    alert('ویدیو با موفقیت حذف شد.');
+                    window.location.href = '/';
+                } else {
+                    if (deleteBtn) deleteBtn.disabled = false;
+                    if (saveBtn) saveBtn.disabled = false;
+                    alert(data.error || 'خطا در حذف ویدیو.');
+                }
+            } catch (err) {
+                hideUploadLoading();
+                if (deleteBtn) deleteBtn.disabled = false;
+                if (saveBtn) saveBtn.disabled = false;
+                console.error(err);
+                alert('خطا در ارتباط با سرور.');
+            }
         }
 
         async function submitEditProject(projectId) {
@@ -1222,15 +1288,22 @@
             let fileInput = document.getElementById('editFile').files[0];
             let user = getLoggedInUser();
             let submitBtn = document.getElementById('submitEditProjectBtn');
+            let deleteBtn = document.getElementById('deleteProjectBtn');
 
             if (!title || !province) {
                 alert('لطفاً عنوان و استان را وارد کنید.');
                 return;
             }
 
+            if (fileInput && !fileInput.type.startsWith('video/')) {
+                alert('فقط انتخاب فایل ویدیویی مجاز است.');
+                return;
+            }
+
             if (submitBtn) submitBtn.disabled = true;
+            if (deleteBtn) deleteBtn.disabled = true;
             showUploadLoading(
-                fileInput ? 'در حال بارگذاری و جایگزینی فایل...' : 'در حال ذخیره تغییرات...',
+                fileInput ? 'در حال بارگذاری و جایگزینی ویدیو...' : 'در حال ذخیره تغییرات...',
                 'لطفاً صبر کنید؛ تا پایان عملیات صفحه را نبندید.'
             );
 
@@ -1240,6 +1313,7 @@
                     if (!isValidDuration) {
                         hideUploadLoading();
                         if (submitBtn) submitBtn.disabled = false;
+                        if (deleteBtn) deleteBtn.disabled = false;
                         alert('حداکثر مدت زمان مجاز برای آپلود ویدیو ۱۰ دقیقه می‌باشد.');
                         return;
                     }
@@ -1262,9 +1336,10 @@
                 let data = await res.json();
                 hideUploadLoading();
                 if (submitBtn) submitBtn.disabled = false;
+                if (deleteBtn) deleteBtn.disabled = false;
 
                 if (data.success) {
-                    alert('پروژه با موفقیت ویرایش و فایل آن به‌روز شد!');
+                    alert('تغییرات با موفقیت ذخیره شد!');
                     window.location.href = `/?v=${projectId}`;
                 } else {
                     alert(data.error || 'خطا در ذخیره تغییرات.');
@@ -1272,6 +1347,7 @@
             } catch (err) {
                 hideUploadLoading();
                 if (submitBtn) submitBtn.disabled = false;
+                if (deleteBtn) deleteBtn.disabled = false;
                 console.error(err);
                 alert('خطا در ارتباط با سرور.');
             }
@@ -1590,7 +1666,7 @@
             let projects = await fetchProjectsSafe();
             let project = projects.find(p => p.id == id) || projects[0];
             if (!project) {
-                container.innerHTML = '<p style="padding:40px; text-align:center;">پروژه مورد نظر یافت نشد.</p>';
+                container.innerHTML = '<p style="padding:40px; text-align:center;">ویدیو مورد نظر یافت نشد.</p>';
                 return;
             }
 
@@ -1627,7 +1703,7 @@
                                 <button class="btn-like ${userLiked ? 'liked' : ''}" id="likeBtn" onclick="submitLike(${project.id})">
                                     <span id="likeCountDisplay">❤️ ${project.likes || 0}</span>
                                 </button>
-                                ${isOwner ? `<button class="btn-outline" onclick="loadEditPage(${project.id})">✏️ ویرایش پروژه و فایل</button>` : ''}
+                                ${isOwner ? `<button class="btn-outline" onclick="loadEditPage(${project.id})">✏️ ویرایش یا حذف ویدیو</button>` : ''}
                                 <button class="${isSubscribed ? 'btn-subscribed' : 'btn-subscribe'}" id="subscribeBtn" onclick="toggleSubscribe('${project.charity_id}', '${project.charity_name}')">
                                     ${isSubscribed ? 'مشترک شده ✓' : 'عضویت (Subscribe)'}
                                 </button>
