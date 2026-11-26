@@ -78,6 +78,20 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+function deleteUploadFileIfExists(filePath) {
+    if (!filePath || typeof filePath !== 'string') return;
+    const baseName = path.basename(filePath);
+    if (!baseName) return;
+    const fullPath = path.join(uploadsDir, baseName);
+    if (fullPath.startsWith(uploadsDir) && fs.existsSync(fullPath)) {
+        try {
+            fs.unlinkSync(fullPath);
+        } catch (err) {
+            console.warn('Could not delete upload file:', fullPath, err.message);
+        }
+    }
+}
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => {
@@ -86,12 +100,15 @@ const storage = multer.diskStorage({
     }
 });
 
+const allowedVideoMimes = ['video/mp4', 'video/mkv', 'video/x-matroska', 'video/quicktime', 'video/webm', 'video/ogg'];
+const allowedVideoExts = ['.mp4', '.mkv', '.mov', '.webm', '.ogg'];
+
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4', 'video/mkv', 'video/quicktime'];
-    if (allowedTypes.includes(file.mimetype)) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (allowedVideoMimes.includes(file.mimetype) || allowedVideoExts.includes(ext)) {
         cb(null, true);
     } else {
-        cb(new Error('فرمت فایل نامعتبر است. فقط تصاویر و ویدیوهای مجاز پذیرفته می‌شوند.'), false);
+        cb(new Error('فرمت فایل نامعتبر است. فقط فایل‌های ویدیویی پذیرفته می‌شوند.'), false);
     }
 };
 
@@ -617,7 +634,14 @@ app.post('/api/projects', upload.single('media_file'), async (req, res, next) =>
             });
         }
 
-        const filePath = req.file ? '/uploads/' + req.file.filename : '';
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'لطفاً یک فایل ویدیویی انتخاب کنید.'
+            });
+        }
+
+        const filePath = '/uploads/' + req.file.filename;
 
         const result = await pool.query(
             `INSERT INTO projects (title, charity_name, charity_id, uploader_type, province, district, description, file_path, views, likes)
@@ -645,6 +669,14 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
         const { id } = req.params;
         const { title, province, district, description } = req.body;
 
+        let oldFilePath = null;
+        if (req.file) {
+            const existing = await pool.query('SELECT file_path FROM projects WHERE id = $1', [id]);
+            if (existing.rows.length > 0) {
+                oldFilePath = existing.rows[0].file_path;
+            }
+        }
+
         let query = `UPDATE projects SET title = $1, province = $2, district = $3, description = $4`;
         let params = [title, province, district, description];
 
@@ -661,7 +693,44 @@ app.put('/api/projects/:id', upload.single('media_file'), async (req, res, next)
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'پروژه یافت نشد.' });
         }
+
+        if (req.file && oldFilePath) {
+            deleteUploadFileIfExists(oldFilePath);
+        }
+
         res.json({ success: true, project: result.rows[0] });
+    } catch (err) {
+        next(err);
+    }
+});
+
+app.delete('/api/projects/:id', async (req, res, next) => {
+    try {
+        const pool = getPool(req);
+        const projectId = Number(req.params.id);
+        const requesterId = req.body && req.body.charity_id ? Number(req.body.charity_id) : Number(req.query.charity_id);
+
+        if (!projectId) {
+            return res.status(400).json({ success: false, error: 'شناسه ویدیو معتبر نیست.' });
+        }
+
+        const existingResult = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+        if (existingResult.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'ویدیو یافت نشد.' });
+        }
+
+        const project = existingResult.rows[0];
+        if (!requesterId || (Number(project.charity_id) !== requesterId && requesterId !== 99)) {
+            return res.status(403).json({ success: false, error: 'شما اجازه حذف این ویدیو را ندارید.' });
+        }
+
+        await pool.query('DELETE FROM project_likes WHERE project_id = $1', [projectId]);
+        await pool.query('DELETE FROM comments WHERE video_id = $1', [projectId]);
+        await pool.query('DELETE FROM projects WHERE id = $1', [projectId]);
+
+        deleteUploadFileIfExists(project.file_path);
+
+        res.json({ success: true, message: 'ویدیو با موفقیت حذف شد.' });
     } catch (err) {
         next(err);
     }
