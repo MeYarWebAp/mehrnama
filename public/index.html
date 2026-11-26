@@ -231,6 +231,7 @@
             .mobile-fab-upload.logged-in { display: inline-flex; }
             .sidebar { display: none !important; }
             .main-container, .tags-bar { margin-right: 0 !important; padding: 15px; }
+            .main-container { padding-bottom: 84px; }
             .mobile-bars-container { display: flex; }
             .watch-layout { grid-template-columns: 1fr; }
             .video-grid { grid-template-columns: repeat(2, 1fr); }
@@ -246,8 +247,8 @@
     <div class="upload-overlay" id="uploadOverlay" role="status" aria-live="polite">
         <div class="upload-overlay-card">
             <div class="spinner-ring"></div>
-            <div class="upload-overlay-title" id="uploadOverlayTitle">در حال بارگذاری و پردازش فایل...</div>
-            <div class="upload-overlay-sub" id="uploadOverlaySub">لطفاً تا پایان آپلود و بهینه‌سازی ویدیو صبر کنید و صفحه را نبندید.</div>
+            <div class="upload-overlay-title" id="uploadOverlayTitle">در حال بارگذاری فایل...</div>
+            <div class="upload-overlay-sub" id="uploadOverlaySub">لطفاً تا پایان آپلود صبر کنید و صفحه را نبندید.</div>
         </div>
     </div>
 
@@ -292,7 +293,6 @@
     </div>
 
     <div class="mobile-bars-container" id="mobileBarsContainer">
-        <div class="mobile-bar-row" id="mobileUploadRow" style="display: none;"></div>
         <div class="mobile-bar-row" id="mobileSubsRow">
             <span class="mobile-bar-label">اشتراک‌ها:</span>
         </div>
@@ -930,19 +930,6 @@
         async function renderSidebar(activeProvince = null) {
             let subs = await getSubscriptions();
             let user = getLoggedInUser();
-
-            let mobileUploadRow = document.getElementById('mobileUploadRow');
-            if (mobileUploadRow) {
-                if (user) {
-                    mobileUploadRow.style.display = 'flex';
-                    mobileUploadRow.innerHTML = `
-                        <button type="button" class="mobile-item-chip active" onclick="window.location.href='/?upload=true'">➕ بارگذاری ویدیو جدید</button>
-                    `;
-                } else {
-                    mobileUploadRow.style.display = 'none';
-                    mobileUploadRow.innerHTML = '';
-                }
-            }
             
             let mobileSubsRow = document.getElementById('mobileSubsRow');
             if (mobileSubsRow) {
@@ -1080,8 +1067,7 @@
                 <div class="upload-container">
                     <div class="section-title">بارگذاری ویدیو جدید</div>
                     <div class="helper-hint">
-                        شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو یا عکس منتشر کنند.<br>
-                        ویدیوهای آپلودشده در صورت وجود ffmpeg روی سرور به‌صورت خودکار برای پخش مطمئن صدا و تصویر در آیفون بهینه می‌شوند.
+                        شما با حساب <strong>${user.name}</strong> (${uploaderLabel}) در حال بارگذاری هستید. هم کاربران حقیقی و هم خیریه‌ها می‌توانند ویدیو یا عکس منتشر کنند.
                     </div>
                     <div class="form-group"><label>عنوان ویدیو</label><input type="text" id="upTitle" placeholder="عنوان مستند، گزارش یا پویش..."></div>
                     <div class="form-group"><label>استان</label><input type="text" id="upProvince" placeholder="مثلا تهران"></div>
@@ -1140,7 +1126,7 @@
 
             if (submitBtn) submitBtn.disabled = true;
             showUploadLoading(
-                fileInput ? 'در حال آپلود و پردازش فایل...' : 'در حال ثبت اطلاعات...',
+                fileInput ? 'در حال آپلود فایل...' : 'در حال ثبت اطلاعات...',
                 'لطفاً صبر کنید؛ تا پایان بارگذاری صفحه را نبندید.'
             );
 
@@ -1696,3 +1682,6 @@
     </script>
 </body>
 </html>
+```[cite: 7]
+
+پس از جایگزینی فایل روی سرور و رفرش صفحه در حالت موبایل، بررسی کنید که فقط بنر بالای لیست و دکمه شناور پایین باقی مانده باشند و محتوای پایین صفحه زیر دکمه شناور قرار نگیرد. اگر در جای دیگری از رابط کاربری یا نمایش ویدیوها تغییری نیاز بود، بفرمایید.
